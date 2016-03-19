@@ -28,22 +28,22 @@ public class Timer {
 
      */
     public func start(duration: NSTimeInterval, repeats: Bool = false, tolerancePercent:Float = 0.0, handler:(timer: Timer)->()) {
-        gcd.main().async { () -> () in
+        dispatch_async(dispatch_get_main_queue(), { () -> Void in
             self._stop()
             self.completion = handler
             self.repeats = repeats
             self.timer = NSTimer.scheduledTimerWithTimeInterval(duration, target: self, selector: "processHandler:", userInfo: nil, repeats: repeats)
             self.timer!.tolerance = duration * NSTimeInterval(tolerancePercent)
-        }
+        })
     }
     
     /**
      Stop the timer.
      */
     public func stop() {
-        gcd.main().async { () -> () in
+        dispatch_async(dispatch_get_main_queue(), { () -> Void in
             self._stop()
-        }
+        })
     }
     
     private func _stop() {
@@ -53,11 +53,11 @@ public class Timer {
     }
     
     @objc private func processHandler(timer: NSTimer) {
-        gcd.main().async { () -> () in
+        dispatch_async(dispatch_get_main_queue(), { () -> Void in
             if !self.repeats! {
                 self.timer!.invalidate()
             }
             self.completion(timer: self)
-        }
+        })
     }
 }

@@ -41,8 +41,8 @@ public class AudioPlayerEngine: NSObject {
     private var interrupted:Bool = false
     
     //Buffer queue management and thread safety
-    private let bufferQueue:gcd.serial = gcd.serial(label: "com.cyberdev.AudioPlayerEngine.buffers")
-    private let bufferGroup:gcd.group = gcd.group()
+    private let bufferQueue:dispatch_queue_t = dispatch_queue_create("com.cyberdev.AudioPlayerEngine.buffers", DISPATCH_QUEUE_SERIAL)
+    private let bufferGroup:dispatch_group_t = dispatch_group_create()
     private var buffersInFlight:Int = 0
 
     //MARK: - Member variables - public
@@ -157,7 +157,7 @@ public class AudioPlayerEngine: NSObject {
     
     public func isPlaying() -> Bool {
         var result:Bool = false
-        self.bufferQueue.sync { () -> () in
+        dispatch_sync(self.bufferQueue) { () -> Void in
             result = self.player.playing
         }
         
@@ -166,7 +166,7 @@ public class AudioPlayerEngine: NSObject {
 
     public func play() -> Bool {
         if _play() {
-            gcd.main().async({ () -> () in
+            dispatch_async(dispatch_get_main_queue(), { () -> Void in
                 if let delegate = self.delegate {
                     delegate.playbackStarted()
                 }
@@ -227,7 +227,7 @@ public class AudioPlayerEngine: NSObject {
                 trackToPlay.framePosition = self.seekPosition
                 initBuffers()
                 
-                self.bufferQueue.sync { () -> Void in
+                dispatch_sync(self.bufferQueue) { () -> Void in
                     if let currentPos:AVAudioFramePosition = self.player.lastRenderTime?.sampleTime {
                         let playTime:AVAudioTime = AVAudioTime(sampleTime: currentPos-self.seekPosition,
                             atRate: trackToPlay.processingFormat.sampleRate)
@@ -245,9 +245,9 @@ public class AudioPlayerEngine: NSObject {
                 trackToPlay.framePosition = 0
                 initBuffers()
                 
-                self.bufferQueue.sync({ () -> () in
+                dispatch_sync(self.bufferQueue) { () -> Void in
                     self.player.play()
-                })
+                }
             }
         } else {
             return false
@@ -257,12 +257,12 @@ public class AudioPlayerEngine: NSObject {
     }
 
     private func _stop() {
-        self.bufferQueue.sync { () -> () in
+        dispatch_sync(self.bufferQueue) { () -> Void in
             self.player.stop()
         }
         
         //wait for buffer queue to drain
-        self.bufferGroup.wait()
+        dispatch_group_wait(self.bufferGroup, DISPATCH_TIME_FOREVER)
     }
 
     //MARK: - Utility
@@ -282,7 +282,7 @@ public class AudioPlayerEngine: NSObject {
     private func currentPlayerTime() -> AVAudioTime? {
         var result:AVAudioTime? = nil
         
-        self.bufferQueue.sync { () -> () in
+        dispatch_sync(self.bufferQueue) { () -> Void in
             if let nodeTime:AVAudioTime = self.player.lastRenderTime {
                 result = self.player.playerTimeForNodeTime(nodeTime)
             }
@@ -304,20 +304,20 @@ public class AudioPlayerEngine: NSObject {
     private func scheduleBuffer(buffer:AVAudioPCMBuffer) -> Bool {
         var result:Bool = false
         
-        self.bufferQueue.sync { () -> () in
+        dispatch_sync(self.bufferQueue) { () -> Void in
             //Fill next buffer from file
             if self.readNextBuffer(buffer) {
-                self.bufferGroup.enter()
+                dispatch_group_enter(self.bufferGroup)
                 ++self.buffersInFlight
                 
                 //schedule buffer for playback at end of player queue
                 self.player.scheduleBuffer(buffer) { () -> Void in
                     var bufferQueueExhausted:Bool = false
-                    self.bufferQueue.sync({ () -> () in
+                    dispatch_sync(self.bufferQueue) { () -> Void in
                         --self.buffersInFlight
-                        self.bufferGroup.leave()
+                        dispatch_group_leave(self.bufferGroup)
                         bufferQueueExhausted = self.buffersInFlight <= 0
-                    })
+                    }
                     
                     //Reschedule buffer or stop if at end of file
                     if self.isPlaying() {

@@ -140,8 +140,8 @@ public class gcd {
             self.queue = queue
         }
 
-        internal init(attribute:GCDQueueAttribute, label:String? = nil) {
-            self.queue = dispatch_queue_create((label == nil ? nil : label)!, attribute.rawValue())
+        internal init(attribute:GCDQueueAttribute, label:String?) {
+            self.queue = dispatch_queue_create(label ?? "", attribute.rawValue())
         }
         
         public func sync(closure:()->()) {
