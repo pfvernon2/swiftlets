@@ -31,7 +31,7 @@ public class AudioPlayerEngine: NSObject {
     
     //AVAudioEngine and nodes
     private var engine:AVAudioEngine = AVAudioEngine()
-    private var player:AVAudioPlayerNode!
+    private var player:AVAudioPlayerNode = AVAudioPlayerNode()
     private var audioFile:AVAudioFile?
 
     //seek position for next start
@@ -118,12 +118,8 @@ public class AudioPlayerEngine: NSObject {
     }
     
     private func initAudioEngine () {
-        player = AVAudioPlayerNode()
         engine.attachNode(player)
-        
-        let format = engine.mainMixerNode.outputFormatForBus(0)
-        engine.connect(player, to: engine.mainMixerNode, format: format)
-        
+        engine.connect(player, to: engine.mainMixerNode, format: engine.mainMixerNode.outputFormatForBus(0))
         engine.prepare()
     }
     
@@ -308,13 +304,13 @@ public class AudioPlayerEngine: NSObject {
             //Fill next buffer from file
             if self.readNextBuffer(buffer) {
                 dispatch_group_enter(self.bufferGroup)
-                ++self.buffersInFlight
+                self.buffersInFlight += 1
                 
                 //schedule buffer for playback at end of player queue
                 self.player.scheduleBuffer(buffer) { () -> Void in
                     var bufferQueueExhausted:Bool = false
                     dispatch_sync(self.bufferQueue) { () -> Void in
-                        --self.buffersInFlight
+                        self.buffersInFlight -= 1
                         dispatch_group_leave(self.bufferGroup)
                         bufferQueueExhausted = self.buffersInFlight <= 0
                     }
@@ -348,39 +344,32 @@ public class AudioPlayerEngine: NSObject {
     //MARK: - Session notificaiton handling
     
     private func registerForMediaServerNotifications() {
-        
         NSNotificationCenter.defaultCenter().removeObserver(self, name: AVAudioSessionInterruptionNotification, object: nil)
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: "sessionNotification", name: AVAudioSessionInterruptionNotification, object: nil)
-
-        NSNotificationCenter.defaultCenter().removeObserver(self, name: AVAudioSessionMediaServicesWereLostNotification, object: nil)
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: "serverStoppedNotification", name: AVAudioSessionMediaServicesWereLostNotification, object: nil)
-
-        NSNotificationCenter.defaultCenter().removeObserver(self, name: AVAudioSessionMediaServicesWereResetNotification, object: nil)
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: "serverRestartNotification", name: AVAudioSessionMediaServicesWereResetNotification, object: nil)
-    }
-    
-    private func sessionNotification(notification:NSNotification) {
-        let why : AnyObject? = notification.userInfo?[AVAudioSessionInterruptionTypeKey]
-        if let why = why as? UInt {
-            if let why = AVAudioSessionInterruptionType(rawValue: why) {
-                switch why {
-                case .Began:
-                    interruptSessionBegin()
-                case .Ended:
-                    interruptSessionEnd()
+        NSNotificationCenter.defaultCenter().addObserverForName(AVAudioSessionInterruptionNotification, object: nil, queue: nil) { (notification:NSNotification) in
+            let why : AnyObject? = notification.userInfo?[AVAudioSessionInterruptionTypeKey]
+            if let why = why as? UInt {
+                if let why = AVAudioSessionInterruptionType(rawValue: why) {
+                    switch why {
+                    case .Began:
+                        self.interruptSessionBegin()
+                    case .Ended:
+                        self.interruptSessionEnd()
+                    }
                 }
             }
         }
-    }
-    
-    private func serverStoppedNotification(notification:NSNotification) {
-        //TODO: Reset everything here
-    }
-    
-    private func serverRestartNotification(notification:NSNotification) {
-        //TODO: restart playback?
-    }
 
+        NSNotificationCenter.defaultCenter().removeObserver(self, name: AVAudioSessionMediaServicesWereLostNotification, object: nil)
+        NSNotificationCenter.defaultCenter().addObserverForName(AVAudioSessionMediaServicesWereLostNotification, object: nil, queue: nil) { (notification:NSNotification) in
+            //TODO: Reset everything here
+        }
+
+        NSNotificationCenter.defaultCenter().removeObserver(self, name: AVAudioSessionMediaServicesWereResetNotification, object: nil)
+        NSNotificationCenter.defaultCenter().addObserverForName(AVAudioSessionMediaServicesWereResetNotification, object: nil, queue: nil) { (notification:NSNotification) in
+            //TODO: restart playback?
+        }
+    }
+    
     private func interruptSessionBegin() {
         let nodeTime:AVAudioTime = self.player.lastRenderTime!
         let playerTime:AVAudioTime = self.player.playerTimeForNodeTime(nodeTime)!

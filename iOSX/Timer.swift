@@ -12,7 +12,7 @@ import Foundation
 public class Timer {
     private var completion: (timer: Timer) -> () = { (timer: Timer) in }
     private var timer:NSTimer?
-    private var repeats:Bool?
+    private var repeats:Bool = false
     
     deinit {
         stop()
@@ -23,7 +23,7 @@ public class Timer {
      
      - Parameter duration: The duration in seconds between start and when the completion block is invoked.
      - Parameter repeats: Indicate if timer should repeat. Defaults to false
-     - Parameter tolerancePercent: The percentage of time after the scheduled fire date that the timer may fire. Defaults to 0.0. Range 0.0::1.0. Using a tolerance when timing accuracy is not crucial allows the OS to better optimize for power and CPU usage.
+     - Parameter tolerancePercent: The percentage of time after the scheduled fire date that the timer may fire. Defaults to 0.0. Range 0.0...1.0. Using a tolerance when timing accuracy is not crucial allows the OS to better optimize for power and CPU usage.
      - Parameter handler: The completion block to be invoked when the timer fires.
 
      */
@@ -32,7 +32,7 @@ public class Timer {
             self._stop()
             self.completion = handler
             self.repeats = repeats
-            self.timer = NSTimer.scheduledTimerWithTimeInterval(duration, target: self, selector: "processHandler:", userInfo: nil, repeats: repeats)
+            self.timer = NSTimer.scheduledTimerWithTimeInterval(duration, target: self, selector: #selector(Timer.processHandler(_:)), userInfo: nil, repeats: repeats)
             self.timer!.tolerance = duration * NSTimeInterval(tolerancePercent)
         })
     }
@@ -54,8 +54,8 @@ public class Timer {
     
     @objc private func processHandler(timer: NSTimer) {
         dispatch_async(dispatch_get_main_queue(), { () -> Void in
-            if !self.repeats! {
-                self.timer!.invalidate()
+            if !self.repeats {
+                self._stop()
             }
             self.completion(timer: self)
         })
