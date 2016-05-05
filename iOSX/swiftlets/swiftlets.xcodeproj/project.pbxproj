@@ -97,6 +97,8 @@
 		01533ACA1C9DDAE700C6E69D /* swiftlets */ = {
 			isa = PBXGroup;
 			children = (
+				01533ACB1C9DDAE700C6E69D /* swiftlets.h */,
+				01533ACD1C9DDAE700C6E69D /* Info.plist */,
 				01533AFE1C9DDF2000C6E69D /* GCD.swift */,
 				01533AFF1C9DDF2000C6E69D /* AudioEngine.swift */,
 				01533B001C9DDF2000C6E69D /* Timer.swift */,
@@ -104,8 +106,6 @@
 				01533B021C9DDF2000C6E69D /* UIImage+maskColor.swift */,
 				01533B031C9DDF2000C6E69D /* UIImage+Scaling.swift */,
 				01533B041C9DDF2000C6E69D /* RoundedCornerView.swift */,
-				01533ACB1C9DDAE700C6E69D /* swiftlets.h */,
-				01533ACD1C9DDAE700C6E69D /* Info.plist */,
 				01E6783E1CD5145E00ABE1CB /* NSData+Utilities.swift */,
 				01E678521CD531AA00ABE1CB /* UIColor+Utilities.swift */,
 				01E678531CD531AA00ABE1CB /* UIView+Utilities.swift */,
