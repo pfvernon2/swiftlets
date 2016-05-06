@@ -10,6 +10,56 @@ import UIKit
 
 extension UIView {
     
+    /**
+     Add a subview and make it conform to our size.
+     
+     This is handy for programatically adding views to IB layouts.
+     
+     - parameters:
+         - view: The view to make subview
+     */
+    func addSubViewAndMakeConform(view:UIView) {
+        addSubview(view)
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
+        let centerX = NSLayoutConstraint(item:view,
+                                         attribute:.CenterX,
+                                         relatedBy:.Equal,
+                                         toItem:self,
+                                         attribute:.CenterX,
+                                         multiplier:1.0,
+                                         constant:0.0);
+        self.addConstraint(centerX)
+        
+        let centerY = NSLayoutConstraint(item:view,
+                                         attribute:.CenterY,
+                                         relatedBy:.Equal,
+                                         toItem:self,
+                                         attribute:.CenterY,
+                                         multiplier:1.0,
+                                         constant:0.0);
+        self.addConstraint(centerY)
+        
+        let width = NSLayoutConstraint(item:view,
+                                       attribute:.Width,
+                                       relatedBy:.Equal,
+                                       toItem:self,
+                                       attribute:.Width,
+                                       multiplier:1.0,
+                                       constant:0.0);
+        self.addConstraint(width)
+        
+        let height = NSLayoutConstraint(item:view,
+                                        attribute:.Height,
+                                        relatedBy:.Equal,
+                                        toItem:self,
+                                        attribute:.Height,
+                                        multiplier:1.0,
+                                        constant:0.0);
+        self.addConstraint(height)
+    }
+    
+    
     func copyConstraintsToView(destinationView:UIView) {
         for constraint:NSLayoutConstraint in self.superview!.constraints {
             if constraint.firstItem.isEqual(self) {
