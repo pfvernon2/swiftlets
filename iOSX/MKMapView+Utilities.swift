@@ -41,7 +41,7 @@ extension MKMapView {
         setRegion(region, animated: true)
     }
     
-    func animateAnnotationViewDrop(annotationView:MKAnnotationView) {
+    func animateAnnotationViewDrop(annotationView:MKAnnotationView, closure:()->()) {
         let dropPoint:MKMapPoint = MKMapPointForCoordinate(annotationView.annotation!.coordinate)
         if MKMapRectContainsPoint(self.visibleMapRect, dropPoint) {
             let endRect = annotationView.frame
@@ -60,6 +60,7 @@ extension MKMapView {
                         completion:
                         { (finished) in
                             annotationView.transform = CGAffineTransformIdentity;
+                            closure()
                     })
             })
         }
