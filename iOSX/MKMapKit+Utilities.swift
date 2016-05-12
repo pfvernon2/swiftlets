@@ -61,3 +61,29 @@ extension CLLocation {
         self.init(latitude: location.latitude, longitude: location.longitude)
     }
 }
+
+extension MKDirectionsResponse {
+    public func greatCircleDistance() -> CLLocationDistance {
+        if let sourceLocation = self.source.placemark.location, destinationLocation = self.destination.placemark.location {
+            return sourceLocation.distanceFromLocation(destinationLocation)
+        } else {
+            return CLLocationDistance.NaN
+        }
+    }
+    
+    public func minimumRouteDistance() -> CLLocationDistance {
+        var minDistanceMeters:CLLocationDistance = Double.infinity;
+        routes.forEach({ (route) in
+            minDistanceMeters = min(route.distance, minDistanceMeters)
+        })
+        return minDistanceMeters
+    }
+
+    public func minimumRouteTravelTime() -> NSTimeInterval {
+        var minTravelTime:NSTimeInterval = Double.infinity;
+        routes.forEach({ (route) in
+            minTravelTime = min(route.expectedTravelTime, minTravelTime)
+        })
+        return minTravelTime
+    }
+}
