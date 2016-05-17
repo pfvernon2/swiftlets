@@ -52,12 +52,12 @@ extension NSURLComponents {
         
         for (key,value) in parameters {
             if result.isEmpty {
-                result.appendString("?")
+                result = result + "?"
             } else {
-                result.appendString("&")
+                result = result + "&"
             }
             
-            result.appendString(String(format: "%@=%@", key, value))
+            result = result + String(format: "%@=%@", key, value)
         }
         
         return result
