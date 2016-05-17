@@ -59,6 +59,29 @@ extension UIView {
         self.addConstraint(height)
     }
     
+    func addSubViewAndCenter(view:UIView) {
+        addSubview(view)
+        
+        view.translatesAutoresizingMaskIntoConstraints = false
+        let centerX = NSLayoutConstraint(item:view,
+                                         attribute:.CenterX,
+                                         relatedBy:.Equal,
+                                         toItem:self,
+                                         attribute:.CenterX,
+                                         multiplier:1.0,
+                                         constant:0.0);
+        self.addConstraint(centerX)
+        
+        let centerY = NSLayoutConstraint(item:view,
+                                         attribute:.CenterY,
+                                         relatedBy:.Equal,
+                                         toItem:self,
+                                         attribute:.CenterY,
+                                         multiplier:1.0,
+                                         constant:0.0);
+        self.addConstraint(centerY)
+    }
+
     
     func copyConstraintsToView(destinationView:UIView) {
         for constraint:NSLayoutConstraint in self.superview!.constraints {
@@ -89,4 +112,51 @@ extension UIView {
         }
     }
     
+    func indexInSuperview() -> Int {
+        if let index = self.superview?.subviews.indexOf(self) {
+            return index
+        } else {
+            return -1
+        }
+    }
+    
+    func moveToFront() {
+        self.superview?.bringSubviewToFront(self)
+    }
+    
+    func moveToBack() {
+        self.superview?.sendSubviewToBack(self)
+    }
+
+    func moveForward() {
+        let index:Int = self.indexInSuperview()
+        guard index > 0 && index <= self.superview?.subviews.count else {
+            return
+        }
+        
+        self.superview?.exchangeSubviewAtIndex(index, withSubviewAtIndex: index + 1)
+    }
+
+    func moveBackward() {
+        let index:Int = self.indexInSuperview()
+        guard index > 0 else {
+            return
+        }
+        
+        self.superview?.exchangeSubviewAtIndex(index, withSubviewAtIndex: index - 1)
+    }
+
+    func swapOrderWithView(otherView:UIView) {
+        let myIndex = self.indexInSuperview()
+        guard myIndex > 0 else {
+            return
+        }
+        
+        let otherIndex = otherView.indexInSuperview()
+        guard otherIndex > 0 else {
+            return
+        }
+        
+        self.superview?.exchangeSubviewAtIndex(myIndex, withSubviewAtIndex: otherIndex)
+    }
 }
