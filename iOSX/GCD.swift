@@ -230,14 +230,14 @@ public class gcd {
     /**
      Wrapper class for the common singleton pattern
      
-     ````
+     ```
      private let setup:gcd.singleton = gcd.singleton()
      private func initEngine () {
         setup.executeOnce { () -> () in
-            self.engine.create()
+            self.engine.initialize()
         }
      }
-     ````
+     ```
      */
     public class singleton {
         private var predicate:dispatch_once_t = 0;
@@ -262,9 +262,16 @@ public class gcd {
      Utility method to simplify the common pattern of asynchronously performing an operation on a
      background queue followed by updating the UI on the main thread.
      
-     - Parameter param: global - The closure to execute asynchronously in the global concurrent queue at default priority
-     - Parameter param: main - The closure to execute asynchronously in the main serial queue
-     
+     ```
+     gcd.backgroundUIOperation({
+        //backgound work happens here
+     }) {
+        //UI updates happen here
+     }
+     ```
+     - parameters:
+         - global: The closure to execute asynchronously in the global concurrent queue at default priority
+         - main: The closure to execute asynchronously in the main serial queue
      */
     public class func backgroundUIOperation(global:()->(), main:()->()) {
         gcd.global().async { () -> () in
