@@ -81,7 +81,26 @@ extension UIView {
                                          constant:0.0);
         self.addConstraint(centerY)
     }
-
+    
+    func constrainToCurrentSize() {
+        let width = NSLayoutConstraint(item:self,
+                                       attribute:.Width,
+                                       relatedBy:.Equal,
+                                       toItem:nil,
+                                       attribute:.NotAnAttribute,
+                                       multiplier:1.0,
+                                       constant:bounds.width);
+        self.addConstraint(width)
+        
+        let height = NSLayoutConstraint(item:self,
+                                        attribute:.Height,
+                                        relatedBy:.Equal,
+                                        toItem:nil,
+                                        attribute:.NotAnAttribute,
+                                        multiplier:1.0,
+                                        constant:bounds.height);
+        self.addConstraint(height)
+    }
     
     func copyConstraintsToView(destinationView:UIView) {
         for constraint:NSLayoutConstraint in self.superview!.constraints {
@@ -110,6 +129,10 @@ extension UIView {
             //force layout adjustments
             mySuperView.layoutIfNeeded()
         }
+    }
+    
+    func minDimension() -> CGFloat{
+        return min(self.bounds.width, self.bounds.height)
     }
     
     func indexInSuperview() -> Int {
