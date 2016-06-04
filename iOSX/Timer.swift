@@ -8,10 +8,12 @@
 
 import Foundation
 
-/// An NSTimer wrapper with block completion semantics. Wrapper ensures all operations occur on main thread.
+/// An NSTimer wrapper with closure semantics. Wrapper ensures all operations occur on main thread.
 public class Timer {
     private var completion: (timer: Timer) -> () = { (timer: Timer) in }
     private var timer:NSTimer?
+    private var duration:NSTimeInterval?
+    private var tolerance:Float?
     private var repeats:Bool = false
     
     deinit {
@@ -23,17 +25,38 @@ public class Timer {
      
      - Parameter duration: The duration in seconds between start and when the completion block is invoked.
      - Parameter repeats: Indicate if timer should repeat. Defaults to false
-     - Parameter tolerancePercent: The percentage of time after the scheduled fire date that the timer may fire. Defaults to 0.0. Range 0.0...1.0. Using a tolerance when timing accuracy is not crucial allows the OS to better optimize for power and CPU usage.
+     - Parameter tolerance: The percentage of time after the scheduled fire date that the timer may fire. Defaults to 0.0. Range 0.0...1.0. Using a tolerance when timing accuracy is not crucial allows the OS to better optimize for power and CPU usage.
      - Parameter handler: The completion block to be invoked when the timer fires.
 
      */
-    public func start(duration: NSTimeInterval, repeats: Bool = false, tolerancePercent:Float = 0.0, handler:(timer: Timer)->()) {
+    public func start(duration: NSTimeInterval, repeats: Bool = false, tolerance:Float = 0.0, handler:(timer: Timer)->()) {
         dispatch_async(dispatch_get_main_queue(), { () -> Void in
             self._stop()
             self.completion = handler
             self.repeats = repeats
-            self.timer = NSTimer.scheduledTimerWithTimeInterval(duration, target: self, selector: #selector(Timer.processHandler(_:)), userInfo: nil, repeats: repeats)
-            self.timer!.tolerance = duration * NSTimeInterval(tolerancePercent)
+            self.timer = NSTimer.scheduledTimerWithTimeInterval(duration,
+                target: self,
+                selector: #selector(Timer.processHandler(_:)),
+                userInfo: nil,
+                repeats: repeats)
+            self.timer!.tolerance = duration * NSTimeInterval(tolerance)
+        })
+    }
+    
+    /**
+     Restart a running or stopped timer. Noop if timer has not previously been started.
+     */
+    public func restart() {
+        dispatch_async(dispatch_get_main_queue(), { () -> Void in
+            guard let duration = self.duration else {
+                return
+            }
+            
+            guard let tolerance = self.tolerance else {
+                return
+            }
+            
+            self.start(duration, repeats: self.repeats, tolerance: tolerance, handler: self.completion)
         })
     }
     
@@ -58,6 +81,14 @@ public class Timer {
                 self._stop()
             }
             self.completion(timer: self)
+        })
+    }
+    
+    public func fire() {
+        dispatch_async(dispatch_get_main_queue(), { () -> Void in
+            if let timer = self.timer {
+                timer.fire()
+            }
         })
     }
 }
