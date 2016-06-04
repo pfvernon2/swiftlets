@@ -15,17 +15,20 @@ let kMAX_DEGREES_ARC:CLLocationDegrees = 360.0
 let kMINIMUM_ZOOM_ARC:CLLocationDegrees = 0.014 //approximately 1 mile (1 degree of arc ~= 69 miles)
 
 extension MKMapView {
-    func zoomMapViewToFitAnnotations() {
+    func zoomMapViewToFitAnnotations(coordinates:[CLLocationCoordinate2D]?) {
         if annotations.count == 0 {
             return
         }
         
-        var coordinates:[CLLocationCoordinate2D] = []
-        annotations.forEach { (annotation) in
-            coordinates.append(annotation.coordinate)
+        //if no coordinates supplied then grab everything on the map
+        var mapCoordinates:[CLLocationCoordinate2D] = coordinates ?? []
+        if mapCoordinates.isEmpty {
+            annotations.forEach { (annotation) in
+                mapCoordinates.append(annotation.coordinate)
+            }
         }
         
-        let polygon:MKPolygon = MKPolygon(coordinates: &coordinates, count: coordinates.count)
+        let polygon:MKPolygon = MKPolygon(coordinates: &mapCoordinates, count: mapCoordinates.count)
         let mapRect:MKMapRect = polygon.boundingMapRect
         
         var region:MKCoordinateRegion = MKCoordinateRegionForMapRect(mapRect)
