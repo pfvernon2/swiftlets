@@ -8,6 +8,7 @@
 
 import Foundation
 import MapKit
+import Contacts
 
 let mileMeterRatio = 1609.344
 let meterToDegreesRatio = 111000.0
@@ -35,6 +36,12 @@ extension MKRoute {
     var distanceMiles:Double {
         return metersToMiles(distance)
     }
+    
+    var expectedTravelTimeLocalizedDescription:String {
+        //TODO: actually localized and smarter time formatter here
+        let minutes = ceil(expectedTravelTime/60.0)
+        return "\(minutes.format("0.0")) Minutes"
+    }
 }
 
 extension MKCoordinateRegion {
@@ -59,6 +66,10 @@ extension CLLocationCoordinate2D {
 extension CLLocation {
     public convenience init(location:CLLocationCoordinate2D) {
         self.init(latitude: location.latitude, longitude: location.longitude)
+    }
+    
+    func isValid() -> Bool {
+        return self.coordinate.latitude != 0.0 && self.coordinate.longitude != 0.0
     }
 }
 
@@ -87,3 +98,24 @@ extension MKDirectionsResponse {
         return minTravelTime
     }
 }
+
+extension CLPlacemark {
+    func postalAddressFromAddressDictionary() -> CNMutablePostalAddress {
+        let postalAddress = CNMutablePostalAddress()
+        
+        if let addressDictionary = addressDictionary {
+            postalAddress.street = addressDictionary["Street"] as? String ?? ""
+            postalAddress.state = addressDictionary["State"] as? String ?? ""
+            postalAddress.city = addressDictionary["City"] as? String ?? ""
+            postalAddress.country = addressDictionary["Country"] as? String ?? ""
+            postalAddress.postalCode = addressDictionary["ZIP"] as? String ?? ""
+        }
+        
+        return postalAddress
+    }
+    
+    func localizedStringForAddressDictionary() -> String {
+        return CNPostalAddressFormatter.stringFromPostalAddress(postalAddressFromAddressDictionary(), style: .MailingAddress)
+    }
+}
+
