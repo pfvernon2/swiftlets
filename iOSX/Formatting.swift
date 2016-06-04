@@ -21,6 +21,10 @@ extension Int {
     func format(formatString: String) -> String {
         return String(format: "%\(formatString)d", self)
     }
+    
+    static func randomNumberFrom(from: Range<Int>) -> Int {
+        return from.startIndex + Int(arc4random_uniform(UInt32(from.endIndex - from.startIndex)))
+    }
 }
 
 extension Double {
