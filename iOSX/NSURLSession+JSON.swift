@@ -8,184 +8,162 @@
 
 import Foundation
 
-extension NSURLComponents {
-    /**
-     A convenience var to allow getting and setting the query component of HTTP URL parameters via a [String,String] dictionary.
-     */
-
-    var queryParameters:[String:String]? {
-        set {
-            if let parameters = queryParameters {
-                self.query = queryParametersFromDictionary(parameters)
-            } else {
-                self.query = nil
-            }
-        }
-        get {
-            return queryDictionaryFromParameters(self.query)
-        }
-    }
-    
-    /**
-     Utility method to convert a query parameter string of a HTTP URL to a [String,String] dictionary
-     
-     - parameters:
-         - parameters: a string query parameters from a URL
-     - returns: A [String,String] dictionary of query parameters
-     */
-
-    func queryDictionaryFromParameters(parameters:String?) -> [String:String] {
-        //TODO: [A miracle, probably involving NSScanner, happens here]
-        return [:]
+extension NSHTTPURLResponse {
+    func isOK() -> Bool {
+        return statusCode == 200
     }
 
-    /**
-     Utility method to convert a [String,String] dictionary to the query component of a HTTP URL
-     
-     - parameters:
-         - parameters: a [String,String] dictionary of query parameters to the URL
-     - returns: String representation suitable for assigning to the query component
-     */
-
-    func queryParametersFromDictionary(parameters:[String:String]) -> String {
-        var result:String = String()
-        
-        for (key,value) in parameters {
-            if result.isEmpty {
-                result = result + "?"
-            } else {
-                result = result + "&"
-            }
-            
-            result = result + String(format: "%@=%@", key, value)
-        }
-        
-        return result
+    func isSuccess() -> Bool {
+        return statusCode >= 200 && statusCode < 300
     }
 }
 
-extension NSURLSession {
-    
+private let kHTTPPostMethod:String = "POST"
+private let kHTTPGetMethod:String = "GET"
+private let kHTTPAcceptHeader:String = "Accept"
+private let kHTTPContentTypeHeader:String = "Content-Type"
+private let kHTTPContentTypeJSON:String = "application/json"
+private let kHTTPContentTypeFormURLEncoded:String = "application/x-www-form-urlencoded"
+
+public typealias HTTPJSONSuccessClosure = (NSHTTPURLResponse, JSON) -> Void
+public typealias HTTPFailureClosure = (NSHTTPURLResponse?, NSError?) -> Void
+
+public extension NSURLSession {
+
+    //MARK: - Get
+
     /**
-     Post JSON dictionary via HTTP to a URL and expect a JSON result in the response.
+     Perform GET request and expect JSON result in response.
      
-     - note: This is merely a type explicit wrapper of the json:AnyObject? version
+     - note: It is guaranteed that exactly one of the success or failure closures will be invoked after this method is called regardless of whether a valid NSURLSessionDataTask is returned.
      
      - parameters:
-         - baseURL: The base URL including the HTTP(S) protocol
-         - path: A path to append to the base URL
-         - parameters: A dictionary of key value pairs for the parameter section of the URL.
-         - jsonDictionary: A dictionary containing JSON data for the body of the post
+         - url: The url of the request
          - success: A closure to be called on success. The NSURLResponse and a JSON object may be included.
          - failure: A closure to be called on failure. The NSURLResponse and an error may be included.
-     - returns: NSURLSessionDataTask ready to be resumed
+     - returns: NSURLSessionDataTask already resumed
      */
 
-    func httpPost(baseURL:String, path:String?, parameters:[String:String]?, jsonDictionary:[String:AnyObject]?, success:(NSURLResponse?, AnyObject?) -> Void, failure:(NSURLResponse?, NSError?) -> Void) -> NSURLSessionDataTask? {
-        return httpPost(baseURL, path: path, parameters: parameters, json: jsonDictionary, success: success, failure: failure)
-    }
-    
-    /**
-     Post JSON array via HTTP to a URL and expect a JSON result in the response
-     
-     - note: This is merely a type explicit wrapper of the json:AnyObject? version
-
-     - parameters:
-         - baseURL: The base URL including the HTTP(S) protocol
-         - path: A path to append to the base URL
-         - parameters: A dictionary of key value pairs for the parameter section of the URL.
-         - jsonDictionary: A dictionary containing JSON data for the body of the post
-         - success: A closure to be called on success. The NSURLResponse and a JSON object may be included.
-         - failure: A closure to be called on failure. The NSURLResponse and an error may be included.
-     - returns: NSURLSessionDataTask ready to be resumed
-     */
-    
-    func httpPost(baseURL:String, path:String?, parameters:[String:String]?, jsonArray:[AnyObject]?, success:(NSURLResponse?, AnyObject?) -> Void, failure:(NSURLResponse?, NSError?) -> Void) -> NSURLSessionDataTask? {
-        return httpPost(baseURL, path: path, parameters: parameters, json: jsonArray, success: success, failure: failure)
+    func httpGet(url:NSURL, success:HTTPJSONSuccessClosure, failure:HTTPFailureClosure) -> NSURLSessionDataTask?
+    {
+        return httpDataTask(url,
+                            method: kHTTPGetMethod,
+                            contentType: nil,
+                            body: nil,
+                            success: success,
+                            failure: failure);
     }
 
+    //MARK: - POST
+
     /**
-     Post JSON object via HTTP to a URL and expect a JSON result in the response
+     Perform POST request with a JSON payload and expect JSON result in response.
      
+     - note: It is guaranteed that exactly one of the success or failure closures will be invoked after this method is called regardless of whether a valid NSURLSessionDataTask is returned.
+
      - parameters:
-         - baseURL: The base URL including the HTTP(S) protocol
-         - path: A path to append to the base URL
-         - parameters: A dictionary of key value pairs for the parameter section of the URL.
-         - jsonDictionary: A dictionary containing JSON data for the body of the post
+         - url: The url of the request
+         - bodyJSON: An optional JSON object to included as the body of the post
          - success: A closure to be called on success. The NSURLResponse and a JSON object may be included.
          - failure: A closure to be called on failure. The NSURLResponse and an error may be included.
-     - returns: NSURLSessionDataTask ready to be resumed
+     - returns: NSURLSessionDataTask already resumed
      */
 
-    func httpPost(baseURL:String, path:String?, parameters:[String:String]?, json:AnyObject?, success:(NSURLResponse?, AnyObject?) -> Void, failure:(NSURLResponse?, NSError?) -> Void) -> NSURLSessionDataTask? {
+    func httpPost(url:NSURL, bodyJSON:JSON?, success:HTTPJSONSuccessClosure, failure:HTTPFailureClosure) -> NSURLSessionDataTask?
+    {
+        let data:NSData? = bodyJSON?.toData()
         
-        var data:NSData = NSData()
-        if let json = json {
-            do {
-                data = try NSJSONSerialization.dataWithJSONObject(json, options: .PrettyPrinted)
-            } catch let error as NSError {
-                failure(nil, error)
-                return nil
+        return httpDataTask(url,
+                            method: kHTTPPostMethod,
+                            contentType: kHTTPContentTypeJSON,
+                            body: data,
+                            success: success,
+                            failure: failure);
+    }
+    
+    /**
+     Perform POST request with a URL parameter payload and expect JSON result in response.
+     
+     - note: It is guaranteed that exactly one of the success or failure closures will be invoked after this method is called regardless of whether a valid NSURLSessionDataTask is returned.
+     
+     - parameters:
+         - url: The url of the request
+         - bodyParameters: An optional array of NSURLQueryItem to be escaped and included in the body of the post
+         - success: A closure to be called on success. The NSURLResponse and a JSON object may be included.
+         - failure: A closure to be called on failure. The NSURLResponse and an error may be included.
+     - returns: NSURLSessionDataTask already resumed
+     */
+
+    func httpPost(url:NSURL, bodyParameters:[NSURLQueryItem]?, success:HTTPJSONSuccessClosure, failure:HTTPFailureClosure) -> NSURLSessionDataTask?
+    {
+        var body:String = ""
+        for queryItem:NSURLQueryItem in bodyParameters! {
+            if let escapedItem = queryItem.urlEscapedItem() {
+                if !body.isEmpty {
+                    body = body + "&" + escapedItem
+                } else {
+                    body = escapedItem
+                }
             }
         }
+        let data:NSData? = body.dataUsingEncoding(NSUTF8StringEncoding)
         
-        return httpPost(baseURL, path: path, parameters: parameters, data: data, success: success, failure: failure)
+        return httpDataTask(url,
+                            method: kHTTPPostMethod,
+                            contentType: kHTTPContentTypeFormURLEncoded,
+                            body: data,
+                            success: success,
+                            failure: failure);
     }
+    
+    //MARK: - Utility
 
-    /**
-     Post data via HTTP to a URL and expect a JSON result in the response
-     
-     - parameters:
-         - baseURL: The base URL including the HTTP(S) protocol
-         - path: A path to append to the base URL
-         - parameters: A dictionary of key value pairs for the parameter section of the URL.
-         - jsonDictionary: A dictionary containing JSON data for the body of the post
-         - success: A closure to be called on success
-         - failure: A closure to be called on failure
-     - returns: NSURLSessionDataTask ready to be resumed
-     */
-    func httpPost(baseURL:String, path:String?, parameters:[String:String]?, data:NSData?, success:(NSURLResponse?, AnyObject?) -> Void, failure:(NSURLResponse?, NSError?) -> Void) -> NSURLSessionDataTask?
+    private func httpDataTask(url:NSURL,
+                      method:String,
+                      contentType:String?,
+                      body:NSData?,
+                      success:HTTPJSONSuccessClosure,
+                      failure:HTTPFailureClosure) -> NSURLSessionDataTask?
     {
-        if let url:NSURLComponents = NSURLComponents(string: baseURL) {
-            if let path = path {
-                url.path = path
-            }
-
-            if let parameters = parameters {
-                url.queryParameters = parameters
-            }
-            
-            if let url = url.URL {
-                if let request:NSMutableURLRequest = NSMutableURLRequest(URL: url) {
-                    request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-                    request.addValue("application/json", forHTTPHeaderField: "Accept")
-                    request.HTTPMethod = "POST"
-                    
-                    return dataTaskWithRequest(request, completionHandler: { (data, response, error) in
-                        if let error = error {
-                            failure(nil, error)
-                        } else if let data = data {
-                            do {
-                                let result = try NSJSONSerialization.JSONObjectWithData(data, options: [.MutableLeaves, .MutableContainers])
-                                success(response, result)
-                            } catch let error as NSError {
-                                failure(response, error)
-                            }
-                        } else {
-                            failure(response, nil)
-                        }
-                    })
-                } else {
-                    failure(nil, NSError(domain: "NSURLSession.httpPost.badRequest", code: 0, userInfo: nil))
-                    return nil
-                }
-            } else {
-                failure(nil, NSError(domain: "NSURLSession.httpPost.badURL", code: 0, userInfo: nil))
-                return nil
-            }
-        } else {
-            failure(nil, NSError(domain: "NSURLSession.httpPost.badURL", code: 0, userInfo: nil))
+        //ensure request is valid
+        guard let request:NSMutableURLRequest = NSMutableURLRequest(URL: url) else {
+            failure(nil, NSError(domain: "NSURLSession.httpPost.badRequest", code: 0, userInfo: nil))
             return nil
         }
+        
+        //configure content-type
+        if let contentType = contentType {
+            request.setValue(contentType, forHTTPHeaderField: kHTTPContentTypeHeader)
+        }
+
+        //configure request to expect JSON result
+        request.setValue(kHTTPContentTypeJSON, forHTTPHeaderField: kHTTPAcceptHeader)
+        
+        //configure method
+        request.HTTPMethod = method
+        
+        //add body, if appropriate
+        if let body = body {
+            request.HTTPBody = body
+        }
+        
+        //create data task
+        let dataTask = dataTaskWithRequest(request) { (data, response, error) in
+            if let response = response as? NSHTTPURLResponse {
+                if response.isSuccess() {
+                    success(response, JSON(data: data ?? NSData()))
+                } else {
+                    failure(response, error)
+                }
+            }
+            else {
+                failure(nil, error)
+            }
+        }
+        
+        //resume task
+        dataTask.resume();
+        
+        return dataTask
     }
 }
