@@ -12,8 +12,10 @@ protocol DoubleTapTableViewDelegate: UITableViewDelegate {
     func tableView(tableView: UITableView, didDoubleTapRowAtIndexPath indexPath: NSIndexPath)
 }
 
+/**
+     UITableView subclass and delegate that automatically detects double tap gestures on table view rows
+*/
 class DoubleTapTableView: UITableView {
-    
     var doubleTapDelegate: DoubleTapTableViewDelegate? {
         get {
             return self.delegate as? DoubleTapTableViewDelegate
@@ -31,5 +33,4 @@ class DoubleTapTableView: UITableView {
 
         super.touchesEnded(touches, withEvent: event)
     }
-    
 }
