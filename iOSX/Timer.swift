@@ -16,12 +16,19 @@ public class Timer {
     private var tolerance:Float?
     private var repeats:Bool = false
     
+    private var _running:Bool = false
+    public var running:Bool {
+        get {
+            return _running
+        }
+    }
+    
     deinit {
         stop()
     }
     
     /**
-     Start a timer with a completion block.
+     Start a timer with a completion closure.
      
      - Parameter duration: The duration in seconds between start and when the completion block is invoked.
      - Parameter repeats: Indicate if timer should repeat. Defaults to false
@@ -29,7 +36,7 @@ public class Timer {
      - Parameter handler: The completion block to be invoked when the timer fires.
 
      */
-    public func start(duration: NSTimeInterval, repeats: Bool = false, tolerance:Float = 0.0, handler:(timer: Timer)->()) {
+    public func start(duration: NSTimeInterval, repeats: Bool = false, tolerance:Float = 0.1, handler:(timer: Timer)->()) {
         dispatch_async(dispatch_get_main_queue(), { () -> Void in
             self._stop()
             self.completion = handler
@@ -40,6 +47,7 @@ public class Timer {
                 userInfo: nil,
                 repeats: repeats)
             self.timer!.tolerance = duration * NSTimeInterval(tolerance)
+            self._running = true
         })
     }
     
@@ -70,6 +78,7 @@ public class Timer {
     }
     
     private func _stop() {
+        self._running = false
         if let timer = self.timer {
             timer.invalidate()
         }
