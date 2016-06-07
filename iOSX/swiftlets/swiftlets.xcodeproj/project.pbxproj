@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		011330811D05CC27002DA0F0 /* String+Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011330801D05CC27002DA0F0 /* String+Localization.swift */; };
 		01533ACC1C9DDAE700C6E69D /* swiftlets.h in Headers */ = {isa = PBXBuildFile; fileRef = 01533ACB1C9DDAE700C6E69D /* swiftlets.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		01533AD31C9DDAE700C6E69D /* swiftlets.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 01533AC81C9DDAE700C6E69D /* swiftlets.framework */; };
 		01533AD81C9DDAE700C6E69D /* swiftletsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01533AD71C9DDAE700C6E69D /* swiftletsTests.swift */; };
@@ -17,6 +18,7 @@
 		01533B091C9DDF2000C6E69D /* UIImage+maskColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01533B021C9DDF2000C6E69D /* UIImage+maskColor.swift */; };
 		01533B0A1C9DDF2000C6E69D /* UIImage+Scaling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01533B031C9DDF2000C6E69D /* UIImage+Scaling.swift */; };
 		01533B0B1C9DDF2000C6E69D /* RoundedCornerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01533B041C9DDF2000C6E69D /* RoundedCornerView.swift */; };
+		015710CF1D049C1F0057C1FB /* Array+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 015710CE1D049C1F0057C1FB /* Array+Utilities.swift */; };
 		016310871D03660500862035 /* NSURLComponent+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 016310861D03660500862035 /* NSURLComponent+Utilities.swift */; };
 		01A3E9131CFE6CFD00BE5AAA /* JSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A3E9121CFE6CFD00BE5AAA /* JSON.swift */; };
 		01A3E9191CFE6FE300BE5AAA /* Miscellaneous.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A3E9181CFE6FE300BE5AAA /* Miscellaneous.swift */; };
@@ -44,6 +46,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		011330801D05CC27002DA0F0 /* String+Localization.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "String+Localization.swift"; path = "../../../Portable/String+Localization.swift"; sourceTree = "<group>"; };
 		01533AC81C9DDAE700C6E69D /* swiftlets.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = swiftlets.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		01533ACB1C9DDAE700C6E69D /* swiftlets.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = swiftlets.h; sourceTree = "<group>"; };
 		01533ACD1C9DDAE700C6E69D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -57,6 +60,7 @@
 		01533B021C9DDF2000C6E69D /* UIImage+maskColor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIImage+maskColor.swift"; path = "../../iOS/UIImage+maskColor.swift"; sourceTree = "<group>"; };
 		01533B031C9DDF2000C6E69D /* UIImage+Scaling.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIImage+Scaling.swift"; path = "../../iOS/UIImage+Scaling.swift"; sourceTree = "<group>"; };
 		01533B041C9DDF2000C6E69D /* RoundedCornerView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = RoundedCornerView.swift; path = ../../iOS/RoundedCornerView.swift; sourceTree = "<group>"; };
+		015710CE1D049C1F0057C1FB /* Array+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Array+Utilities.swift"; path = "../../../Portable/Array+Utilities.swift"; sourceTree = "<group>"; };
 		016310861D03660500862035 /* NSURLComponent+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "NSURLComponent+Utilities.swift"; path = "../../NSURLComponent+Utilities.swift"; sourceTree = "<group>"; };
 		01A3E9121CFE6CFD00BE5AAA /* JSON.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = JSON.swift; path = ../../../Portable/JSON.swift; sourceTree = "<group>"; };
 		01A3E9181CFE6FE300BE5AAA /* Miscellaneous.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Miscellaneous.swift; path = ../../../Portable/Miscellaneous.swift; sourceTree = "<group>"; };
@@ -119,6 +123,7 @@
 				01533AFF1C9DDF2000C6E69D /* AudioEngine.swift */,
 				01A3E9121CFE6CFD00BE5AAA /* JSON.swift */,
 				01533B001C9DDF2000C6E69D /* Timer.swift */,
+				011330801D05CC27002DA0F0 /* String+Localization.swift */,
 				01533B011C9DDF2000C6E69D /* DoubleTapTableView.swift */,
 				01533B021C9DDF2000C6E69D /* UIImage+maskColor.swift */,
 				01533B031C9DDF2000C6E69D /* UIImage+Scaling.swift */,
@@ -133,6 +138,7 @@
 				01E6784D1CD5315D00ABE1CB /* MKMapView+Utilities.swift */,
 				01CD89E11CDD0B24000790C2 /* UIAlertController+Utilities.swift */,
 				016310861D03660500862035 /* NSURLComponent+Utilities.swift */,
+				015710CE1D049C1F0057C1FB /* Array+Utilities.swift */,
 				01CD89E31CDD0ED3000790C2 /* NSURLSession+JSON.swift */,
 				01E759521CDD373C00DA15F1 /* String+Utilities.swift */,
 				01E769771CF22D1500866433 /* NSDateFormatter+Utilities.swift */,
@@ -267,7 +273,9 @@
 				01A3E9131CFE6CFD00BE5AAA /* JSON.swift in Sources */,
 				01A3E9191CFE6FE300BE5AAA /* Miscellaneous.swift in Sources */,
 				01E6783F1CD5145E00ABE1CB /* NSData+Utilities.swift in Sources */,
+				015710CF1D049C1F0057C1FB /* Array+Utilities.swift in Sources */,
 				01533B0A1C9DDF2000C6E69D /* UIImage+Scaling.swift in Sources */,
+				011330811D05CC27002DA0F0 /* String+Localization.swift in Sources */,
 				01E6784F1CD5315D00ABE1CB /* MKMapView+Utilities.swift in Sources */,
 				016310871D03660500862035 /* NSURLComponent+Utilities.swift in Sources */,
 				01533B091C9DDF2000C6E69D /* UIImage+maskColor.swift in Sources */,
