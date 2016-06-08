@@ -84,17 +84,17 @@ extension MKDirectionsResponse {
     
     public func minimumRouteDistance() -> CLLocationDistance {
         var minDistanceMeters:CLLocationDistance = Double.infinity;
-        routes.forEach({ (route) in
+        routes.forEach { (route) in
             minDistanceMeters = min(route.distance, minDistanceMeters)
-        })
+        }
         return minDistanceMeters
     }
 
     public func minimumRouteTravelTime() -> NSTimeInterval {
         var minTravelTime:NSTimeInterval = Double.infinity;
-        routes.forEach({ (route) in
+        routes.forEach { (route) in
             minTravelTime = min(route.expectedTravelTime, minTravelTime)
-        })
+        }
         return minTravelTime
     }
 }

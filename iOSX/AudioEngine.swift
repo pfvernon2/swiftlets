@@ -196,11 +196,11 @@ public class AudioPlayerEngine: NSObject {
         if isPlaying() {
             let progress:Float = self.trackProgress
             _stop()
-            gcd.main().async({ () -> () in
+            gcd.main().async { () -> () in
                 if let delegate = self.delegate {
                     delegate.playbackStopped(progress >= 1.0)
                 }
-            })
+            }
         }
     }
 

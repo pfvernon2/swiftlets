@@ -60,9 +60,9 @@ public class gcd {
     /**
     Class representing GCD main queue (Serial)
     ````
-    gcd.mainQueue().async({ () -> () in
+    gcd.mainQueue().async { () -> () in
      ...
-    })
+    }
     ````
     */
     public class main: serial {
@@ -74,9 +74,9 @@ public class gcd {
     /**
     Class representing GCD global queue (Concurrent)
     ````
-    gcd.globalQueue().sync({ () -> () in
+    gcd.globalQueue().sync { () -> () in
      ...
-    })
+    }
     ````
     */
     public class global: concurrent {
@@ -306,9 +306,9 @@ public class gcd {
      background queue followed by updating the UI on the main thread.
      
      ```
-     gcd.backgroundUIOperation({
+     gcd.backgroundUIOperation {
         //backgound work happens here
-     }) {
+     } {
         //UI updates happen here
      }
      ```
