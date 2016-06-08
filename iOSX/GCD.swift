@@ -247,6 +247,49 @@ public class gcd {
         }
     }
     
+    //MARK: - Reader Writer
+
+    /**
+     Wrapper class for the common GCD reader writer pattern
+     
+     ```
+     private let queue:gcd.readerWriter = gcd.readerWriter()
+     private var _foo:String = "bar"
+     public var foo {
+        get {
+            var result:String
+            queue.read {
+                result = _foo
+             }
+            return result
+        }
+        set(newValue) {
+            queue.write {
+                _foo = newValue
+             }
+         }
+     }
+     ```
+     
+     - note: See class readerWriterType for helper implementation.
+     */
+
+    public class readerWriter {
+        private var queue:concurrent = concurrent()
+        
+        public func read(closure:()->()) {
+            queue.sync {
+                closure()
+            }
+        }
+        
+        public func write(closure:()->()) {
+            queue.barrier_async { 
+                closure()
+            }
+        }
+    }
+    
     //MARK: - Utility
     
     ///Utility method to convert NSTimeInterval to dispatch_time_t used by GCD
@@ -279,7 +322,28 @@ public class gcd {
             gcd.main().async(main)
         }
     }
-    
 }
 
+//MARK: - Helper Types
+
+///Helper wrapper for common reader writer protected access of single variable
+public class readerWriterType<T> {
+    private var lock:gcd.readerWriter = gcd.readerWriter()
+    private var _value:T? = nil
+    public var value:T? {
+        get {
+            var result:T?
+            lock.read { 
+                result = self._value
+            }
+            return result
+        }
+        
+        set (newElement) {
+            lock.write { 
+                self._value = newElement
+            }
+        }
+    }
+}
 
