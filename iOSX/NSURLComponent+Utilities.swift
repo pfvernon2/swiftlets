@@ -75,8 +75,20 @@ public extension NSURLComponents {
     }
 }
 
-extension NSURLQueryItem {
-    func urlEscapedItem() -> String? {
+public extension NSURLQueryItem {
+    public convenience init(name: String, intValue: Int) {
+        self.init(name: name, value: String(intValue))
+    }
+    
+    public convenience init(name: String, doubleValue: Double) {
+        self.init(name: name, value: String(doubleValue))
+    }
+    
+    public convenience init(name: String, floatValue: Float) {
+        self.init(name: name, value: String(floatValue))
+    }
+    
+    public func urlEscapedItem() -> String? {
         guard let encodedName = self.name.stringByAddingPercentEncodingWithAllowedCharacters(.URLHostAllowedCharacterSet()) else {
             return nil
         }
