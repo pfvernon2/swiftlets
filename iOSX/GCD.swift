@@ -209,19 +209,19 @@ public class gcd {
     
     ///Class representing a GCD semaphore
     public class semaphore {
-        let semaphore:dispatch_semaphore_t?
+        let semaphore:dispatch_semaphore_t
         
         public init(counter:Int) {
             self.semaphore = dispatch_semaphore_create(counter);
         }
         
         public func signal() -> Bool {
-            return dispatch_semaphore_signal(self.semaphore!) != 0
+            return dispatch_semaphore_signal(self.semaphore) != 0
         }
         
         public func wait(timeout: NSTimeInterval = Double.infinity) -> Bool {
             let interval:dispatch_time_t = gcd.timeIntervalToDispatchTime(timeout)
-            return dispatch_semaphore_wait(self.semaphore!, interval) == 0
+            return dispatch_semaphore_wait(self.semaphore, interval) == 0
         }
     }
     
@@ -250,7 +250,11 @@ public class gcd {
     //MARK: - Reader Writer
 
     /**
-     Wrapper class for the common GCD reader writer pattern
+     Wrapper class for the common GCD reader writer pattern.
+     
+     This class is concurrent read with exclusive write. Reads are prioritized
+     and writes happen only after any pre-existing read operations in the queue have been
+     satisfied.
      
      ```
      private let queue:gcd.readerWriter = gcd.readerWriter()
