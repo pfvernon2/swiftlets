@@ -104,11 +104,11 @@ extension CLPlacemark {
         let postalAddress = CNMutablePostalAddress()
         
         if let addressDictionary = addressDictionary {
-            postalAddress.street = addressDictionary["Street"] as? String ?? ""
-            postalAddress.state = addressDictionary["State"] as? String ?? ""
-            postalAddress.city = addressDictionary["City"] as? String ?? ""
-            postalAddress.country = addressDictionary["Country"] as? String ?? ""
-            postalAddress.postalCode = addressDictionary["ZIP"] as? String ?? ""
+            postalAddress.street = addressDictionary[CNPostalAddressStreetKey] as? String ?? ""
+            postalAddress.state = addressDictionary[CNPostalAddressStateKey] as? String ?? ""
+            postalAddress.city = addressDictionary[CNPostalAddressCityKey] as? String ?? ""
+            postalAddress.country = addressDictionary[CNPostalAddressCountryKey] as? String ?? ""
+            postalAddress.postalCode = addressDictionary[CNPostalAddressPostalCodeKey] as? String ?? ""
         }
         
         return postalAddress
