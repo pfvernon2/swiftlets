@@ -9,6 +9,8 @@
 import Foundation
 
 extension NSDateFormatter {
+    static private var formatterCache:[String:NSDateFormatter] = [:]
+    
     enum ISO8601ExtendedPrecision:Int {
         case conforming, milliseconds, microseconds
         case java, windows
@@ -49,15 +51,14 @@ extension NSDateFormatter {
         return dateFormatterISO8601
     }
     
-    ///Return cached ISO8601 date formatter for thread safe operation
-    class func ISO8601FormatterForThread(precision:ISO8601ExtendedPrecision = .conforming) -> NSDateFormatter {
+    ///Return cached ISO8601 date formatter for thread safe operation, assumes >iOS7 || >OSX10.9+64bit
+    class func ISO8601FormatterCached(precision:ISO8601ExtendedPrecision = .conforming) -> NSDateFormatter {
         let formatterKey:String = "com.cyberdev.ISO8601Formatter.\(precision.rawValue)"
-        
-        if let formatter:NSDateFormatter = NSThread.currentThread().threadDictionary[formatterKey] as? NSDateFormatter {
+        if let formatter:NSDateFormatter = formatterCache[formatterKey] {
             return formatter
         } else {
             let formatter:NSDateFormatter = ISO8601Formatter(precision)
-            NSThread.currentThread().threadDictionary[formatterKey] = formatter
+            formatterCache[formatterKey] = formatter
             return formatter
         }
     }
@@ -65,7 +66,7 @@ extension NSDateFormatter {
     ///Attempts to parse a string to a date using one of the common variations on ISO8601
     class func tryParseISO8601LikeDateString(date:String) -> NSDate? {
         for precision in ISO8601ExtendedPrecision.allValues {
-            let formatter:NSDateFormatter = ISO8601FormatterForThread(precision)
+            let formatter:NSDateFormatter = ISO8601FormatterCached(precision)
             if let result = formatter.dateFromString(date) {
                 return result
             }
