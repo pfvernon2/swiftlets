@@ -60,6 +60,28 @@ public extension NSURLSession {
      Perform POST request with a JSON payload and expect JSON result in response.
      
      - note: It is guaranteed that exactly one of the success or failure closures will be invoked after this method is called regardless of whether a valid NSURLSessionDataTask is returned.
+     
+     - parameters:
+     - url: The url of the request
+         - success: A closure to be called on success. The NSURLResponse and a JSON object may be included.
+         - failure: A closure to be called on failure. The NSURLResponse and an error may be included.
+     - returns: NSURLSessionDataTask already resumed
+     */
+    
+    func httpPost(url:NSURL, success:HTTPJSONSuccessClosure, failure:HTTPFailureClosure) -> NSURLSessionDataTask?
+    {
+        return httpDataTask(url,
+                            method: kHTTPPostMethod,
+                            contentType: kHTTPContentTypeJSON,
+                            body: nil,
+                            success: success,
+                            failure: failure);
+    }
+
+    /**
+     Perform POST request with a JSON payload and expect JSON result in response.
+     
+     - note: It is guaranteed that exactly one of the success or failure closures will be invoked after this method is called regardless of whether a valid NSURLSessionDataTask is returned.
 
      - parameters:
          - url: The url of the request
@@ -69,9 +91,9 @@ public extension NSURLSession {
      - returns: NSURLSessionDataTask already resumed
      */
 
-    func httpPost(url:NSURL, bodyJSON:JSON?, success:HTTPJSONSuccessClosure, failure:HTTPFailureClosure) -> NSURLSessionDataTask?
+    func httpPost(url:NSURL, bodyJSON:JSON, success:HTTPJSONSuccessClosure, failure:HTTPFailureClosure) -> NSURLSessionDataTask?
     {
-        let data:NSData? = bodyJSON?.toData()
+        let data:NSData? = bodyJSON.toData()
         
         return httpDataTask(url,
                             method: kHTTPPostMethod,
@@ -94,10 +116,10 @@ public extension NSURLSession {
      - returns: NSURLSessionDataTask already resumed
      */
 
-    func httpPost(url:NSURL, bodyParameters:[NSURLQueryItem]?, success:HTTPJSONSuccessClosure, failure:HTTPFailureClosure) -> NSURLSessionDataTask?
+    func httpPost(url:NSURL, bodyParameters:[NSURLQueryItem], success:HTTPJSONSuccessClosure, failure:HTTPFailureClosure) -> NSURLSessionDataTask?
     {
         var body:String = ""
-        for queryItem:NSURLQueryItem in bodyParameters! {
+        for queryItem:NSURLQueryItem in bodyParameters {
             if let escapedItem = queryItem.urlEscapedItem() {
                 if !body.isEmpty {
                     body = body + "&" + escapedItem
