@@ -20,3 +20,17 @@ extension CGRect {
     }
 }
 
+extension NSTimeInterval {
+    func toMinutes() -> Double {
+        return self/60.0
+    }
+    
+    func toHours() -> Double {
+        return self/60.0/60.0
+    }
+    
+    func toDays() -> Double {
+        return self/60.0/60.0/24.0
+    }
+}
+
