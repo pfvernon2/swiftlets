@@ -385,7 +385,23 @@ extension JSON {
         default: return nil
         }
     }
-    
+
+    /// if self holds NSDictionary, gives a JSONElement
+    /// with elements therein. nil otherwise
+    public var asElement:JSONElement? {
+        switch value {
+        case let o as NSDictionary:
+            var result = JSONElement()
+            for (ko, v): (AnyObject, AnyObject) in o {
+                if let k = ko as? String {
+                    result[k] = v
+                }
+            }
+            return result
+        default: return nil
+        }
+    }
+
     /// Yields date from string
     public var asDate:NSDate? {
         if let dateString = value as? String {
