@@ -289,7 +289,21 @@ extension JSON {
         default: return nil
         }
     }
-    
+
+    /// gives UInt if self holds it. nil otherwise
+    public var asUInt:UInt? {
+        switch value {
+        case let o as NSNumber:
+            switch String.fromCString(o.objCType)! {
+            case "c", "C":
+                return nil
+            default:
+                return UInt(o.unsignedLongValue)
+            }
+        default: return nil
+        }
+    }
+
     /// gives Int32 if self holds it. nil otherwise
     public var asInt32:Int32? {
         switch value {
@@ -317,7 +331,35 @@ extension JSON {
         default: return nil
         }
     }
-    
+
+    /// gives Int32 if self holds it. nil otherwise
+    public var asUInt32:UInt32? {
+        switch value {
+        case let o as NSNumber:
+            switch String.fromCString(o.objCType)! {
+            case "c", "C":
+                return nil
+            default:
+                return UInt32(o.unsignedLongLongValue)
+            }
+        default: return nil
+        }
+    }
+
+    /// gives Int64 if self holds it. nil otherwise
+    public var asUInt64:UInt64? {
+        switch value {
+        case let o as NSNumber:
+            switch String.fromCString(o.objCType)! {
+            case "c", "C":
+                return nil
+            default:
+                return UInt64(o.unsignedLongLongValue)
+            }
+        default: return nil
+        }
+    }
+
     /// gives Float if self holds it. nil otherwise
     public var asFloat:Float? {
         switch value {
