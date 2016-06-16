@@ -85,5 +85,18 @@ public extension String {
         result.trimPrefix(prefix)
         return result
     }
+
+    func isAllDigits() -> Bool {
+        let nonNumbers = NSCharacterSet.decimalDigitCharacterSet().invertedSet
+        if let _:Range = rangeOfCharacterFromSet(nonNumbers) {
+            return false
+        } else {
+            return true
+        }
+    }
+
+    func isLikeZipCode() -> Bool {
+        return self.characters.count == 5 && self.isAllDigits()
+    }
 }
 
