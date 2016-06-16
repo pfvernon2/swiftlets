@@ -51,6 +51,15 @@ extension MKCoordinateRegion {
         location.longitude >= center.longitude - span.longitudeDelta &&
         location.longitude <= center.longitude + span.longitudeDelta
     }
+
+    func boundingCoordinates() -> (northWest:CLLocationCoordinate2D, southEast:CLLocationCoordinate2D) {
+        let northWest:CLLocationCoordinate2D = CLLocationCoordinate2D(latitude: center.latitude + (span.latitudeDelta/2.0),
+                                                                      longitude: center.longitude - (span.longitudeDelta/2.0))
+        let southEast:CLLocationCoordinate2D = CLLocationCoordinate2D(latitude: center.latitude - (span.latitudeDelta/2.0),
+                                                                      longitude: center.longitude + (span.longitudeDelta/2.0))
+
+        return (northWest, southEast)
+    }
 }
 
 extension CLLocationCoordinate2D {
@@ -61,6 +70,14 @@ extension CLLocationCoordinate2D {
             return false
         }
     }
+
+    /// Check that location is valid
+    ///
+    /// - note: This is a hack… 0.0;0.0 is a valid location. It is, however, also the default location
+    ///  returned when coordinate acquisition fails… Apple really needs an 'invalid' flag on this class
+    func isValid() -> Bool {
+        return latitude != 0.0 && longitude != 0.0
+    }
 }
 
 extension CLLocation {
@@ -68,8 +85,12 @@ extension CLLocation {
         self.init(latitude: location.latitude, longitude: location.longitude)
     }
     
+    /// Check that location is valid
+    ///
+    /// - note: This is a hack… 0.0;0.0 is a valid location. It is, however, also the default location
+    ///  returned when coordinate acquisition fails… Apple really needs an 'invalid' flag on this class
     func isValid() -> Bool {
-        return self.coordinate.latitude != 0.0 && self.coordinate.longitude != 0.0
+        return self.coordinate.isValid()
     }
 }
 
