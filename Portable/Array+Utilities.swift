@@ -36,3 +36,11 @@ extension Array {
         return result
     }
 }
+
+extension Array where Element: Equatable {
+    mutating func remove(object: Element) {
+        if let index = indexOf({ $0 == object }) {
+            removeAtIndex(index)
+        }
+    }
+}
