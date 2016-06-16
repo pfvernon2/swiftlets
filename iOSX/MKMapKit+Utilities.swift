@@ -11,7 +11,7 @@ import MapKit
 import Contacts
 
 let mileMeterRatio = 1609.344
-let meterToDegreesRatio = 111000.0
+let meterToDegreesRatio = 111325.0
 
 func metersToMiles(meters:Double) -> Double {
     return meters / mileMeterRatio
@@ -45,6 +45,7 @@ extension MKRoute {
 }
 
 extension MKCoordinateRegion {
+    ///Determine if a location is within the region
     func locationInRegion(location:CLLocationCoordinate2D) -> Bool {
         return location.latitude >= center.latitude - span.latitudeDelta &&
         location.latitude <= center.latitude + span.latitudeDelta &&
@@ -59,6 +60,39 @@ extension MKCoordinateRegion {
                                                                       longitude: center.longitude + (span.longitudeDelta/2.0))
 
         return (northWest, southEast)
+    }
+
+    ///Returns the radius (in meters) of the bounding box defined by the region.
+    func boundingRadiusMeters() -> Double {
+        let (northWest, southEast) = boundingCoordinates()
+
+        let northWestLocation:CLLocation = CLLocation(location: northWest)
+        let southEastLocation:CLLocation = CLLocation(location: southEast)
+
+        let circumfrance:Double = northWestLocation.distanceFromLocation(southEastLocation)
+        return circumfrance/2.0
+    }
+}
+
+extension MKMapView {
+    ///The maximum length in meters of current viewport
+    func maxDimensionMeters() -> Double {
+        let topLeft:MKMapPoint = visibleMapRect.origin
+        let topRight:MKMapPoint = MKMapPoint(x: visibleMapRect.origin.x + visibleMapRect.size.width,
+                                             y: visibleMapRect.origin.y)
+        let bottomRight:MKMapPoint = MKMapPoint(x: visibleMapRect.origin.x + visibleMapRect.size.width,
+                                                y: visibleMapRect.origin.y + visibleMapRect.size.height)
+
+
+        let horizontalMeters = MKMetersBetweenMapPoints(topLeft, topRight)
+        let verticalMeters = MKMetersBetweenMapPoints(topRight, bottomRight)
+
+        return max(horizontalMeters, verticalMeters)
+    }
+
+    ///meters per pixel for current viewport
+    func metersPerPixel() -> Double {
+        return MKMetersPerMapPointAtLatitude(centerCoordinate.latitude) * visibleMapRect.size.width / Double(bounds.size.width)
     }
 }
 

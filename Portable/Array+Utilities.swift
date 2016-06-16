@@ -35,6 +35,20 @@ extension Array {
         result.moveElement(fromIndex: fromIdex, toIndex: toIndex)
         return result
     }
+
+    ///Simplified queue semantics
+    public mutating func push(newElement: Element) {
+        return append(newElement)
+    }
+
+    ///Simplified queue semantics
+    public mutating func pop() -> Element? {
+        if !isEmpty {
+            return removeFirst()
+        } else {
+            return nil
+        }
+    }
 }
 
 extension Array where Element: Equatable {
@@ -43,4 +57,27 @@ extension Array where Element: Equatable {
             removeAtIndex(index)
         }
     }
+}
+
+/// A first-in/first-out queue of unconstrained size
+/// - Complexity: push is O(1), pop is O(`count`)
+/// http://ericasadun.com/2016/03/08/swift-queue-fun/
+public struct Queue<T>: ArrayLiteralConvertible {
+    /// backing array store
+    public private(set) var elements: Array<T> = []
+
+    /// introduce a new element to the queue in O(1) time
+    public mutating func push(value: T) { elements.append(value) }
+
+    /// remove the front of the queue in O(`count` time
+    public mutating func pop() -> T { return elements.removeFirst() }
+
+    /// test whether the queue is empty
+    public var isEmpty: Bool { return elements.isEmpty }
+
+    /// queue size, computed property
+    public var count: Int { return elements.count }
+
+    /// offer `ArrayLiteralConvertible` support
+    public init(arrayLiteral elements: T...) { self.elements = elements }
 }
