@@ -147,9 +147,22 @@ public extension NSURLSession {
                       success:HTTPJSONSuccessClosure,
                       failure:HTTPFailureClosure) -> NSURLSessionDataTask?
     {
+        func dataTaskFailureHandler(response:NSHTTPURLResponse?, error:NSError?) {
+            #if DEBUG
+            if let response = response {
+                print("httpDataTask response: \(response)")
+            }
+
+            if let error = error {
+                print("httpDataTask error: \(error.localizedDescription)")
+            }
+            #endif
+            failure(response, error)
+        }
+
         //ensure request is valid
         guard let request:NSMutableURLRequest = NSMutableURLRequest(URL: url) else {
-            failure(nil, NSError(domain: "NSURLSession.httpPost.badRequest", code: 0, userInfo: nil))
+            dataTaskFailureHandler(nil, error: NSError(domain: "NSURLSession.httpPost.badRequest", code: 0, userInfo: nil))
             return nil
         }
         
@@ -175,11 +188,11 @@ public extension NSURLSession {
                 if response.isSuccess() {
                     success(response, JSON(data: data ?? NSData()))
                 } else {
-                    failure(response, error)
+                    dataTaskFailureHandler(response, error: error)
                 }
             }
             else {
-                failure(nil, error)
+                dataTaskFailureHandler(nil, error: error)
             }
         }
         
