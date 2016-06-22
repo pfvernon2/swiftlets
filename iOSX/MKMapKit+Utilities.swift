@@ -9,6 +9,7 @@
 import Foundation
 import MapKit
 import Contacts
+import AddressBook
 
 let mileMeterRatio = 1609.344
 let meterToDegreesRatio = 111325.0
@@ -109,9 +110,12 @@ extension CLLocationCoordinate2D {
     ///
     /// - note: This is a hack… 0.0;0.0 is a valid location. It is, however, also the default location
     ///  returned when coordinate acquisition fails… Apple really needs an 'invalid' flag on this class
-    func isValid() -> Bool {
+    func isNonZero() -> Bool {
         return latitude != 0.0 && longitude != 0.0
     }
+
+
+    //CLLocationCoordinate2DIsValid
 }
 
 extension CLLocation {
@@ -124,7 +128,7 @@ extension CLLocation {
     /// - note: This is a hack… 0.0;0.0 is a valid location. It is, however, also the default location
     ///  returned when coordinate acquisition fails… Apple really needs an 'invalid' flag on this class
     func isValid() -> Bool {
-        return self.coordinate.isValid()
+        return self.coordinate.isNonZero()
     }
 }
 
@@ -157,13 +161,14 @@ extension MKDirectionsResponse {
 extension CLPlacemark {
     func postalAddressFromAddressDictionary() -> CNMutablePostalAddress {
         let postalAddress = CNMutablePostalAddress()
-        
+
         if let addressDictionary = addressDictionary {
-            postalAddress.street = addressDictionary[CNPostalAddressStreetKey] as? String ?? ""
-            postalAddress.state = addressDictionary[CNPostalAddressStateKey] as? String ?? ""
-            postalAddress.city = addressDictionary[CNPostalAddressCityKey] as? String ?? ""
-            postalAddress.country = addressDictionary[CNPostalAddressCountryKey] as? String ?? ""
-            postalAddress.postalCode = addressDictionary[CNPostalAddressPostalCodeKey] as? String ?? ""
+            //Note: As of iOS9 kABPersonAddressStreetKey is deprecated but CNPostalAddress.street is not a direct replacment
+            postalAddress.street = addressDictionary["Street"] as? String ?? ""
+            postalAddress.state = addressDictionary["State"] as? String ?? ""
+            postalAddress.city = addressDictionary["City"] as? String ?? ""
+            postalAddress.country = addressDictionary["Country"] as? String ?? ""
+            postalAddress.postalCode = addressDictionary["ZIP"] as? String ?? ""
         }
         
         return postalAddress
