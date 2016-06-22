@@ -69,4 +69,47 @@ extension MKMapView {
         }
         
     }
+
+    /**
+    Animate the removal of annotations from the map view.
+    The animations closure gives you access to a snapshot view of the annotation for you to perform animations on
+
+     ```
+     self.mapView.removeAnnotations(annotations, duration: 0.5, animations: { (view) in
+        view.alpha = 0.0
+     })
+     ```
+     */
+    func removeAnnotations(annotations: [MKAnnotation], duration: NSTimeInterval, animations: (view:UIView) -> Void) {
+        let visibleAnnotations:Set = annotationsInMapRect(visibleMapRect)
+        var animationAnnotations:[MKAnnotation] = []
+        annotations.forEach { (annotation) in
+            if visibleAnnotations.contains(annotation as! NSObject) {
+                animationAnnotations.append(annotation)
+            }
+        }
+
+        var snapshots:[UIView] = []
+        animationAnnotations.forEach { (annotation) in
+            if let annotationView:UIView = viewForAnnotation(annotation) {
+                let snapshotView:UIView = annotationView.snapshotViewAfterScreenUpdates(false)
+                snapshotView.frame = annotationView.frame
+                snapshots.append(snapshotView)
+                annotationView.superview?.insertSubview(snapshotView, aboveSubview: annotationView)
+            }
+        }
+
+        UIView.animateWithDuration(duration, animations: { 
+            snapshots.forEach({ (view) in
+                animations(view: view)
+            })
+            }) { (success) in
+                snapshots.forEach({ (view) in
+                    view.removeFromSuperview()
+                })
+        }
+
+        removeAnnotations(annotations)
+    }
 }
+
