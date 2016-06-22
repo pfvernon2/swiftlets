@@ -41,6 +41,11 @@ class RoundedCornerView: UIView {
         super.init(coder: aDecoder)
         self.cornerRadius = 3.0
     }
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        self.cornerRadius = 3.0
+    }
 }
 
 class RoundImageView: UIImageView {
