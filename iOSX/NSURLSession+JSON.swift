@@ -57,14 +57,14 @@ public extension NSURLSession {
     //MARK: - POST
 
     /**
-     Perform POST request with a JSON payload and expect JSON result in response.
+     Perform POST request and expect JSON result in response.
      
      - note: It is guaranteed that exactly one of the success or failure closures will be invoked after this method is called regardless of whether a valid NSURLSessionDataTask is returned.
      
      - parameters:
-     - url: The url of the request
-         - success: A closure to be called on success. The NSURLResponse and a JSON object may be included.
-         - failure: A closure to be called on failure. The NSURLResponse and an error may be included.
+        - url: The url of the request
+        - success: A closure to be called on success. The NSURLResponse and a JSON object may be included.
+        - failure: A closure to be called on failure. The NSURLResponse and an error may be included.
      - returns: NSURLSessionDataTask already resumed
      */
     
@@ -79,7 +79,7 @@ public extension NSURLSession {
     }
 
     /**
-     Perform POST request with a JSON payload and expect JSON result in response.
+     Perform POST request with a JSON payload in the body and expect JSON result in response.
      
      - note: It is guaranteed that exactly one of the success or failure closures will be invoked after this method is called regardless of whether a valid NSURLSessionDataTask is returned.
 
@@ -104,7 +104,7 @@ public extension NSURLSession {
     }
     
     /**
-     Perform POST request with a URL parameter payload and expect JSON result in response.
+     Perform POST request with a URL parameter payload in the body and expect JSON result in response.
      
      - note: It is guaranteed that exactly one of the success or failure closures will be invoked after this method is called regardless of whether a valid NSURLSessionDataTask is returned.
      
@@ -140,6 +140,8 @@ public extension NSURLSession {
     
     //MARK: - Utility
 
+    ///Utilty method to create an automatically resumed data task given the input configuration. 
+    /// The body of the result is assumed to be JSON and is parsed and returned as such.
     private func httpDataTask(url:NSURL,
                       method:String,
                       contentType:String?,
@@ -149,13 +151,7 @@ public extension NSURLSession {
     {
         func dataTaskFailureHandler(response:NSHTTPURLResponse?, error:NSError?) {
             #if DEBUG
-            if let response = response {
-                print("httpDataTask response: \(response)")
-            }
-
-            if let error = error {
-                print("httpDataTask error: \(error.localizedDescription)")
-            }
+                printResult(response, error: error)
             #endif
             failure(response, error)
         }
@@ -200,5 +196,16 @@ public extension NSURLSession {
         dataTask.resume();
         
         return dataTask
+    }
+
+    ///Utility method to print response and error objects for debugging purposes
+    private func printResult(response:NSHTTPURLResponse?, error:NSError?) {
+        if let response = response {
+            print("httpDataTask response: \(response)")
+        }
+
+        if let error = error {
+            print("httpDataTask error: \(error.localizedDescription)")
+        }
     }
 }
