@@ -27,6 +27,16 @@ func metersToApproximateDegreesLatLong(meters:Double) -> Double {
     return meters / meterToDegreesRatio
 }
 
+func radiansToDegrees(radians: Double) -> Double {
+    return radians * 180.0 / M_PI;
+}
+
+extension CLLocationDirection {
+    func isValid() -> Bool {
+        return self > 0.0
+    }
+}
+
 extension MKRouteStep {
     var distanceMiles:Double {
         return metersToMiles(distance)
@@ -64,7 +74,7 @@ extension MKCoordinateRegion {
     }
 
     ///Returns the radius (in meters) of the bounding box defined by the region.
-    func boundingRadiusMeters() -> Double {
+    func boundingRadius() -> CLLocationDistance {
         let (northWest, southEast) = boundingCoordinates()
 
         let northWestLocation:CLLocation = CLLocation(location: northWest)
@@ -77,7 +87,7 @@ extension MKCoordinateRegion {
 
 extension MKMapView {
     ///The maximum length in meters of current viewport
-    func maxDimensionMeters() -> Double {
+    func maxDimensionMeters() -> CLLocationDistance {
         let topLeft:MKMapPoint = visibleMapRect.origin
         let topRight:MKMapPoint = MKMapPoint(x: visibleMapRect.origin.x + visibleMapRect.size.width,
                                              y: visibleMapRect.origin.y)
@@ -92,7 +102,7 @@ extension MKMapView {
     }
 
     ///meters per pixel for current viewport
-    func metersPerPixel() -> Double {
+    func metersPerPixel() -> CLLocationDistance {
         return MKMetersPerMapPointAtLatitude(centerCoordinate.latitude) * visibleMapRect.size.width / Double(bounds.size.width)
     }
 }
@@ -106,16 +116,19 @@ extension CLLocationCoordinate2D {
         }
     }
 
-    /// Check that location is valid
-    ///
-    /// - note: This is a hack… 0.0;0.0 is a valid location. It is, however, also the default location
-    ///  returned when coordinate acquisition fails… Apple really needs an 'invalid' flag on this class
-    func isNonZero() -> Bool {
-        return latitude != 0.0 && longitude != 0.0
+    func isValid() -> Bool {
+        //May need to implement non-zero check here as well
+        return CLLocationCoordinate2DIsValid(self)
     }
 
+    /// - note: This not accurate on large scales.
+    /// MKMapPoint should be used for those purposes.
+    func bearingTo(other:CLLocationCoordinate2D) -> CLLocationDirection {
+        let x = self.longitude - other.longitude;
+        let y = self.latitude - other.latitude;
 
-    //CLLocationCoordinate2DIsValid
+        return fmod(radiansToDegrees(atan2(y, x)), 360.0) + 90.0;
+    }
 }
 
 extension CLLocation {
@@ -123,12 +136,26 @@ extension CLLocation {
         self.init(latitude: location.latitude, longitude: location.longitude)
     }
     
-    /// Check that location is valid
+    /// Calculate relative bearing to another location, if we have a course
+    /// CLLocationDirection is always specified as a positive value so result may be larger than 180
     ///
-    /// - note: This is a hack… 0.0;0.0 is a valid location. It is, however, also the default location
-    ///  returned when coordinate acquisition fails… Apple really needs an 'invalid' flag on this class
-    func isValid() -> Bool {
-        return self.coordinate.isNonZero()
+    /// See CLLocationCoordinate2D for absolute bearing
+    ///
+    /// - note: This not completely accurate on large scales.
+    /// MKMapPoint should be used for those purposes.
+    func relativeBearingTo(other:CLLocation) -> CLLocationDirection {
+        guard self.course.isValid() &&
+            coordinate.isValid() &&
+            other.coordinate.isValid() else {
+            return -1.0
+        }
+
+        let absoluteBearing = coordinate.bearingTo(other.coordinate)
+        if absoluteBearing >= course {
+            return absoluteBearing - course
+        } else {
+            return 360.0 - course - absoluteBearing
+        }
     }
 }
 
