@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		0111A0281D2180CD00A9B35E /* NSHTTPURLResponse+Utility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0111A0271D2180CD00A9B35E /* NSHTTPURLResponse+Utility.swift */; };
 		0111A02E1D21CB6F00A9B35E /* JSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0111A02D1D21CB6F00A9B35E /* JSON.swift */; };
+		0111A0301D21CBC700A9B35E /* Dictionary+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0111A02F1D21CBC700A9B35E /* Dictionary+Utilities.swift */; };
 		011330811D05CC27002DA0F0 /* String+Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011330801D05CC27002DA0F0 /* String+Localization.swift */; };
 		012047C11D0C854A00E79510 /* UIApplication+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 012047C01D0C854A00E79510 /* UIApplication+Utilities.swift */; };
 		01533ACC1C9DDAE700C6E69D /* swiftlets.h in Headers */ = {isa = PBXBuildFile; fileRef = 01533ACB1C9DDAE700C6E69D /* swiftlets.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -49,6 +50,7 @@
 /* Begin PBXFileReference section */
 		0111A0271D2180CD00A9B35E /* NSHTTPURLResponse+Utility.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "NSHTTPURLResponse+Utility.swift"; path = "../../NSHTTPURLResponse+Utility.swift"; sourceTree = "<group>"; };
 		0111A02D1D21CB6F00A9B35E /* JSON.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = JSON.swift; path = ../../JSON.swift; sourceTree = "<group>"; };
+		0111A02F1D21CBC700A9B35E /* Dictionary+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Dictionary+Utilities.swift"; path = "../../../Portable/Dictionary+Utilities.swift"; sourceTree = "<group>"; };
 		011330801D05CC27002DA0F0 /* String+Localization.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "String+Localization.swift"; path = "../../../Portable/String+Localization.swift"; sourceTree = "<group>"; };
 		012047C01D0C854A00E79510 /* UIApplication+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIApplication+Utilities.swift"; path = "../../iOS/UIApplication+Utilities.swift"; sourceTree = "<group>"; };
 		01533AC81C9DDAE700C6E69D /* swiftlets.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = swiftlets.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -142,6 +144,7 @@
 				01E6784C1CD5315D00ABE1CB /* MKMapKit+Utilities.swift */,
 				01E6784D1CD5315D00ABE1CB /* MKMapView+Utilities.swift */,
 				01CD89E11CDD0B24000790C2 /* UIAlertController+Utilities.swift */,
+				0111A02F1D21CBC700A9B35E /* Dictionary+Utilities.swift */,
 				015710CE1D049C1F0057C1FB /* Array+Utilities.swift */,
 				01E759521CDD373C00DA15F1 /* String+Utilities.swift */,
 				01E769771CF22D1500866433 /* NSDateFormatter+Utilities.swift */,
@@ -273,6 +276,7 @@
 				01533B081C9DDF2000C6E69D /* DoubleTapTableView.swift in Sources */,
 				01E678511CD5317400ABE1CB /* Formatting.swift in Sources */,
 				01E678551CD531AA00ABE1CB /* UIView+Utilities.swift in Sources */,
+				0111A0301D21CBC700A9B35E /* Dictionary+Utilities.swift in Sources */,
 				01A3E9191CFE6FE300BE5AAA /* Miscellaneous.swift in Sources */,
 				01E6783F1CD5145E00ABE1CB /* NSData+Utilities.swift in Sources */,
 				015710CF1D049C1F0057C1FB /* Array+Utilities.swift in Sources */,
