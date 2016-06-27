@@ -552,6 +552,10 @@ extension JSON : CustomStringConvertible {
     public var description:String {
         return toString(true)
     }
+
+    public var debugDescription:String {
+        return toString(true)
+    }
 }
 
 extension JSON : Equatable {}
