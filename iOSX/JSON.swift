@@ -602,9 +602,9 @@ public extension NSURLSession {
      - note: It is guaranteed that exactly one of the success or failure closures will be invoked after this method is called regardless of whether a valid NSURLSessionDataTask is returned.
 
      - parameters:
-     - url: The url of the request
-     - success: A closure to be called on success. The NSURLResponse and a JSON object may be included.
-     - failure: A closure to be called on failure. The NSURLResponse and an error may be included.
+         - url: The url of the request
+         - success: A closure to be called on success. The NSURLResponse and a JSON object may be included.
+         - failure: A closure to be called on failure. The NSURLResponse and an error may be included.
      - returns: NSURLSessionDataTask already resumed
      */
 
@@ -626,9 +626,9 @@ public extension NSURLSession {
      - note: It is guaranteed that exactly one of the success or failure closures will be invoked after this method is called regardless of whether a valid NSURLSessionDataTask is returned.
 
      - parameters:
-     - url: The url of the request
-     - success: A closure to be called on success. The NSURLResponse and a JSON object may be included.
-     - failure: A closure to be called on failure. The NSURLResponse and an error may be included.
+         - url: The url of the request
+         - success: A closure to be called on success. The NSURLResponse and a JSON object may be included.
+         - failure: A closure to be called on failure. The NSURLResponse and an error may be included.
      - returns: NSURLSessionDataTask already resumed
      */
 
@@ -648,10 +648,10 @@ public extension NSURLSession {
      - note: It is guaranteed that exactly one of the success or failure closures will be invoked after this method is called regardless of whether a valid NSURLSessionDataTask is returned.
 
      - parameters:
-     - url: The url of the request
-     - bodyJSON: An optional JSON object to included as the body of the post
-     - success: A closure to be called on success. The NSURLResponse and a JSON object may be included.
-     - failure: A closure to be called on failure. The NSURLResponse and an error may be included.
+         - url: The url of the request
+         - bodyJSON: An optional JSON object to included as the body of the post
+         - success: A closure to be called on success. The NSURLResponse and a JSON object may be included.
+         - failure: A closure to be called on failure. The NSURLResponse and an error may be included.
      - returns: NSURLSessionDataTask already resumed
      */
 
@@ -673,10 +673,10 @@ public extension NSURLSession {
      - note: It is guaranteed that exactly one of the success or failure closures will be invoked after this method is called regardless of whether a valid NSURLSessionDataTask is returned.
 
      - parameters:
-     - url: The url of the request
-     - bodyParameters: An optional array of NSURLQueryItem to be escaped and included in the body of the post
-     - success: A closure to be called on success. The NSURLResponse and a JSON object may be included.
-     - failure: A closure to be called on failure. The NSURLResponse and an error may be included.
+         - url: The url of the request
+         - bodyParameters: An optional array of NSURLQueryItem to be escaped and included in the body of the post
+         - success: A closure to be called on success. The NSURLResponse and a JSON object may be included.
+         - failure: A closure to be called on failure. The NSURLResponse and an error may be included.
      - returns: NSURLSessionDataTask already resumed
      */
 
