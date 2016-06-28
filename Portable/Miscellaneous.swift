@@ -21,6 +21,22 @@ extension CGRect {
 }
 
 extension NSTimeInterval {
+    func toPicoseconds() -> Double {
+        return self * 1000.0 * 1000.0 * 1000.0 * 1000.0
+    }
+
+    func toNanoseconds() -> Double {
+        return self * 1000.0 * 1000.0 * 1000.0
+    }
+
+    func toMicroseconds() -> Double {
+        return self * 1000.0 * 1000.0
+    }
+
+    func toMilliseconds() -> Double {
+        return self * 1000.0
+    }
+
     func toMinutes() -> Double {
         return self/60.0
     }
@@ -34,3 +50,13 @@ extension NSTimeInterval {
     }
 }
 
+extension NSUserDefaults {
+    ///setObject(forKey:) where value != nil, removeObjectForKey where value == nil
+    func setOrRemoveObject(value: AnyObject?, forKey defaultName: String) {
+        if value != nil {
+            NSUserDefaults.standardUserDefaults().setObject(value, forKey: defaultName)
+        } else {
+            NSUserDefaults.standardUserDefaults().removeObjectForKey(defaultName)
+        }
+    }
+}
