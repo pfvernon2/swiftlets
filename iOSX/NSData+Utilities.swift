@@ -20,3 +20,13 @@ extension NSData {
         return result
     }
 }
+
+extension NSMutableData {
+    func appendStringAsUTF8(string: String) -> Bool {
+        if let data = string.dataUsingEncoding(NSUTF8StringEncoding, allowLossyConversion: true) {
+            appendData(data)
+            return true
+        }
+        return false
+    }
+}
