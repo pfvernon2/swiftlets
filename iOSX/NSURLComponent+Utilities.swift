@@ -100,3 +100,40 @@ public extension NSURLQueryItem {
         return encodedName + "=" + encodedValue
     }
 }
+
+public extension NSMutableURLRequest {
+    func appendJPEGImageFormSection(boundary:String,
+                                    image:UIImage,
+                                    fileName:String,
+                                    isFinal:Bool = false) {
+        guard let scaledImageData:NSData = UIImageJPEGRepresentation(image, 1.0) else {
+            return
+        }
+
+        appendFormSection(boundary, mimeType: "image/jpeg", name: "data", fileName: fileName, contentData: scaledImageData)
+    }
+
+    func appendFormSection(boundary:String,
+                           mimeType:String,
+                           name:String,
+                           fileName:String,
+                           contentData:NSData,
+                           isFinal:Bool = false) {
+        let body:NSMutableData = NSMutableData()
+        if let existingBody = HTTPBody {
+            body.appendData(existingBody)
+        }
+
+        body.appendStringAsUTF8("--\(boundary)\r\n")
+        body.appendStringAsUTF8("Content-Disposition: form-data; name=\"\(name)\"; filename=\"\(fileName)\"\r\n")
+        body.appendStringAsUTF8("Content-Type: \(mimeType)\r\n\r\n")
+
+        body.appendData(contentData)
+
+        if isFinal {
+            body.appendStringAsUTF8("\r\n--\(boundary)--\r\n")
+        }
+        
+        HTTPBody = body
+    }
+}
