@@ -47,21 +47,81 @@ extension MKRoute {
     var distanceMiles:Double {
         return metersToMiles(distance)
     }
-    
+
+    /**
+    Returns a localized human readable description of the time interval.
+
+     - note: The result is limited to Days, Hours, and Minutes and includes an indication of approximation.
+
+     Examples:
+     * About 14 minutes
+     * About 1 hour, 7 minutes
+    */
     var expectedTravelTimeLocalizedDescription:String {
-        //TODO: actually localized and smarter time formatter here
-        let minutes = ceil(expectedTravelTime/60.0)
-        return "\(minutes.format("0.0")) Minutes"
+        let start = NSDate()
+        let end = NSDate(timeInterval: expectedTravelTime, sinceDate: start)
+
+        let formatter = NSDateComponentsFormatter()
+        formatter.unitsStyle = .Full
+        formatter.includesApproximationPhrase = true
+        formatter.includesTimeRemainingPhrase = false
+        formatter.allowedUnits = [.Day, .Hour, .Minute]
+        formatter.maximumUnitCount = 2
+
+        return formatter.stringFromDate(start, toDate: end) ?? ""
+    }
+}
+
+extension MKMapPoint {
+    init(coordinate: CLLocationCoordinate2D) {
+        let mapPoint = MKMapPointForCoordinate(coordinate)
+        self.x = mapPoint.x
+        self.y = mapPoint.y
+    }
+
+    func metersBetween(point:MKMapPoint) -> CLLocationDistance {
+        return MKMetersBetweenMapPoints(self, point)
+    }
+
+    var coordinate:CLLocationCoordinate2D {
+        get {
+            return MKCoordinateForMapPoint(self)
+        }
+    }
+}
+
+extension MKMapRect {
+    func containsPoint(point:MKMapPoint) -> Bool {
+        return MKMapRectContainsPoint(self, point)
+    }
+
+    func containsRect(rect:MKMapRect) -> Bool {
+        return MKMapRectContainsRect(self, rect)
+    }
+
+    func intersectsRect(rect:MKMapRect) -> Bool {
+        return MKMapRectIntersectsRect(self, rect)
     }
 }
 
 extension MKCoordinateRegion {
+    init(centerCoordinate: CLLocationCoordinate2D,
+         latitudinalMeters: CLLocationDistance,
+         longitudinalMeters: CLLocationDistance) {
+        let region = MKCoordinateRegionMakeWithDistance(centerCoordinate,
+                                                        latitudinalMeters,
+                                                        longitudinalMeters)
+
+        self.center = region.center
+        self.span = region.span
+    }
+
     ///Determine if a location is within the region
     func locationInRegion(location:CLLocationCoordinate2D) -> Bool {
         return location.latitude >= center.latitude - span.latitudeDelta &&
-        location.latitude <= center.latitude + span.latitudeDelta &&
-        location.longitude >= center.longitude - span.longitudeDelta &&
-        location.longitude <= center.longitude + span.longitudeDelta
+            location.latitude <= center.latitude + span.latitudeDelta &&
+            location.longitude >= center.longitude - span.longitudeDelta &&
+            location.longitude <= center.longitude + span.longitudeDelta
     }
 
     func boundingCoordinates() -> (northWest:CLLocationCoordinate2D, southEast:CLLocationCoordinate2D) {
@@ -109,8 +169,8 @@ extension MKMapView {
 
 extension CLLocationCoordinate2D {
     func isEqualTo(location:CLLocationCoordinate2D?) -> Bool {
-        if let otherLocation = location {
-            return otherLocation.latitude == self.latitude && otherLocation.longitude == self.longitude
+        if let location = location {
+            return location.latitude == self.latitude && location.longitude == self.longitude
         } else {
             return false
         }
@@ -121,13 +181,24 @@ extension CLLocationCoordinate2D {
         return CLLocationCoordinate2DIsValid(self)
     }
 
+    /// Returns absolute bearing to specified location
     /// - note: This not accurate on large scales.
-    /// MKMapPoint should be used for those purposes.
-    func bearingTo(other:CLLocationCoordinate2D) -> CLLocationDirection {
-        let x = self.longitude - other.longitude;
-        let y = self.latitude - other.latitude;
+    /// MKMapPoint should be used for earth projections.
+    func bearingTo(location:CLLocationCoordinate2D) -> CLLocationDirection {
+        let x = self.longitude - location.longitude;
+        let y = self.latitude - location.latitude;
 
         return fmod(radiansToDegrees(atan2(y, x)), 360.0) + 90.0;
+    }
+
+    func greatCircleDistanceTo(coordinate:CLLocationCoordinate2D) -> CLLocationDistance {
+        guard self.isValid() && coordinate.isValid() else {
+            return CLLocationDistance.NaN
+        }
+
+        let sourceLocation:CLLocation = CLLocation(latitude: self.latitude, longitude: self.longitude)
+        let destinationLocation:CLLocation = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+        return sourceLocation.distanceFromLocation(destinationLocation)
     }
 }
 
@@ -161,7 +232,9 @@ extension CLLocation {
 
 extension MKDirectionsResponse {
     public func greatCircleDistance() -> CLLocationDistance {
-        if let sourceLocation = self.source.placemark.location, destinationLocation = self.destination.placemark.location {
+        if let sourceLocation:CLLocation = self.source.placemark.location,
+            let destinationLocation:CLLocation = self.destination.placemark.location
+        {
             return sourceLocation.distanceFromLocation(destinationLocation)
         } else {
             return CLLocationDistance.NaN
