@@ -33,7 +33,7 @@ func radiansToDegrees(radians: Double) -> Double {
 
 extension CLLocationDirection {
     func isValid() -> Bool {
-        return self > 0.0
+        return self >= 0.0
     }
 }
 
