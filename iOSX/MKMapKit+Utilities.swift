@@ -207,13 +207,13 @@ extension CLLocation {
         self.init(latitude: location.latitude, longitude: location.longitude)
     }
     
-    /// Calculate relative bearing to another location, if we have a course
-    /// CLLocationDirection is always specified as a positive value so result may be larger than 180
+    /// Calculate approximate relative bearing to another location, if we have a course. This not completely accurate on large scales.
+    /// MKMapPoint should be used for those purposes.
     ///
     /// See CLLocationCoordinate2D for absolute bearing
     ///
-    /// - note: This not completely accurate on large scales.
-    /// MKMapPoint should be used for those purposes.
+    /// - note: CLLocationDirection is always specified as a positive value so result may be larger than 180
+    ///
     func relativeBearingTo(other:CLLocation) -> CLLocationDirection {
         guard self.course.isValid() &&
             coordinate.isValid() &&

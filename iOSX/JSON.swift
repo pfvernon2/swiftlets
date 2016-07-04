@@ -10,6 +10,13 @@
 
 import Foundation
 
+/**
+ Representation of a JSON element which may have a nil (NULL) value. Nil values
+ will be substitued with NSNull() objects automatically when added to a JSON object.
+ 
+ This is useful primarily for creating JSON objects where the value may be nil. This type will never be returned
+ from JSON requests as internally values will never be nil.
+*/
 public typealias JSONElement = [String:AnyObject?]
 
 /// init
@@ -607,7 +614,7 @@ public extension NSURLSession {
 
      - parameters:
          - url: The url of the request
-         - success: A closure to be called on success. The NSURLResponse and a JSON object may be included.
+         - success: A closure to be called on success. The NSURLResponse and a JSON object will be included.
          - failure: A closure to be called on failure. The NSURLResponse and an error may be included.
      - returns: NSURLSessionDataTask already resumed
      */
@@ -631,7 +638,7 @@ public extension NSURLSession {
 
      - parameters:
          - url: The url of the request
-         - success: A closure to be called on success. The NSURLResponse and a JSON object may be included.
+         - success: A closure to be called on success. The NSURLResponse and a JSON object will be included.
          - failure: A closure to be called on failure. The NSURLResponse and an error may be included.
      - returns: NSURLSessionDataTask already resumed
      */
@@ -654,7 +661,7 @@ public extension NSURLSession {
      - parameters:
          - url: The url of the request
          - bodyJSON: An optional JSON object to included as the body of the post
-         - success: A closure to be called on success. The NSURLResponse and a JSON object may be included.
+         - success: A closure to be called on success. The NSURLResponse and a JSON object will be included.
          - failure: A closure to be called on failure. The NSURLResponse and an error may be included.
      - returns: NSURLSessionDataTask already resumed
      */
@@ -679,7 +686,7 @@ public extension NSURLSession {
      - parameters:
          - url: The url of the request
          - bodyParameters: An optional array of NSURLQueryItem to be escaped and included in the body of the post
-         - success: A closure to be called on success. The NSURLResponse and a JSON object may be included.
+         - success: A closure to be called on success. The NSURLResponse and a JSON object will be included.
          - failure: A closure to be called on failure. The NSURLResponse and an error may be included.
      - returns: NSURLSessionDataTask already resumed
      */
