@@ -14,16 +14,19 @@ import AddressBook
 let mileMeterRatio = 1609.344
 let meterToDegreesRatio = 111325.0
 
-func metersToMiles(meters:Double) -> Double {
+///A simple typealias to maintain explicit distance typing
+typealias CLLocationDistanceMiles = CLLocationDistance
+
+func metersToMiles(meters:CLLocationDistance) -> CLLocationDistanceMiles {
     return meters / mileMeterRatio
 }
 
-func milesToMeters(miles:Double) -> Double {
+func milesToMeters(miles:CLLocationDistanceMiles) -> CLLocationDistance {
     return miles * mileMeterRatio
 }
 
 ///This approximates degrees of travel on the surface of the earth for both latitude and longitude. It is *NOT* accurate for navigation.
-func metersToApproximateDegreesLatLong(meters:Double) -> Double {
+func metersToApproximateDegreesLatLong(meters:CLLocationDistance) -> Double {
     return meters / meterToDegreesRatio
 }
 
@@ -37,18 +40,19 @@ func degreesToRadians(degrees: Double) -> Double {
 
 let kCLLocationDirectionInvalid:CLLocationDirection = -1.0
 extension CLLocationDirection {
-    func isValid() -> Bool {
+    func isValidDirection() -> Bool {
         return self >= 0.0
     }
 
     public enum CLLocationDirectionMotion {
-        case clockwise, anticlockwise
+        case clockwise, counterclockwise
+        case right, left
 
         func reverse() -> CLLocationDirectionMotion {
             switch self {
-            case .clockwise:
-                return .anticlockwise
-            case .anticlockwise:
+            case .clockwise, .right:
+                return .counterclockwise
+            case .counterclockwise, .left:
                 return .clockwise
             }
         }
@@ -57,7 +61,7 @@ extension CLLocationDirection {
     ///Returns the absolute value of the smallest angle difference between two directions and an indication of the direction of change
     /// This is useful in determining both the magnitude and direction of the change of heading.
     func headingChangeTo(other:CLLocationDirection) -> (magnitude:CLLocationDirection, motion:CLLocationDirectionMotion) {
-        guard self.isValid() && other.isValid() else {
+        guard self.isValidDirection() && other.isValidDirection() else {
             return (kCLLocationDirectionInvalid, .clockwise)
         }
 
@@ -65,7 +69,7 @@ extension CLLocationDirection {
         var motion:CLLocationDirectionMotion
         if self > other {
             angle = self - other
-            motion = .anticlockwise
+            motion = .counterclockwise
         } else {
             angle = other - self
             motion = .clockwise
@@ -77,18 +81,23 @@ extension CLLocationDirection {
         }
 
         return (angle, motion)
+    }
+}
 
+extension CLLocationDistance {
+    func isValidDistance() -> Bool {
+        return self != CLLocationDistance.NaN
     }
 }
 
 extension MKRouteStep {
-    var distanceMiles:Double {
+    var distanceMiles:CLLocationDistanceMiles {
         return metersToMiles(distance)
     }
 }
 
 extension MKRoute {
-    var distanceMiles:Double {
+    var distanceMiles:CLLocationDistanceMiles {
         return metersToMiles(distance)
     }
 
@@ -193,11 +202,13 @@ extension MKCoordinateRegion {
     func boundingRadius() -> CLLocationDistance {
         let (northWest, southEast) = boundingCoordinates()
 
-        let northWestLocation:CLLocation = CLLocation(location: northWest)
-        let southEastLocation:CLLocation = CLLocation(location: southEast)
+        guard let northWestLocation:CLLocation = CLLocation(location: northWest),
+              let southEastLocation:CLLocation = CLLocation(location: southEast) else {
+            return CLLocationDistance.NaN
+        }
 
-        let circumfrance:Double = northWestLocation.distanceFromLocation(southEastLocation)
-        return circumfrance/2.0
+        let circumference:CLLocationDistance = northWestLocation.distanceFromLocation(southEastLocation)
+        return circumference/2.0
     }
 }
 
@@ -266,7 +277,11 @@ extension CLLocationCoordinate2D {
 }
 
 extension CLLocation {
-    public convenience init(location:CLLocationCoordinate2D) {
+    public convenience init?(location:CLLocationCoordinate2D) {
+        guard location.isValid() else {
+            return nil
+        }
+
         self.init(latitude: location.latitude, longitude: location.longitude)
     }
     
@@ -277,14 +292,14 @@ extension CLLocation {
     ///
     /// - note: CLLocationDirection is always specified as a positive value so result may be larger than 180
     ///
-    func relativeBearingTo(other:CLLocation) -> CLLocationDirection {
+    func relativeBearingTo(location:CLLocation) -> CLLocationDirection {
         guard self.course.isValid() &&
             coordinate.isValid() &&
-            other.coordinate.isValid() else {
+            location.coordinate.isValid() else {
             return -1.0
         }
 
-        let absoluteBearing = coordinate.bearingTo(other.coordinate)
+        let absoluteBearing = coordinate.bearingTo(location.coordinate)
         if absoluteBearing >= course {
             return absoluteBearing - course
         } else {
