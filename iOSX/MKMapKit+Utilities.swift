@@ -293,7 +293,7 @@ extension CLLocation {
     /// - note: CLLocationDirection is always specified as a positive value so result may be larger than 180
     ///
     func relativeBearingTo(location:CLLocation) -> CLLocationDirection {
-        guard self.course.isValid() &&
+        guard self.course.isValidDirection() &&
             coordinate.isValid() &&
             location.coordinate.isValid() else {
             return -1.0
