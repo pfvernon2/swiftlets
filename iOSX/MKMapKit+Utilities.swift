@@ -31,9 +31,53 @@ func radiansToDegrees(radians: Double) -> Double {
     return radians * 180.0 / M_PI;
 }
 
+func degreesToRadians(degrees: Double) -> Double {
+    return degrees * M_PI / 180
+}
+
+let kCLLocationDirectionInvalid:CLLocationDirection = -1.0
 extension CLLocationDirection {
     func isValid() -> Bool {
         return self >= 0.0
+    }
+
+    public enum CLLocationDirectionMotion {
+        case clockwise, anticlockwise
+
+        func reverse() -> CLLocationDirectionMotion {
+            switch self {
+            case .clockwise:
+                return .anticlockwise
+            case .anticlockwise:
+                return .clockwise
+            }
+        }
+    }
+
+    ///Returns the absolute value of the smallest angle difference between two directions and an indication of the direction of change
+    /// This is useful in determining both the magnitude and direction of the change of heading.
+    func headingChangeTo(other:CLLocationDirection) -> (magnitude:CLLocationDirection, motion:CLLocationDirectionMotion) {
+        guard self.isValid() && other.isValid() else {
+            return (kCLLocationDirectionInvalid, .clockwise)
+        }
+
+        var angle:CLLocationDirection
+        var motion:CLLocationDirectionMotion
+        if self > other {
+            angle = self - other
+            motion = .anticlockwise
+        } else {
+            angle = other - self
+            motion = .clockwise
+        }
+
+        if angle > 180.0 {
+            angle = 360.0 - angle
+            motion = motion.reverse()
+        }
+
+        return (angle, motion)
+
     }
 }
 
@@ -79,8 +123,20 @@ extension MKMapPoint {
         self.y = mapPoint.y
     }
 
-    func metersBetween(point:MKMapPoint) -> CLLocationDistance {
+    func distanceTo(point:MKMapPoint) -> CLLocationDistance {
         return MKMetersBetweenMapPoints(self, point)
+    }
+
+    func bearingTo(otherPoint: MKMapPoint) -> CLLocationDirection {
+        let x = otherPoint.x - self.x
+        let y = otherPoint.y - self.y
+
+        var result = radiansToDegrees(atan2(y, x)) % 360.0 + 90.0
+        if result < 0.0 {
+            result = 360.0 + result
+        }
+
+        return result
     }
 
     var coordinate:CLLocationCoordinate2D {
@@ -191,14 +247,21 @@ extension CLLocationCoordinate2D {
         return fmod(radiansToDegrees(atan2(y, x)), 360.0) + 90.0;
     }
 
-    func greatCircleDistanceTo(coordinate:CLLocationCoordinate2D) -> CLLocationDistance {
-        guard self.isValid() && coordinate.isValid() else {
+    func greatCircleDistanceTo(location:CLLocationCoordinate2D) -> CLLocationDistance {
+        guard self.isValid() && location.isValid() else {
             return CLLocationDistance.NaN
         }
 
         let sourceLocation:CLLocation = CLLocation(latitude: self.latitude, longitude: self.longitude)
-        let destinationLocation:CLLocation = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+        let destinationLocation:CLLocation = CLLocation(latitude: location.latitude, longitude: location.longitude)
         return sourceLocation.distanceFromLocation(destinationLocation)
+    }
+
+    func tween(location:CLLocationCoordinate2D, percent:Double) -> CLLocationCoordinate2D {
+        var progressCoordinate:CLLocationCoordinate2D = self
+        progressCoordinate.latitude -= (self.latitude - location.latitude) * percent
+        progressCoordinate.longitude -= (self.longitude - location.longitude) * percent
+        return progressCoordinate
     }
 }
 
