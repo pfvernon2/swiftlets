@@ -182,4 +182,19 @@ extension UIView {
         
         self.superview?.exchangeSubviewAtIndex(myIndex, withSubviewAtIndex: otherIndex)
     }
+
+    /**
+     Identical to animateWithDuration() but returns percentage of progress in closure should animation be interrupted.
+     Progress will be 1.0 in the event of sucessful completion of the animation, 0.0..<1.0 in the event of cancellation.
+
+     - note: The progress is an estimatation based on the start time, end time, and duration of the animation.
+     */
+    class func animateWithDuration(duration: NSTimeInterval, delay: NSTimeInterval, options: UIViewAnimationOptions, animations: () -> Void, progress: ((progress:Double) -> Void)?) {
+        let startTime = NSDate()
+        UIView.animateWithDuration(duration, delay: delay, options: options, animations: animations, completion: { (success) in
+            if let progress = progress {
+                progress(progress: success ? 1.0 : (NSDate().timeIntervalSinceDate(startTime)/duration))
+            }
+        } )
+    }
 }
