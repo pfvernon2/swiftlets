@@ -25,6 +25,7 @@
 		015710CF1D049C1F0057C1FB /* Array+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 015710CE1D049C1F0057C1FB /* Array+Utilities.swift */; };
 		016310871D03660500862035 /* NSURLComponent+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 016310861D03660500862035 /* NSURLComponent+Utilities.swift */; };
 		01A3E9191CFE6FE300BE5AAA /* Miscellaneous.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A3E9181CFE6FE300BE5AAA /* Miscellaneous.swift */; };
+		01ADE31B1D34AD5E005424EF /* UIFont+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01ADE31A1D34AD5E005424EF /* UIFont+Utilities.swift */; };
 		01CD89E21CDD0B24000790C2 /* UIAlertController+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01CD89E11CDD0B24000790C2 /* UIAlertController+Utilities.swift */; };
 		01E6783F1CD5145E00ABE1CB /* NSData+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E6783E1CD5145E00ABE1CB /* NSData+Utilities.swift */; };
 		01E6784E1CD5315D00ABE1CB /* MKMapKit+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E6784C1CD5315D00ABE1CB /* MKMapKit+Utilities.swift */; };
@@ -69,6 +70,7 @@
 		015710CE1D049C1F0057C1FB /* Array+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Array+Utilities.swift"; path = "../../../Portable/Array+Utilities.swift"; sourceTree = "<group>"; };
 		016310861D03660500862035 /* NSURLComponent+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "NSURLComponent+Utilities.swift"; path = "../../NSURLComponent+Utilities.swift"; sourceTree = "<group>"; };
 		01A3E9181CFE6FE300BE5AAA /* Miscellaneous.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Miscellaneous.swift; path = ../../../Portable/Miscellaneous.swift; sourceTree = "<group>"; };
+		01ADE31A1D34AD5E005424EF /* UIFont+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIFont+Utilities.swift"; path = "../../UIFont+Utilities.swift"; sourceTree = "<group>"; };
 		01CD89E11CDD0B24000790C2 /* UIAlertController+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIAlertController+Utilities.swift"; path = "../../iOS/UIAlertController+Utilities.swift"; sourceTree = "<group>"; };
 		01E6783E1CD5145E00ABE1CB /* NSData+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "NSData+Utilities.swift"; path = "../../NSData+Utilities.swift"; sourceTree = "<group>"; };
 		01E6784C1CD5315D00ABE1CB /* MKMapKit+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "MKMapKit+Utilities.swift"; path = "../../MKMapKit+Utilities.swift"; sourceTree = "<group>"; };
@@ -148,6 +150,7 @@
 				015710CE1D049C1F0057C1FB /* Array+Utilities.swift */,
 				01E759521CDD373C00DA15F1 /* String+Utilities.swift */,
 				01E769771CF22D1500866433 /* NSDateFormatter+Utilities.swift */,
+				01ADE31A1D34AD5E005424EF /* UIFont+Utilities.swift */,
 			);
 			path = swiftlets;
 			sourceTree = "<group>";
@@ -272,6 +275,7 @@
 				01533B071C9DDF2000C6E69D /* Timer.swift in Sources */,
 				01533B061C9DDF2000C6E69D /* AudioEngine.swift in Sources */,
 				01E678541CD531AA00ABE1CB /* UIColor+Utilities.swift in Sources */,
+				01ADE31B1D34AD5E005424EF /* UIFont+Utilities.swift in Sources */,
 				01CD89E21CDD0B24000790C2 /* UIAlertController+Utilities.swift in Sources */,
 				01533B081C9DDF2000C6E69D /* DoubleTapTableView.swift in Sources */,
 				01E678511CD5317400ABE1CB /* Formatting.swift in Sources */,
