@@ -9,9 +9,9 @@
 import UIKit
 import QuartzCore
 
-class RoundedCornerView: UIView {
+@IBDesignable class RoundedCornerView: UIView {
 
-    var borderColor:UIColor? = nil {
+    @IBInspectable var borderColor:UIColor? = nil {
         didSet {
             if let borderColor = borderColor {
                 layer.borderColor = borderColor.CGColor
@@ -21,13 +21,13 @@ class RoundedCornerView: UIView {
         }
     }
     
-    var borderWidth:CGFloat = 0.0 {
+    @IBInspectable var borderWidth:CGFloat = 0.0 {
         didSet {
             layer.borderWidth = borderWidth
         }
     }
 
-    var cornerRadius:CGFloat {
+    @IBInspectable var cornerRadius:CGFloat {
         set (radius) {
             self.layer.cornerRadius = radius
             self.layer.masksToBounds = radius > 0.0
@@ -48,11 +48,11 @@ class RoundedCornerView: UIView {
     }
 }
 
-class RoundImageView: UIImageView {
+@IBDesignable class RoundImageView: UIImageView {
     
     let circlePathLayer = CAShapeLayer()
 
-    var borderColor:UIColor = UIColor.blackColor() {
+    @IBInspectable var borderColor:UIColor = UIColor.blackColor() {
         didSet {
             layer.borderColor = borderColor.CGColor
         }
