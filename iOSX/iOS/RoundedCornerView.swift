@@ -57,16 +57,19 @@ import QuartzCore
             layer.borderColor = borderColor.CGColor
         }
     }
-    
+
+    @IBInspectable var borderWidth:CGFloat = 2.0 {
+        didSet {
+            layer.borderWidth = borderWidth
+        }
+    }
+
     func makeRound() {
         let minDimension:CGFloat = min(self.bounds.width, self.bounds.height)
         
         let layer:CALayer = self.layer
         layer.masksToBounds = true
         layer.cornerRadius = minDimension/2.0
-        
-        layer.borderWidth = 2.0
-//        layer.borderColor = UIColor.blackColor().CGColor
     }
     
     override func layoutSubviews() {
