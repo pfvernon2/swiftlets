@@ -20,6 +20,16 @@ extension CGRect {
     }
 }
 
+extension CGSize {
+    func maxDimension() -> CGFloat {
+        return width > height ? width : height
+    }
+
+    func minDimension() -> CGFloat {
+        return width > height ? height : width
+    }
+}
+
 extension NSTimeInterval {
     func toPicoseconds() -> Double {
         return self * 1000.0 * 1000.0 * 1000.0 * 1000.0

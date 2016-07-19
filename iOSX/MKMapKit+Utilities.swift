@@ -88,6 +88,10 @@ extension CLLocationDistance {
     func isValidDistance() -> Bool {
         return self != CLLocationDistance.NaN
     }
+
+    func toMiles() -> Double {
+        return metersToMiles(self)
+    }
 }
 
 extension MKRouteStep {
