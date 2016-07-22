@@ -9,10 +9,6 @@
 import UIKit
 
 extension UIApplication {
-    static var isSimulator: Bool {
-        return TARGET_OS_SIMULATOR != 0
-    }
-    
     class func jumpOutToAppPreferences() {
         guard let settingsURL:NSURL = NSURL(string: UIApplicationOpenSettingsURLString)
             where UIApplication.sharedApplication().canOpenURL(settingsURL) else {
