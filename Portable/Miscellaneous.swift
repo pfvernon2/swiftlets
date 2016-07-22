@@ -10,13 +10,28 @@ import Foundation
 import QuartzCore
 
 extension CGRect {
-    
     var center:CGPoint {
         return CGPointMake(CGRectGetMidX(self), CGRectGetMidY(self));
     }
     
     static func rectCenteredOn(center:CGPoint, radius:CGFloat) -> CGRect {
         return CGRectMake(floor(center.x - radius), floor(center.y - radius), floor(radius*2.0), floor(radius*2.0))
+    }
+
+    var top:CGFloat {
+        return self.origin.y - self.size.height
+    }
+
+    var bottom:CGFloat {
+        return self.origin.y
+    }
+
+    var left:CGFloat {
+        return self.origin.x
+    }
+
+    var right:CGFloat {
+        return self.origin.x + self.size.width
     }
 }
 
