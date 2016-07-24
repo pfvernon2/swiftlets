@@ -5,7 +5,7 @@
 //  Created by Frank Vernon on 6/22/16.
 //  Copyright © 2016 Frank Vernon. All rights reserved.
 //
-// Based, almost entirely, upon: https://github.com/dankogai/swift-json
+// Based, in large part, upon: https://github.com/dankogai/swift-json
 // Copyright (c) 2014 Dan Kogai
 
 import Foundation
@@ -14,14 +14,13 @@ import Foundation
  Representation of a JSON element which may have a nil (NULL) value. Nil values
  will be substitued with NSNull() objects automatically when added to a JSON object.
  
- This is useful primarily for creating JSON objects where the value may be nil. This type will never be returned
- from JSON requests as internally values will never be nil.
+ This is useful primarily for creating JSON objects where the value may be nil. 
 */
 public typealias JSONElement = [String:AnyObject?]
 
 /// init
 public class JSON {
-    private let value:AnyObject
+    private var value:AnyObject
     
     /// unwraps the JSON object
     public class func unwrap(obj:AnyObject?) -> AnyObject {
@@ -161,18 +160,19 @@ extension JSON {
 /// instance properties
 extension JSON {
     /// access the element like array
-    public subscript(idx:Int) -> JSON {
+    public subscript(index:Int) -> JSON {
+        get {
         switch value {
         case _ as NSError:
             return self
-        case let ary as NSArray:
-            if 0 <= idx && idx < ary.count {
-                return JSON(ary[idx])
+        case let array as NSArray:
+            if 0 <= index && index < array.count {
+                return JSON(array[index])
             }
             return JSON(NSError(
                 domain:"JSONErrorDomain", code:404, userInfo:[
                     NSLocalizedDescriptionKey:
-                        "[\(idx)] is out of range"
+                        "[\(index)] is out of range"
                 ]))
         default:
             return JSON(NSError(
@@ -180,28 +180,81 @@ extension JSON {
                     NSLocalizedDescriptionKey: "not an array"
                 ]))
         }
-    }
-    
-    /// access the element like dictionary
-    public subscript(key:String)->JSON {
-        switch value {
-        case _ as NSError:
-            return self
-        case let dic as NSDictionary:
-            if let val:AnyObject = dic[key] { return JSON(val) }
-            return JSON(NSError(
-                domain:"JSONErrorDomain", code:404, userInfo:[
-                    NSLocalizedDescriptionKey:
-                        "[\"\(key)\"] not found"
-                ]))
-        default:
-            return JSON(NSError(
-                domain:"JSONErrorDomain", code:500, userInfo:[
-                    NSLocalizedDescriptionKey: "not an object"
-                ]))
+        }
+
+        set (newValue) {
+            updateValue(newValue, atIndex: index)
         }
     }
-    
+
+    /// access the element like dictionary
+    public subscript(key:String)->JSON {
+        get {
+            switch value {
+            case _ as NSError:
+                return self
+            case let dictionary as NSDictionary:
+                if let val:AnyObject = dictionary[key] { return JSON(val) }
+                return JSON(NSError(
+                    domain:"JSONErrorDomain", code:404, userInfo:[
+                        NSLocalizedDescriptionKey:
+                            "[\"\(key)\"] not found"
+                    ]))
+            default:
+                return JSON(NSError(
+                    domain:"JSONErrorDomain", code:500, userInfo:[
+                        NSLocalizedDescriptionKey: "not an object"
+                    ]))
+            }
+        }
+
+        set (newValue) {
+            updateValue(newValue, forKey: key)
+        }
+    }
+
+    public func removeValue(forKey key:String) {
+        switch value {
+        case var valueDictionary as Dictionary<String, AnyObject>:
+            valueDictionary.removeValueForKey(key)
+            value = valueDictionary
+        default:
+            break
+        }
+    }
+
+    public func removeValue(atIndex index:Int) {
+        switch value {
+        case var valueArray as Array<AnyObject>:
+            valueArray.removeAtIndex(index)
+            value = valueArray
+        default:
+            break
+        }
+    }
+
+    public func updateValue(newValue:AnyObject?, forKey key:String) {
+        let json:JSON = JSON(newValue)
+        switch value {
+        case var valueDictionary as Dictionary<String, AnyObject>:
+            valueDictionary[key] = json.value
+            value = valueDictionary
+        default:
+            break
+        }
+    }
+
+    public func updateValue(newValue:AnyObject?, atIndex index:Int) {
+        let json:JSON = JSON(newValue)
+        switch value {
+        case var valueArray as Array<AnyObject>:
+            valueArray[index] = json.value
+            value = valueArray
+        default:
+            break
+        }
+    }
+
     /// access json data object
     public var data:AnyObject? {
         return self.isError ? nil : self.value
