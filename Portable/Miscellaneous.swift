@@ -73,6 +73,29 @@ extension NSTimeInterval {
     func toDays() -> Double {
         return self/60.0/60.0/24.0
     }
+
+    /**
+     Returns a localized human readable description of the time interval.
+
+     - note: The result is limited to Days, Hours, and Minutes and includes an indication of approximation.
+
+     Examples:
+     * About 14 minutes
+     * About 1 hour, 7 minutes
+     */
+    func approximateDurationLocalizedDescription() -> String {
+        let start = NSDate()
+        let end = NSDate(timeInterval: self, sinceDate: start)
+
+        let formatter = NSDateComponentsFormatter()
+        formatter.unitsStyle = .Full
+        formatter.includesApproximationPhrase = true
+        formatter.includesTimeRemainingPhrase = false
+        formatter.allowedUnits = [.Day, .Hour, .Minute]
+        formatter.maximumUnitCount = 2
+        
+        return formatter.stringFromDate(start, toDate: end) ?? ""
+    }
 }
 
 extension NSUserDefaults {
