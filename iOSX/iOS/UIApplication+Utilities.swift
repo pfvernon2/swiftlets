@@ -17,4 +17,13 @@ extension UIApplication {
         
         UIApplication.sharedApplication().openURL(settingsURL)
     }
+
+    class func appInBackground() -> Bool {
+        switch UIApplication.sharedApplication().applicationState {
+        case .Background, .Inactive:
+            return true
+        default:
+            return false
+        }
+    }
 }
