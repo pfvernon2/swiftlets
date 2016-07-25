@@ -98,5 +98,10 @@ public extension String {
     func isLikeZipCode() -> Bool {
         return self.characters.count == 5 && self.isAllDigits()
     }
+
+    func isEmailAddress() -> Bool {
+        //Per Apple recommendation WWDC16 - https://developer.apple.com/videos/play/wwdc2016/714/
+        return self.containsString("@")
+    }
 }
 
