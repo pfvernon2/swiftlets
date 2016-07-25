@@ -507,9 +507,7 @@ extension JSON {
     /// Yields date from string
     public var asDate:NSDate? {
         if let dateString = value as? String {
-            let dateFormatter = NSDateFormatter()
-            dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZZZZ"
-            return dateFormatter.dateFromString(dateString)
+            return NSDateFormatter.tryParseISO8601LikeDateString(dateString)
         }
         return nil
     }
