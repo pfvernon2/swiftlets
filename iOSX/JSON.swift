@@ -11,6 +11,31 @@
 import Foundation
 
 /**
+ Protocol one can adopt to convert to and from JSON primative types: Number, String, NULL, Array, Dictionary
+ 
+ ```
+ extension NSDate: JSONTransformable {
+    func toJSONType() -> AnyObject {
+        return NSDateFormatter.ISO8601FormatterCached(.microseconds).stringFromDate(self)
+    }
+ 
+    public static func fromJSONType(json:AnyObject) -> AnyObject? {
+        guard let jsonString:String = json as? String else {
+            return nil
+        }
+
+        return NSDateFormatter.ISO8601FormatterCached(.microseconds).dateFromString(jsonString)
+    }
+ }
+
+ ```
+ */
+public protocol JSONTransformable {
+    func toJSONType() -> AnyObject
+    static func fromJSONType(json:AnyObject) -> AnyObject?
+}
+
+/**
  Representation of a JSON element which may have a nil (NULL) value. Nil values
  will be substitued with NSNull() objects automatically when added to a JSON object.
  
@@ -21,7 +46,11 @@ public typealias JSONElement = [String:AnyObject?]
 /// init
 public class JSON {
     private var value:AnyObject
-    
+
+    func transform<T:JSONTransformable>() -> T? {
+        return T.fromJSONType(value) as? T
+    }
+
     /// unwraps the JSON object
     public class func unwrap(obj:AnyObject?) -> AnyObject {
         switch obj {
@@ -43,7 +72,10 @@ public class JSON {
                 }
             }
             return result
-            
+
+        case let transform as JSONTransformable:
+            return transform.toJSONType()
+
         default:
             return obj ?? NSNull()
         }
