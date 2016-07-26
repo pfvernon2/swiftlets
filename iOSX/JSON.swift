@@ -543,7 +543,11 @@ extension JSON {
         }
         return nil
     }
-    
+
+    func asTransformable<T:JSONTransformable>() -> T? {
+        return T.fromJSONType(value) as? T
+    }
+
     /// gives the number of elements if an array or a dictionary.
     /// you can use this to check if you can iterate.
     public var count:Int {
