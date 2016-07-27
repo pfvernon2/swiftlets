@@ -811,16 +811,16 @@ public extension NSURLSession {
                               success:HTTPJSONSuccessClosure,
                               failure:HTTPJSONFailureClosure) -> NSURLSessionDataTask?
     {
-        func dataTaskFailureHandler(response:NSHTTPURLResponse?, error:NSError?) {
+        func dataTaskFailureHandler(data:NSData?, response:NSHTTPURLResponse?, error:NSError?) {
             #if DEBUG
-                printResult(response, error: error)
+                printResult(data, response: response, error: error)
             #endif
             failure(response, error)
         }
 
         //ensure request is valid
         guard let request:NSMutableURLRequest = NSMutableURLRequest(URL: url) else {
-            dataTaskFailureHandler(nil, error: NSError(domain: "NSURLSession.httpPost.badRequest", code: 0, userInfo: nil))
+            dataTaskFailureHandler(nil, response:nil, error: NSError(domain: "NSURLSession.httpPost.badRequest", code: 0, userInfo: nil))
             return nil
         }
 
@@ -846,11 +846,11 @@ public extension NSURLSession {
                 if response.isSuccess() {
                     success(response, JSON(data: data ?? NSData()))
                 } else {
-                    dataTaskFailureHandler(response, error: error)
+                    dataTaskFailureHandler(data, response:response, error: error)
                 }
             }
             else {
-                dataTaskFailureHandler(nil, error: error)
+                dataTaskFailureHandler(nil, response:nil, error: error)
             }
         }
 
@@ -861,13 +861,21 @@ public extension NSURLSession {
     }
 
     ///Utility method to print response and error objects for debugging purposes
-    private func printResult(response:NSHTTPURLResponse?, error:NSError?) {
+    private func printResult(data:NSData?, response:NSHTTPURLResponse?, error:NSError?) {
+        print("httpDataTask result ----------")
+
+        if let data = data {
+            print("data: \(String(data:data, encoding:NSUTF8StringEncoding))")
+        }
+
         if let response = response {
-            print("httpDataTask response: \(response)")
+            print("response: \(response)")
         }
 
         if let error = error {
-            print("httpDataTask error: \(error.localizedDescription)")
+            print("error: \(error.localizedDescription)")
         }
+
+        print("----------")
     }
 }
