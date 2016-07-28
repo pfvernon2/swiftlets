@@ -108,3 +108,22 @@ extension NSUserDefaults {
         }
     }
 }
+
+///Trivial indexing generator that wraps back to startIndex when reaching endIndex
+class WrappingIndexingGenerator<C: CollectionType>: GeneratorType {
+    var _colletion: C
+    var _index: C.Index
+    func next() -> C.Generator.Element? {
+        var item:C.Generator.Element?
+        if _index == _colletion.endIndex {
+            _index = _colletion.startIndex
+        }
+        item = _colletion[_index]
+        _index = _index.successor()
+        return item
+    }
+    init(_ colletion: C) {
+        _colletion = colletion;
+        _index = _colletion.startIndex
+    }
+}
