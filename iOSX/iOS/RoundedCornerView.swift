@@ -97,3 +97,42 @@ import QuartzCore
         layer.addSublayer(circlePathLayer)
     }    
 }
+
+@IBDesignable class RoundedCornerTextView: UITextView {
+
+    @IBInspectable var borderColor:UIColor? = nil {
+        didSet {
+            if let borderColor = borderColor {
+                layer.borderColor = borderColor.CGColor
+            } else {
+                layer.borderColor = nil
+            }
+        }
+    }
+
+    @IBInspectable var borderWidth:CGFloat = 0.0 {
+        didSet {
+            layer.borderWidth = borderWidth
+        }
+    }
+
+    @IBInspectable var cornerRadius:CGFloat {
+        set (radius) {
+            self.layer.cornerRadius = radius
+            self.layer.masksToBounds = radius > 0.0
+        }
+        get {
+            return self.layer.cornerRadius
+        }
+    }
+
+    required init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+        self.cornerRadius = 3.0
+    }
+
+    override init(frame: CGRect, textContainer: NSTextContainer?) {
+        super.init(frame: frame, textContainer: textContainer)
+        self.cornerRadius = 3.0
+    }
+}
