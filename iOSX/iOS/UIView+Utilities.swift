@@ -81,7 +81,50 @@ extension UIView {
                                          constant:0.0);
         self.addConstraint(centerY)
     }
-    
+
+    func addSubView(view:UIView, withInsets insets:UIEdgeInsets) {
+        addSubview(view)
+
+        view.translatesAutoresizingMaskIntoConstraints = false
+
+        let top = NSLayoutConstraint(item:view,
+                                     attribute:.Top,
+                                     relatedBy:.Equal,
+                                     toItem:self,
+                                     attribute:.Top,
+                                     multiplier:1.0,
+                                     constant:insets.top);
+        self.addConstraint(top)
+
+        
+        let bottom = NSLayoutConstraint(item:self,
+                                     attribute:.Bottom,
+                                     relatedBy:.Equal,
+                                     toItem:view,
+                                     attribute:.Bottom,
+                                     multiplier:1.0,
+                                     constant:insets.bottom);
+        self.addConstraint(bottom)
+
+        let left = NSLayoutConstraint(item:view,
+                                        attribute:.Left,
+                                        relatedBy:.Equal,
+                                        toItem:self,
+                                        attribute:.Left,
+                                        multiplier:1.0,
+                                        constant:insets.left);
+        self.addConstraint(left)
+        
+        let right = NSLayoutConstraint(item:self,
+                                      attribute:.Right,
+                                      relatedBy:.Equal,
+                                      toItem:view,
+                                      attribute:.Right,
+                                      multiplier:1.0,
+                                      constant:insets.right);
+        self.addConstraint(right)
+    }
+
     func constrainToCurrentSize() {
         let width = NSLayoutConstraint(item:self,
                                        attribute:.Width,
@@ -91,7 +134,7 @@ extension UIView {
                                        multiplier:1.0,
                                        constant:bounds.width);
         self.addConstraint(width)
-        
+
         let height = NSLayoutConstraint(item:self,
                                         attribute:.Height,
                                         relatedBy:.Equal,
