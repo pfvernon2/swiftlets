@@ -815,7 +815,12 @@ public extension NSURLSession {
             #if DEBUG
                 printResult(data, response: response, error: error)
             #endif
-            failure(response, error)
+
+            if let data = data where error == nil {
+                failure(response, NSError(domain: #function, code: 0, userInfo: ["data":data]))
+            } else {
+                failure(response, error)
+            }
         }
 
         //ensure request is valid
