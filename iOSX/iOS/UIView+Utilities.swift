@@ -82,7 +82,7 @@ extension UIView {
         self.addConstraint(centerY)
     }
 
-    func addSubView(view:UIView, withInsets insets:UIEdgeInsets) {
+    func addSubViewInset(view:UIView, insets:UIEdgeInsets) {
         addSubview(view)
 
         view.translatesAutoresizingMaskIntoConstraints = false
