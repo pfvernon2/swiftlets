@@ -782,12 +782,14 @@ public extension NSURLSession {
     {
         var body:String = ""
         for queryItem:NSURLQueryItem in bodyParameters {
-            if let escapedItem = queryItem.urlEscapedItem() {
-                if !body.isEmpty {
-                    body = body + "&" + escapedItem
-                } else {
-                    body = escapedItem
-                }
+            guard let escapedItem = queryItem.urlEscapedItem() else {
+                continue
+            }
+            
+            if !body.isEmpty {
+                body = body + "&" + escapedItem
+            } else {
+                body = escapedItem
             }
         }
         let data:NSData? = body.dataUsingEncoding(NSUTF8StringEncoding)

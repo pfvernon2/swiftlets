@@ -89,11 +89,11 @@ public extension NSURLQueryItem {
     }
     
     public func urlEscapedItem() -> String? {
-        guard let encodedName = self.name.stringByAddingPercentEncodingWithAllowedCharacters(.URLHostAllowedCharacterSet()) else {
+        guard let encodedName = self.name.stringByAddingPercentEncodingWithAllowedCharacters(.URLQueryAllowedCharacterSet()) else {
             return nil
         }
         
-        guard let encodedValue = self.value?.stringByAddingPercentEncodingWithAllowedCharacters(.URLHostAllowedCharacterSet()) else {
+        guard let encodedValue = self.value?.stringByAddingPercentEncodingWithAllowedCharacters(.URLQueryAllowedCharacterSet()) else {
             return nil
         }
         

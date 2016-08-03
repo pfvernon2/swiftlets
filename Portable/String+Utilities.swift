@@ -103,5 +103,10 @@ public extension String {
         //Per Apple recommendation WWDC16 - https://developer.apple.com/videos/play/wwdc2016/714/
         return self.containsString("@")
     }
+
+    var isNotEmpty:Bool {
+        return !isEmpty
+    }
+
 }
 
