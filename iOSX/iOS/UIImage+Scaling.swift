@@ -63,4 +63,36 @@ extension UIImage {
 
         return result
     }
+
+    //https://gist.github.com/ffried/0cbd6366bb9cf6fc0208
+    public func imageRotatedByDegrees(degrees: CGFloat, flip: Bool) -> UIImage {
+        func degreesToRadians(degrees:CGFloat) -> CGFloat {
+            return degrees / 180.0 * CGFloat(M_PI)
+        }
+
+        // calculate the size of the rotated view's containing box for our drawing space
+        let rotatedViewBox = UIView(frame: CGRect(origin: CGPointZero, size: size))
+        rotatedViewBox.transform = CGAffineTransformMakeRotation(degreesToRadians(degrees))
+        let rotatedSize = rotatedViewBox.frame.size
+
+        // Create the bitmap context
+        UIGraphicsBeginImageContext(rotatedSize)
+        let bitmap = UIGraphicsGetCurrentContext()
+
+        // Move the origin to the middle of the image so we will rotate and scale around the center.
+        CGContextTranslateCTM(bitmap, rotatedSize.width / 2.0, rotatedSize.height / 2.0);
+
+        // Rotate the image context
+        CGContextRotateCTM(bitmap, degreesToRadians(degrees));
+
+        // Now, draw the rotated/scaled image into the context
+        CGContextScaleCTM(bitmap, flip ? -1.0 : 1.0, -1.0)
+        CGContextDrawImage(bitmap, CGRectMake(-size.width / 2, -size.height / 2, size.width, size.height), CGImage)
+
+        let newImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        
+        return newImage
+    }
+
 }
