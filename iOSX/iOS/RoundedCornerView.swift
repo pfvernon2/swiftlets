@@ -11,6 +11,8 @@ import QuartzCore
 
 @IBDesignable class RoundedCornerView: UIView {
 
+    @IBInspectable var passthroughTouches:Bool = false
+
     @IBInspectable var borderColor:UIColor? = nil {
         didSet {
             if let borderColor = borderColor {
@@ -45,6 +47,15 @@ import QuartzCore
     override init(frame: CGRect) {
         super.init(frame: frame)
         self.cornerRadius = 3.0
+    }
+
+    override func hitTest(point: CGPoint, withEvent event: UIEvent?) -> UIView? {
+        let hitView:UIView? = super.hitTest(point, withEvent: event)
+        if self.passthroughTouches {
+            return hitView == self ? nil : hitView
+        } else {
+            return hitView
+        }
     }
 }
 
