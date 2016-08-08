@@ -238,6 +238,12 @@ extension MKMapView {
     }
 }
 
+extension MKMapItem {
+    convenience init(coordinate:CLLocationCoordinate2D) {
+        self.init(placemark: MKPlacemark(coordinate: coordinate, addressDictionary: nil))
+    }
+}
+
 extension CLLocationCoordinate2D {
     func isEqualTo(location:CLLocationCoordinate2D?) -> Bool {
         if let location = location {
@@ -262,7 +268,7 @@ extension CLLocationCoordinate2D {
         return fmod(radiansToDegrees(atan2(y, x)), 360.0) + 90.0;
     }
 
-    func greatCircleDistanceTo(location:CLLocationCoordinate2D) -> CLLocationDistance {
+    func greatCircleDistance(toLocation location:CLLocationCoordinate2D) -> CLLocationDistance {
         guard self.isValid() && location.isValid() else {
             return CLLocationDistance.NaN
         }
