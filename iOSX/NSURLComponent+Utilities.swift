@@ -110,7 +110,7 @@ public extension NSMutableURLRequest {
             return
         }
 
-        appendFormSection(boundary, mimeType: "image/jpeg", name: "data", fileName: fileName, contentData: scaledImageData)
+        appendFormSection(boundary, mimeType: "image/jpeg", name: "data", fileName: fileName, contentData: scaledImageData, isFinal: isFinal)
     }
 
     func appendFormSection(boundary:String,
