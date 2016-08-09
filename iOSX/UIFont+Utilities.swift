@@ -6,7 +6,7 @@
 //  Copyright © 2016 Frank Vernon. All rights reserved.
 //
 
-import Foundation
+import UIKit
 
 extension UIFont {
     ///Find the size of a string when drawn with the current font at the supplied width/height
