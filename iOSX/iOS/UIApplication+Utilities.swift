@@ -26,4 +26,31 @@ extension UIApplication {
             return false
         }
     }
+
+    public class func appVersion() -> String {
+        guard let dictionary = NSBundle.mainBundle().infoDictionary else {
+            return ""
+        }
+
+        guard let version = dictionary["CFBundleShortVersionString"] as? String else {
+            return ""
+        }
+
+        return version
+    }
+
+    public class func appDescription() -> String {
+        guard let dictionary = NSBundle.mainBundle().infoDictionary else {
+            return ""
+        }
+
+        guard let name = dictionary["CFBundleExecutable"] as? String,
+            let version = dictionary["CFBundleShortVersionString"] as? String,
+            let build = dictionary["CFBundleVersion"] as? String else {
+                return ""
+        }
+
+        return "\(name) \(version) (\(build))"
+    }
 }
+
