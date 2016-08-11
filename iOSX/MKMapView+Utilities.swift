@@ -80,7 +80,7 @@ extension MKMapView {
      })
      ```
      */
-    func removeAnnotations(annotations: [MKAnnotation], duration: NSTimeInterval, animations: (view:UIView) -> Void) {
+    func removeAnnotations(annotations: [MKAnnotation], duration: NSTimeInterval, animations: (view:UIView) -> Void, completion:()->()) {
         let visibleAnnotations:Set = annotationsInMapRect(visibleMapRect)
         var animationAnnotations:[MKAnnotation] = []
         annotations.forEach { (annotation) in
@@ -107,6 +107,7 @@ extension MKMapView {
                 snapshots.forEach({ (view) in
                     view.removeFromSuperview()
                 })
+                completion()
         }
 
         removeAnnotations(annotations)
