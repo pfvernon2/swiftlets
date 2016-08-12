@@ -12,7 +12,13 @@ import Foundation
 public class Timer {
     private var completion: (timer: Timer) -> () = { (timer: Timer) in }
     private var timer:NSTimer?
-    private var duration:NSTimeInterval?
+    private var duration:NSTimeInterval? {
+        didSet {
+            if running {
+                restart()
+            }
+        }
+    }
     private var tolerance:Float?
     private var repeats:Bool = false
     
