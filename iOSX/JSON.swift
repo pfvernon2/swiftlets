@@ -813,9 +813,9 @@ public extension NSURLSession {
                               success:HTTPJSONSuccessClosure,
                               failure:HTTPJSONFailureClosure) -> NSURLSessionDataTask?
     {
-        func dataTaskSuccessHandler(data:NSData?, response:NSHTTPURLResponse, error:NSError?) {
+        func dataTaskSuccessHandler(request:NSURLRequest?, data:NSData?, response:NSHTTPURLResponse, error:NSError?) {
             #if DUMP_NETWORK_RESULTS
-                printResult(data, response: response, error: error)
+                printResult(request, data: data, response: response, error: error)
             #endif
 
             gcd.main().async {
@@ -823,9 +823,9 @@ public extension NSURLSession {
             }
         }
 
-        func dataTaskFailureHandler(data:NSData?, response:NSHTTPURLResponse?, error:NSError?) {
+        func dataTaskFailureHandler(request:NSURLRequest?, data:NSData?, response:NSHTTPURLResponse?, error:NSError?) {
             #if DUMP_NETWORK_RESULTS || DEBUG
-                printResult(data, response: response, error: error)
+                printResult(request, data: data, response: response, error: error)
             #endif
 
             gcd.main().async {
@@ -839,7 +839,7 @@ public extension NSURLSession {
 
         //ensure request is valid
         guard let request:NSMutableURLRequest = NSMutableURLRequest(URL: url) else {
-            dataTaskFailureHandler(nil, response:nil, error: NSError(domain: "NSURLSession.httpPost.badRequest", code: 0, userInfo: nil))
+            dataTaskFailureHandler(nil, data: nil, response: nil, error: NSError(domain: "NSURLSession.httpPost.badRequest", code: 0, userInfo: nil))
             return nil
         }
 
@@ -861,10 +861,14 @@ public extension NSURLSession {
 
         //create data task
         let dataTask = dataTaskWithRequest(request) { (data, response, error) in
-            if let response = response as? NSHTTPURLResponse where response.isSuccess() {
-                dataTaskSuccessHandler(data, response:response, error: error)
+            if let httpResponse:NSHTTPURLResponse = response as? NSHTTPURLResponse {
+                if httpResponse.isSuccess() {
+                    dataTaskSuccessHandler(request, data: data, response:httpResponse, error: error)
+                } else {
+                    dataTaskFailureHandler(request, data: data, response:httpResponse, error: error)
+                }
             } else {
-                dataTaskFailureHandler(nil, response:nil, error: error)
+                dataTaskFailureHandler(request, data: data, response:nil, error: error)
             }
         }
 
@@ -875,21 +879,27 @@ public extension NSURLSession {
     }
 
     ///Utility method to print response and error objects for debugging purposes
-    private func printResult(data:NSData?, response:NSHTTPURLResponse?, error:NSError?) {
-        print("httpDataTask result ----------")
+    private func printResult(request:NSURLRequest?, data:NSData?, response:NSHTTPURLResponse?, error:NSError?) {
+        var result:String = "httpDataTask result >>>>>>>>>>\n\n"
+
+        if let request = request {
+            result += String("request: \(request)\n\n")
+        }
 
         if let data = data {
-            print("data: \(String(data:data, encoding:NSUTF8StringEncoding))")
+            result += String("data: \(String(data:data, encoding:NSUTF8StringEncoding))\n\n")
         }
 
         if let response = response {
-            print("response: \(response)")
+            result += String("response: \(response)\n\n")
         }
 
         if let error = error {
-            print("error: \(error.localizedDescription)")
+            result += String("error: \(error.localizedDescription)\n\n")
         }
 
-        print("----------")
+        result += "<<<<<<<<<"
+
+        print(result)
     }
 }
