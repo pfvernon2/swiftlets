@@ -813,15 +813,27 @@ public extension NSURLSession {
                               success:HTTPJSONSuccessClosure,
                               failure:HTTPJSONFailureClosure) -> NSURLSessionDataTask?
     {
-        func dataTaskFailureHandler(data:NSData?, response:NSHTTPURLResponse?, error:NSError?) {
-            #if DEBUG
+        func dataTaskSuccessHandler(data:NSData?, response:NSHTTPURLResponse, error:NSError?) {
+            #if DUMP_NETWORK_RESULTS
                 printResult(data, response: response, error: error)
             #endif
 
-            if let data = data where error == nil {
-                failure(response, NSError(domain: #function, code: 0, userInfo: ["data":data]))
-            } else {
-                failure(response, error)
+            gcd.main().async {
+                success(response, JSON(data: data ?? NSData()))
+            }
+        }
+
+        func dataTaskFailureHandler(data:NSData?, response:NSHTTPURLResponse?, error:NSError?) {
+            #if DUMP_NETWORK_RESULTS || DEBUG
+                printResult(data, response: response, error: error)
+            #endif
+
+            gcd.main().async {
+                if let data = data where error == nil {
+                    failure(response, NSError(domain: #function, code: 0, userInfo: ["data":data]))
+                } else {
+                    failure(response, error)
+                }
             }
         }
 
@@ -849,14 +861,9 @@ public extension NSURLSession {
 
         //create data task
         let dataTask = dataTaskWithRequest(request) { (data, response, error) in
-            if let response = response as? NSHTTPURLResponse {
-                if response.isSuccess() {
-                    success(response, JSON(data: data ?? NSData()))
-                } else {
-                    dataTaskFailureHandler(data, response:response, error: error)
-                }
-            }
-            else {
+            if let response = response as? NSHTTPURLResponse where response.isSuccess() {
+                dataTaskSuccessHandler(data, response:response, error: error)
+            } else {
                 dataTaskFailureHandler(nil, response:nil, error: error)
             }
         }
