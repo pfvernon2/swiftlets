@@ -242,6 +242,10 @@ extension MKMapItem {
     convenience init(coordinate:CLLocationCoordinate2D) {
         self.init(placemark: MKPlacemark(coordinate: coordinate, addressDictionary: nil))
     }
+
+    convenience init(location:CLLocation) {
+        self.init(placemark: MKPlacemark(coordinate: location.coordinate, addressDictionary: nil))
+    }
 }
 
 extension CLLocationCoordinate2D {
