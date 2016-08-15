@@ -880,7 +880,7 @@ public extension NSURLSession {
 
     ///Utility method to print response and error objects for debugging purposes
     private func printResult(request:NSURLRequest?, data:NSData?, response:NSHTTPURLResponse?, error:NSError?) {
-        var result:String = "httpDataTask result >>>>>>>>>>\n\n"
+        var result:String = ">>>>>>>>>>\n\nhttpDataTask\n\n"
 
         if let request = request {
             result += String("request: \(request)\n\n")
