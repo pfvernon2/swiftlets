@@ -10,8 +10,8 @@ import Foundation
 
 public extension DispatchQueue {
     private func dispatchTimeSinceNow(seconds: TimeInterval) -> DispatchTime {
-        let nanoseconds:Int = Int(seconds.toNanoseconds())
-        let dispatchOffset:DispatchTime = .now() + .nanoseconds(nanoseconds)
+        let microseconds:Int = Int(seconds.toMicroseconds())
+        let dispatchOffset:DispatchTime = .now() + .microseconds(microseconds)
         return dispatchOffset
     }
 
