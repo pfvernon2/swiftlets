@@ -10,8 +10,11 @@ import UIKit
 
 extension UIImage {
 
-    func scaleToSize(size:CGSize) -> UIImage {
-        let colorSpace:CGColorSpaceRef = CGColorSpaceCreateDeviceRGB()!
+    func scaleToSize(size:CGSize) -> UIImage? {
+        guard let colorSpace:CGColorSpaceRef = CGColorSpaceCreateDeviceRGB() else {
+            return nil
+        }
+        
         let context:CGContextRef = CGBitmapContextCreate(nil, Int(size.width), Int(size.height), 8, 0, colorSpace, CGImageAlphaInfo.PremultipliedLast.rawValue)!
         CGContextClearRect(context, CGRectMake(0, 0, size.width, size.height))
         
@@ -19,10 +22,10 @@ extension UIImage {
         {
             CGContextRotateCTM(context, CGFloat(-M_PI_2))
             CGContextTranslateCTM(context, -size.height, 0.0)
-            CGContextDrawImage(context, CGRectMake(0, 0, size.height, size.width), self.CGImage)
+            CGContextDrawImage(context, CGRectMake(0, 0, size.height, size.width), self.CGImage!)
         }
         else {
-            CGContextDrawImage(context, CGRectMake(0, 0, size.width, size.height), self.CGImage)
+            CGContextDrawImage(context, CGRectMake(0, 0, size.width, size.height), self.CGImage!)
         }
         
         let scaledImage:CGImageRef = CGBitmapContextCreateImage(context)!
@@ -32,7 +35,7 @@ extension UIImage {
         return image
     }
     
-    func scaleProportionalToSize(size:CGSize) -> UIImage {
+    func scaleProportionalToSize(size:CGSize) -> UIImage? {
         var proportialSize = size
         if self.size.width > self.size.height {
             proportialSize = CGSizeMake((self.size.width/self.size.height) * proportialSize.height, proportialSize.height)
@@ -65,9 +68,13 @@ extension UIImage {
     }
 
     //https://gist.github.com/ffried/0cbd6366bb9cf6fc0208
-    public func imageRotatedByDegrees(degrees: CGFloat, flip: Bool) -> UIImage {
+    public func imageRotatedByDegrees(degrees: CGFloat, flip: Bool) -> UIImage? {
         func degreesToRadians(degrees:CGFloat) -> CGFloat {
             return degrees / 180.0 * CGFloat(M_PI)
+        }
+
+        defer {
+            UIGraphicsEndImageContext()
         }
 
         // calculate the size of the rotated view's containing box for our drawing space
@@ -77,7 +84,9 @@ extension UIImage {
 
         // Create the bitmap context
         UIGraphicsBeginImageContext(rotatedSize)
-        let bitmap = UIGraphicsGetCurrentContext()
+        guard let bitmap:CGContext = UIGraphicsGetCurrentContext() else {
+            return nil
+        }
 
         // Move the origin to the middle of the image so we will rotate and scale around the center.
         CGContextTranslateCTM(bitmap, rotatedSize.width / 2.0, rotatedSize.height / 2.0);
@@ -87,11 +96,10 @@ extension UIImage {
 
         // Now, draw the rotated/scaled image into the context
         CGContextScaleCTM(bitmap, flip ? -1.0 : 1.0, -1.0)
-        CGContextDrawImage(bitmap, CGRectMake(-size.width / 2, -size.height / 2, size.width, size.height), CGImage)
+        CGContextDrawImage(bitmap, CGRectMake(-size.width / 2, -size.height / 2, size.width, size.height), CGImage!)
 
-        let newImage = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-        
+        let newImage:UIImage? = UIGraphicsGetImageFromCurrentImageContext()
+
         return newImage
     }
 

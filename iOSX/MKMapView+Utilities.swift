@@ -91,15 +91,15 @@ extension MKMapView {
 
         var snapshots:[UIView] = []
         animationAnnotations.forEach { (annotation) in
-            if let annotationView:UIView = viewForAnnotation(annotation) {
-                let snapshotView:UIView = annotationView.snapshotViewAfterScreenUpdates(false)
+            if let annotationView:UIView = viewForAnnotation(annotation),
+                let snapshotView:UIView = annotationView.snapshotViewAfterScreenUpdates(false) {
                 snapshotView.frame = annotationView.frame
                 snapshots.append(snapshotView)
                 annotationView.superview?.insertSubview(snapshotView, aboveSubview: annotationView)
             }
         }
 
-        UIView.animateWithDuration(duration, animations: { 
+        UIView.animateWithDuration(duration, animations: {
             snapshots.forEach({ (view) in
                 animations(view: view)
             })

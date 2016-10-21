@@ -9,7 +9,7 @@
 import UIKit
 
 extension UIImage {
-    func maskWithColor(color:UIColor) -> UIImage {
+    func maskWithColor(color:UIColor) -> UIImage? {
         let newRect:CGRect = CGRect(origin: CGPointZero, size: size)
         
         UIGraphicsBeginImageContextWithOptions(newRect.size, false, scale)
@@ -20,30 +20,34 @@ extension UIImage {
         CGContextSetBlendMode(context, .SourceAtop)
         CGContextFillRect(context, newRect)
         
-        let result:UIImage = UIGraphicsGetImageFromCurrentImageContext()
+        let result:UIImage? = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
         
         return result
     }
     
-    func clipMaskWithColor(color:UIColor) -> UIImage {
+    func clipMaskWithColor(color:UIColor) -> UIImage? {
         let rect:CGRect = CGRect(origin: CGPointZero, size: size)
         
         UIGraphicsBeginImageContext(rect.size)
         let context:CGContextRef = UIGraphicsGetCurrentContext()!
         
-        CGContextClipToMask(context, rect, self.CGImage)
-        CGContextSetFillColorWithColor(context, color.CGColor);
-        CGContextFillRect(context, rect);
+        CGContextClipToMask(context, rect, self.CGImage!)
+        CGContextSetFillColorWithColor(context, color.CGColor)
+        CGContextFillRect(context, rect)
         
-        let masked:UIImage = UIGraphicsGetImageFromCurrentImageContext();
+        let masked:UIImage? = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext();
-        
-        let flippedImage:UIImage = UIImage(CGImage: masked.CGImage!, scale: 1.0, orientation: .DownMirrored)
+
+        guard let image = masked?.CGImage else {
+            return nil
+        }
+
+        let flippedImage:UIImage = UIImage(CGImage: image, scale: 1.0, orientation: .DownMirrored)
         return flippedImage
     }
-    
-    public func rotated(degrees: CGFloat) -> UIImage {
+
+    public func rotated(degrees: CGFloat) -> UIImage? {
         let rotatedView = UIView(frame: CGRect(origin: CGPointZero, size: size))
         rotatedView.transform = CGAffineTransformMakeRotation(degrees/180.0 * CGFloat(M_PI))
         let rotatedSize = rotatedView.frame.size
@@ -51,11 +55,11 @@ extension UIImage {
         UIGraphicsBeginImageContext(rotatedSize)
         let context = UIGraphicsGetCurrentContext()
         
-        CGContextTranslateCTM(context, rotatedSize.width / 2.0, rotatedSize.height / 2.0);
-        CGContextRotateCTM(context, degrees/180.0 * CGFloat(M_PI));
-        CGContextDrawImage(context, CGRectMake(-size.width / 2, -size.height / 2, size.width, size.height), CGImage)
+        CGContextTranslateCTM(context!, rotatedSize.width / 2.0, rotatedSize.height / 2.0);
+        CGContextRotateCTM(context!, degrees/180.0 * CGFloat(M_PI));
+        CGContextDrawImage(context!, CGRectMake(-size.width / 2, -size.height / 2, size.width, size.height), CGImage!)
         
-        let result = UIGraphicsGetImageFromCurrentImageContext()
+        let result:UIImage? = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
         
         return result
