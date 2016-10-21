@@ -109,6 +109,22 @@ extension NSUserDefaults {
     }
 }
 
+extension CGAffineTransform {
+    ///returns the current rotation of the transform in radians
+    func rotationInRadians() -> Double {
+        return Double(atan2f(Float(self.b), Float(self.a)))
+    }
+
+    ///returns the current rotation of the transform in degrees 0.0 - 360.0
+    func rotationInDegrees() -> Double {
+        var result = Double(rotationInRadians()) * (180.0/M_PI)
+        if result < 0.0 {
+            result = 360.0 - result
+        }
+        return result
+    }
+}
+
 ///Trivial indexing generator that wraps back to startIndex when reaching endIndex
 class WrappingIndexingGenerator<C: CollectionType>: GeneratorType {
     var _colletion: C

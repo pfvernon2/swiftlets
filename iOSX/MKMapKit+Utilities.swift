@@ -82,6 +82,12 @@ extension CLLocationDirection {
 
         return (angle, motion)
     }
+
+    var radians:Double {
+        get {
+            return degreesToRadians(self)
+        }
+    }
 }
 
 extension CLLocationDistance {
@@ -157,6 +163,12 @@ extension MKMapPoint {
             return MKCoordinateForMapPoint(self)
         }
     }
+}
+
+extension MKMapPoint: Equatable {}
+
+public func ==(lhs: MKMapPoint, rhs: MKMapPoint) -> Bool {
+    return (lhs.x == rhs.x && lhs.y == rhs.y)
 }
 
 extension MKMapRect {
@@ -248,15 +260,13 @@ extension MKMapItem {
     }
 }
 
-extension CLLocationCoordinate2D {
-    func isEqualTo(location:CLLocationCoordinate2D?) -> Bool {
-        if let location = location {
-            return location.latitude == self.latitude && location.longitude == self.longitude
-        } else {
-            return false
-        }
-    }
+extension CLLocationCoordinate2D: Equatable {}
 
+public func ==(lhs: CLLocationCoordinate2D, rhs: CLLocationCoordinate2D) -> Bool {
+    return (lhs.latitude == rhs.latitude && lhs.longitude == rhs.longitude)
+}
+
+extension CLLocationCoordinate2D {
     func isValid() -> Bool {
         //May need to implement non-zero check here as well
         return CLLocationCoordinate2DIsValid(self)
