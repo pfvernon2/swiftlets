@@ -15,7 +15,7 @@ let kMAX_DEGREES_ARC:CLLocationDegrees = 360.0
 let kMINIMUM_ZOOM_ARC:CLLocationDegrees = 0.014 //approximately 1 mile (1 degree of arc ~= 69 miles)
 
 extension MKMapView {
-    func zoomMapViewToFitAnnotations(coordinates:[CLLocationCoordinate2D]?) {
+    func zoomMapViewToFitAnnotations(_ coordinates:[CLLocationCoordinate2D]?) {
         if annotations.count == 0 {
             return
         }
@@ -44,7 +44,7 @@ extension MKMapView {
         setRegion(region, animated: true)
     }
     
-    func animateAnnotationViewDrop(annotationView:MKAnnotationView, closure:()->()) {
+    func animateAnnotationViewDrop(_ annotationView:MKAnnotationView, closure:@escaping ()->()) {
         let dropPoint:MKMapPoint = MKMapPointForCoordinate(annotationView.annotation!.coordinate)
         if MKMapRectContainsPoint(self.visibleMapRect, dropPoint) {
             let endRect = annotationView.frame
@@ -52,17 +52,17 @@ extension MKMapView {
             startRect.origin.y -= self.frame.size.height
             
             annotationView.frame = startRect
-            UIView .animateWithDuration(0.5, animations: {
+            UIView .animate(withDuration: 0.5, animations: {
                 annotationView.frame = endRect
                 },
                                         completion:
                 { (finished) in
-                    UIView .animateWithDuration(0.15, animations: {
-                        annotationView.transform = CGAffineTransformMakeScale(1.0, 0.8);
+                    UIView .animate(withDuration: 0.15, animations: {
+                        annotationView.transform = CGAffineTransform(scaleX: 1.0, y: 0.8);
                         },
                         completion:
                         { (finished) in
-                            annotationView.transform = CGAffineTransformIdentity;
+                            annotationView.transform = CGAffineTransform.identity;
                             closure()
                     })
             })
@@ -80,8 +80,8 @@ extension MKMapView {
      })
      ```
      */
-    func removeAnnotations(annotations: [MKAnnotation], duration: NSTimeInterval, animations: (view:UIView) -> Void, completion:()->()) {
-        let visibleAnnotations:Set = annotationsInMapRect(visibleMapRect)
+    func removeAnnotations(_ annotations: [MKAnnotation], duration: TimeInterval, animations: @escaping (_ view:UIView) -> Void, completion:@escaping ()->()) {
+        let visibleAnnotations:Set = self.annotations(in: visibleMapRect)
         var animationAnnotations:[MKAnnotation] = []
         annotations.forEach { (annotation) in
             if visibleAnnotations.contains(annotation as! NSObject) {
@@ -91,17 +91,17 @@ extension MKMapView {
 
         var snapshots:[UIView] = []
         animationAnnotations.forEach { (annotation) in
-            if let annotationView:UIView = viewForAnnotation(annotation),
-                let snapshotView:UIView = annotationView.snapshotViewAfterScreenUpdates(false) {
+            if let annotationView:UIView = view(for: annotation),
+                let snapshotView:UIView = annotationView.snapshotView(afterScreenUpdates: false) {
                 snapshotView.frame = annotationView.frame
                 snapshots.append(snapshotView)
                 annotationView.superview?.insertSubview(snapshotView, aboveSubview: annotationView)
             }
         }
 
-        UIView.animateWithDuration(duration, animations: {
+        UIView.animate(withDuration: duration, animations: {
             snapshots.forEach({ (view) in
-                animations(view: view)
+                animations(view)
             })
             }) { (success) in
                 snapshots.forEach({ (view) in

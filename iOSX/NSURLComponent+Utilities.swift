@@ -10,32 +10,28 @@ import UIKit
 
 let kURLPathSeperator:String = "/"
 
-public extension NSURLComponents {    
-    func appendPath(path:String) {
-        if let oldPath = self.path {
-            var oldPath:String = oldPath
-            if oldPath.hasSuffix(kURLPathSeperator) {
-                oldPath.removeAtIndex(oldPath.endIndex.predecessor())
-            }
-            
-            var newPath:String = path
-            if newPath.hasPrefix(kURLPathSeperator) {
-                newPath.removeAtIndex(newPath.startIndex)
-            }
-            
-            self.path = oldPath + kURLPathSeperator + newPath
-        } else {
-            self.path = path
+public extension URLComponents {    
+    mutating func appendPath(_ path:String) {
+        var oldPath:String = self.path
+        if oldPath.hasSuffix(kURLPathSeperator) {
+            oldPath.remove(at: oldPath.index(before: oldPath.endIndex))
         }
+        
+        var newPath:String = path
+        if newPath.hasPrefix(kURLPathSeperator) {
+            newPath.remove(at: newPath.startIndex)
+        }
+        
+        self.path = oldPath + kURLPathSeperator + newPath
     }
     
-    func appendPathComponents(paths:[String]) {
+    mutating func appendPathComponents(_ paths:[String]) {
         for path in paths {
             appendPath(path)
         }
     }
     
-    func appendQueryParameter(parameter:NSURLQueryItem) {
+    mutating func appendQueryParameter(_ parameter:URLQueryItem) {
         var currentParams = queryItems
         if currentParams != nil {
             currentParams!.append(parameter)
@@ -46,10 +42,10 @@ public extension NSURLComponents {
         }
     }
     
-    func appendQueryParameterComponents(parameters:[NSURLQueryItem]) {
+    mutating func appendQueryParameterComponents(_ parameters:[URLQueryItem]) {
         var currentParams = queryItems
         if currentParams != nil {
-            currentParams!.appendContentsOf(parameters)
+            currentParams!.append(contentsOf: parameters)
             queryItems = currentParams
         }
         else {
@@ -57,8 +53,8 @@ public extension NSURLComponents {
         }
     }
     
-    func URLByAppendingPath(path:String? = nil, parameters:[NSURLQueryItem]? = nil) -> NSURL? {
-        let baseURLCopy = self.copy() as! NSURLComponents
+    func URLByAppendingPath(_ path:String? = nil, parameters:[URLQueryItem]? = nil) -> URL? {
+        var baseURLCopy = (self as NSURLComponents).copy() as! URLComponents
         
         //append sub-path if supplied
         if let path = path {
@@ -71,29 +67,29 @@ public extension NSURLComponents {
         }
         
         //ensure base URL is valid (after path/params updated)
-        return baseURLCopy.URL
+        return baseURLCopy.url
     }
 }
 
-public extension NSURLQueryItem {
-    public convenience init(name: String, intValue: Int) {
+public extension URLQueryItem {
+    public init(name: String, intValue: Int) {
         self.init(name: name, value: String(intValue))
     }
     
-    public convenience init(name: String, doubleValue: Double) {
+    public init(name: String, doubleValue: Double) {
         self.init(name: name, value: String(doubleValue))
     }
     
-    public convenience init(name: String, floatValue: Float) {
+    public init(name: String, floatValue: Float) {
         self.init(name: name, value: String(floatValue))
     }
     
     public func urlEscapedItem() -> String? {
-        guard let encodedName = self.name.stringByAddingPercentEncodingWithAllowedCharacters(.URLQueryAllowedCharacterSet()) else {
+        guard let encodedName = self.name.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
             return nil
         }
         
-        guard let encodedValue = self.value?.stringByAddingPercentEncodingWithAllowedCharacters(.URLQueryAllowedCharacterSet()) else {
+        guard let encodedValue = self.value?.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
             return nil
         }
         
@@ -102,38 +98,38 @@ public extension NSURLQueryItem {
 }
 
 public extension NSMutableURLRequest {
-    func appendJPEGImageFormSection(boundary:String,
+    func appendJPEGImageFormSection(_ boundary:String,
                                     image:UIImage,
                                     fileName:String,
                                     isFinal:Bool = false) {
-        guard let scaledImageData:NSData = UIImageJPEGRepresentation(image, 1.0) else {
+        guard let scaledImageData:Data = UIImageJPEGRepresentation(image, 1.0) else {
             return
         }
 
         appendFormSection(boundary, mimeType: "image/jpeg", name: "data", fileName: fileName, contentData: scaledImageData, isFinal: isFinal)
     }
 
-    func appendFormSection(boundary:String,
+    func appendFormSection(_ boundary:String,
                            mimeType:String,
                            name:String,
                            fileName:String,
-                           contentData:NSData,
+                           contentData:Data,
                            isFinal:Bool = false) {
         let body:NSMutableData = NSMutableData()
-        if let existingBody = HTTPBody {
-            body.appendData(existingBody)
+        if let existingBody = httpBody {
+            body.append(existingBody)
         }
 
-        body.appendStringAsUTF8("--\(boundary)\r\n")
-        body.appendStringAsUTF8("Content-Disposition: form-data; name=\"\(name)\"; filename=\"\(fileName)\"\r\n")
-        body.appendStringAsUTF8("Content-Type: \(mimeType)\r\n\r\n")
+        _ = body.appendStringAsUTF8("--\(boundary)\r\n")
+        _ = body.appendStringAsUTF8("Content-Disposition: form-data; name=\"\(name)\"; filename=\"\(fileName)\"\r\n")
+        _ = body.appendStringAsUTF8("Content-Type: \(mimeType)\r\n\r\n")
 
-        body.appendData(contentData)
+        _ = body.append(contentData)
 
         if isFinal {
-            body.appendStringAsUTF8("\r\n--\(boundary)--\r\n")
+            _ = body.appendStringAsUTF8("\r\n--\(boundary)--\r\n")
         }
         
-        HTTPBody = body
+        httpBody = body as Data
     }
 }

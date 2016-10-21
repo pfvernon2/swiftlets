@@ -27,17 +27,17 @@ extension UIAlertController {
      
      */
 
-    class func alertControllerOKCancel(title:String?, message:String?, preferredStyle:UIAlertControllerStyle, okHandler: ((UIAlertAction) -> Void)?, cancelHandler: ((UIAlertAction) -> Void)?) -> UIAlertController{
+    class func alertControllerOKCancel(_ title:String?, message:String?, preferredStyle:UIAlertControllerStyle, okHandler: ((UIAlertAction) -> Void)?, cancelHandler: ((UIAlertAction) -> Void)?) -> UIAlertController{
         
         let result = UIAlertController(title: title, message: message, preferredStyle: preferredStyle)
         
         if let okHandler = okHandler {
-            let okAction:UIAlertAction = UIAlertAction(title: NSLocalizedString("OK", comment: "UIAlertController OK control"), style: .Default, handler: okHandler)
+            let okAction:UIAlertAction = UIAlertAction(title: NSLocalizedString("OK", comment: "UIAlertController OK control"), style: .default, handler: okHandler)
             result.addAction(okAction)
         }
         
         if let cancelHandler = cancelHandler {
-            let cancelAction:UIAlertAction = UIAlertAction(title: NSLocalizedString("Cancel", comment: "UIAlertController Cancel control"), style: .Cancel, handler: cancelHandler)
+            let cancelAction:UIAlertAction = UIAlertAction(title: NSLocalizedString("Cancel", comment: "UIAlertController Cancel control"), style: .cancel, handler: cancelHandler)
             result.addAction(cancelAction)
         }
 

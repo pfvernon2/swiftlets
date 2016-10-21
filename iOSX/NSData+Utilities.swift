@@ -8,12 +8,12 @@
 
 import Foundation
 
-extension NSData {
+extension Data {
     func hexRepresentation() -> String {
-        let pointer = UnsafePointer<UInt8>(self.bytes)
+        let pointer = (self as NSData).bytes.bindMemory(to: UInt8.self, capacity: self.count)
 
         var result: String = String()
-        for i in 0 ..< self.length {
+        for i in 0 ..< self.count {
             result += String(format: "%02.2X", pointer[i])
         }
         
@@ -22,9 +22,9 @@ extension NSData {
 }
 
 extension NSMutableData {
-    func appendStringAsUTF8(string: String) -> Bool {
-        if let data = string.dataUsingEncoding(NSUTF8StringEncoding, allowLossyConversion: true) {
-            appendData(data)
+    func appendStringAsUTF8(_ string: String) -> Bool {
+        if let data = string.data(using: String.Encoding.utf8, allowLossyConversion: true) {
+            append(data)
             return true
         }
         return false

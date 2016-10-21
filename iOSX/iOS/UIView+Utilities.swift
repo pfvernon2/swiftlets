@@ -7,6 +7,26 @@
 //
 
 import UIKit
+fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+  switch (lhs, rhs) {
+  case let (l?, r?):
+    return l < r
+  case (nil, _?):
+    return true
+  default:
+    return false
+  }
+}
+
+fileprivate func <= <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+  switch (lhs, rhs) {
+  case let (l?, r?):
+    return l <= r
+  default:
+    return !(rhs < lhs)
+  }
+}
+
 
 extension UIView {
     
@@ -18,108 +38,108 @@ extension UIView {
      - parameters:
          - view: The view to make subview
      */
-    func addSubViewAndMakeConform(view:UIView) {
+    func addSubViewAndMakeConform(_ view:UIView) {
         addSubview(view)
         
         view.translatesAutoresizingMaskIntoConstraints = false
         let centerX = NSLayoutConstraint(item:view,
-                                         attribute:.CenterX,
-                                         relatedBy:.Equal,
+                                         attribute:.centerX,
+                                         relatedBy:.equal,
                                          toItem:self,
-                                         attribute:.CenterX,
+                                         attribute:.centerX,
                                          multiplier:1.0,
                                          constant:0.0);
         self.addConstraint(centerX)
         
         let centerY = NSLayoutConstraint(item:view,
-                                         attribute:.CenterY,
-                                         relatedBy:.Equal,
+                                         attribute:.centerY,
+                                         relatedBy:.equal,
                                          toItem:self,
-                                         attribute:.CenterY,
+                                         attribute:.centerY,
                                          multiplier:1.0,
                                          constant:0.0);
         self.addConstraint(centerY)
         
         let width = NSLayoutConstraint(item:view,
-                                       attribute:.Width,
-                                       relatedBy:.Equal,
+                                       attribute:.width,
+                                       relatedBy:.equal,
                                        toItem:self,
-                                       attribute:.Width,
+                                       attribute:.width,
                                        multiplier:1.0,
                                        constant:0.0);
         self.addConstraint(width)
         
         let height = NSLayoutConstraint(item:view,
-                                        attribute:.Height,
-                                        relatedBy:.Equal,
+                                        attribute:.height,
+                                        relatedBy:.equal,
                                         toItem:self,
-                                        attribute:.Height,
+                                        attribute:.height,
                                         multiplier:1.0,
                                         constant:0.0);
         self.addConstraint(height)
     }
     
-    func addSubViewAndCenter(view:UIView) {
+    func addSubViewAndCenter(_ view:UIView) {
         addSubview(view)
         
         view.translatesAutoresizingMaskIntoConstraints = false
         let centerX = NSLayoutConstraint(item:view,
-                                         attribute:.CenterX,
-                                         relatedBy:.Equal,
+                                         attribute:.centerX,
+                                         relatedBy:.equal,
                                          toItem:self,
-                                         attribute:.CenterX,
+                                         attribute:.centerX,
                                          multiplier:1.0,
                                          constant:0.0);
         self.addConstraint(centerX)
         
         let centerY = NSLayoutConstraint(item:view,
-                                         attribute:.CenterY,
-                                         relatedBy:.Equal,
+                                         attribute:.centerY,
+                                         relatedBy:.equal,
                                          toItem:self,
-                                         attribute:.CenterY,
+                                         attribute:.centerY,
                                          multiplier:1.0,
                                          constant:0.0);
         self.addConstraint(centerY)
     }
 
-    func addSubViewInset(view:UIView, insets:UIEdgeInsets) {
+    func addSubViewInset(_ view:UIView, insets:UIEdgeInsets) {
         addSubview(view)
 
         view.translatesAutoresizingMaskIntoConstraints = false
 
         let top = NSLayoutConstraint(item:view,
-                                     attribute:.Top,
-                                     relatedBy:.Equal,
+                                     attribute:.top,
+                                     relatedBy:.equal,
                                      toItem:self,
-                                     attribute:.Top,
+                                     attribute:.top,
                                      multiplier:1.0,
                                      constant:insets.top);
         self.addConstraint(top)
 
         
         let bottom = NSLayoutConstraint(item:self,
-                                     attribute:.Bottom,
-                                     relatedBy:.Equal,
+                                     attribute:.bottom,
+                                     relatedBy:.equal,
                                      toItem:view,
-                                     attribute:.Bottom,
+                                     attribute:.bottom,
                                      multiplier:1.0,
                                      constant:insets.bottom);
         self.addConstraint(bottom)
 
         let left = NSLayoutConstraint(item:view,
-                                        attribute:.Left,
-                                        relatedBy:.Equal,
+                                        attribute:.left,
+                                        relatedBy:.equal,
                                         toItem:self,
-                                        attribute:.Left,
+                                        attribute:.left,
                                         multiplier:1.0,
                                         constant:insets.left);
         self.addConstraint(left)
         
         let right = NSLayoutConstraint(item:self,
-                                      attribute:.Right,
-                                      relatedBy:.Equal,
+                                      attribute:.right,
+                                      relatedBy:.equal,
                                       toItem:view,
-                                      attribute:.Right,
+                                      attribute:.right,
                                       multiplier:1.0,
                                       constant:insets.right);
         self.addConstraint(right)
@@ -127,25 +147,25 @@ extension UIView {
 
     func constrainToCurrentSize() {
         let width = NSLayoutConstraint(item:self,
-                                       attribute:.Width,
-                                       relatedBy:.Equal,
+                                       attribute:.width,
+                                       relatedBy:.equal,
                                        toItem:nil,
-                                       attribute:.NotAnAttribute,
+                                       attribute:.notAnAttribute,
                                        multiplier:1.0,
                                        constant:bounds.width);
         self.addConstraint(width)
 
         let height = NSLayoutConstraint(item:self,
-                                        attribute:.Height,
-                                        relatedBy:.Equal,
+                                        attribute:.height,
+                                        relatedBy:.equal,
                                         toItem:nil,
-                                        attribute:.NotAnAttribute,
+                                        attribute:.notAnAttribute,
                                         multiplier:1.0,
                                         constant:bounds.height);
         self.addConstraint(height)
     }
     
-    func copyConstraintsToView(destinationView:UIView) {
+    func copyConstraintsToView(_ destinationView:UIView) {
         for constraint:NSLayoutConstraint in self.superview!.constraints {
             if constraint.firstItem.isEqual(self) {
                 self.superview?.addConstraint(NSLayoutConstraint(item: destinationView, attribute: constraint.firstAttribute, relatedBy: constraint.relation, toItem: constraint.secondItem, attribute: constraint.secondAttribute, multiplier: constraint.multiplier, constant: constraint.constant))
@@ -155,7 +175,7 @@ extension UIView {
         }
     }
     
-    func substitueViewWithView(destinationView:UIView) {
+    func substitueViewWithView(_ destinationView:UIView) {
         //add new view right behind us
         if let mySuperView = self.superview {
             mySuperView.insertSubview(destinationView, belowSubview:self)
@@ -179,7 +199,7 @@ extension UIView {
     }
     
     func indexInSuperview() -> Int {
-        if let index = self.superview?.subviews.indexOf(self) {
+        if let index = self.superview?.subviews.index(of: self) {
             return index
         } else {
             return -1
@@ -187,11 +207,11 @@ extension UIView {
     }
     
     func moveToFront() {
-        self.superview?.bringSubviewToFront(self)
+        self.superview?.bringSubview(toFront: self)
     }
     
     func moveToBack() {
-        self.superview?.sendSubviewToBack(self)
+        self.superview?.sendSubview(toBack: self)
     }
 
     func moveForward() {
@@ -200,7 +220,7 @@ extension UIView {
             return
         }
         
-        self.superview?.exchangeSubviewAtIndex(index, withSubviewAtIndex: index + 1)
+        self.superview?.exchangeSubview(at: index, withSubviewAt: index + 1)
     }
 
     func moveBackward() {
@@ -209,10 +229,10 @@ extension UIView {
             return
         }
         
-        self.superview?.exchangeSubviewAtIndex(index, withSubviewAtIndex: index - 1)
+        self.superview?.exchangeSubview(at: index, withSubviewAt: index - 1)
     }
 
-    func swapOrderWithView(otherView:UIView) {
+    func swapOrderWithView(_ otherView:UIView) {
         let myIndex = self.indexInSuperview()
         guard myIndex > 0 else {
             return
@@ -223,7 +243,7 @@ extension UIView {
             return
         }
         
-        self.superview?.exchangeSubviewAtIndex(myIndex, withSubviewAtIndex: otherIndex)
+        self.superview?.exchangeSubview(at: myIndex, withSubviewAt: otherIndex)
     }
 
     /**
@@ -232,11 +252,11 @@ extension UIView {
 
      - note: The progress is an estimatation based on the start time, end time, and duration of the animation.
      */
-    class func animateWithDuration(duration: NSTimeInterval, delay: NSTimeInterval, options: UIViewAnimationOptions, animations: () -> Void, progress: ((progress:Double) -> Void)?) {
-        let startTime = NSDate()
-        UIView.animateWithDuration(duration, delay: delay, options: options, animations: animations, completion: { (success) in
+    class func animateWithDuration(_ duration: TimeInterval, delay: TimeInterval, options: UIViewAnimationOptions, animations: @escaping () -> Void, progress: ((_ progress:Double) -> Void)?) {
+        let startTime = Date()
+        UIView.animate(withDuration: duration, delay: delay, options: options, animations: animations, completion: { (success) in
             if let progress = progress {
-                progress(progress: success ? 1.0 : (NSDate().timeIntervalSinceDate(startTime)/duration))
+                progress(success ? 1.0 : (Date().timeIntervalSince(startTime)/duration))
             }
         } )
     }

@@ -22,15 +22,15 @@ class DoubleTapTableView: UITableView {
         }
     }
 
-    override func touchesEnded(touches: Set<UITouch>, withEvent event: UIEvent?) {
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         for touch:UITouch in touches {
             if touch.tapCount == 2 {
-                if let row:NSIndexPath = indexPathForRowAtPoint(touch.locationInView(self)) {
-                    doubleTapDelegate?.tableView(self, didDoubleTapRowAtIndexPath: row)
+                if let row:IndexPath = indexPathForRow(at: touch.location(in: self)) {
+                    doubleTapDelegate?.tableView(tableView: self, didDoubleTapRowAtIndexPath: row as NSIndexPath)
                 }
             }
         }
 
-        super.touchesEnded(touches, withEvent: event)
+        super.touchesEnded(touches, with: event)
     }
 }

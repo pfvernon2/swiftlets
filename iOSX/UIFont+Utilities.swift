@@ -10,9 +10,9 @@ import UIKit
 
 extension UIFont {
     ///Find the size of a string when drawn with the current font at the supplied width/height
-    func sizeOfString (string: String, constrainedToWidth width:CGFloat = CGFloat.max, constrainedToHeight height:CGFloat = CGFloat.max) -> CGSize {
-        return NSString(string: string).boundingRectWithSize(CGSize(width: width, height: height),
-                                                             options: NSStringDrawingOptions.UsesLineFragmentOrigin,
+    func sizeOfString (_ string: String, constrainedToWidth width:CGFloat = CGFloat.greatestFiniteMagnitude, constrainedToHeight height:CGFloat = CGFloat.greatestFiniteMagnitude) -> CGSize {
+        return NSString(string: string).boundingRect(with: CGSize(width: width, height: height),
+                                                             options: NSStringDrawingOptions.usesLineFragmentOrigin,
                                                              attributes: [NSFontAttributeName: self],
                                                              context: nil).size
     }

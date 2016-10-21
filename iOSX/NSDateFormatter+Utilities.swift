@@ -8,8 +8,8 @@
 
 import Foundation
 
-extension NSDateFormatter {
-    static private var formatterCache:[String:NSDateFormatter] = [:]
+extension DateFormatter {
+    static fileprivate var formatterCache:[String:DateFormatter] = [:]
     
     enum ISO8601ExtendedPrecision:Int {
         case conforming, milliseconds, microseconds
@@ -28,10 +28,10 @@ extension NSDateFormatter {
          - precision: (optional) see ISO8601ExtendedPrecision
      - returns: NSDateFormatter
      */
-    class func ISO8601Formatter(precision:ISO8601ExtendedPrecision = .conforming) -> NSDateFormatter {
+    class func ISO8601Formatter(_ precision:ISO8601ExtendedPrecision = .conforming) -> DateFormatter {
         //Create formatter; ignoring user locale
-        let dateFormatterISO8601 = NSDateFormatter()
-        dateFormatterISO8601.locale = NSLocale(localeIdentifier: "en_US_POSIX")
+        let dateFormatterISO8601 = DateFormatter()
+        dateFormatterISO8601.locale = NSLocale(localeIdentifier: "en_US_POSIX") as Locale!
         
         //set format based precision specified
         switch precision {
@@ -44,30 +44,30 @@ extension NSDateFormatter {
         }
 
         //Create Gregorian; calender ignoring user locale calendar
-        let gregorian = NSCalendar(calendarIdentifier: NSCalendarIdentifierGregorian)!
-        gregorian.timeZone = NSTimeZone(abbreviation: "GMT")!
-        dateFormatterISO8601.calendar = gregorian
+        let gregorian = NSCalendar(identifier: NSCalendar.Identifier.gregorian)!
+        gregorian.timeZone = NSTimeZone(abbreviation: "GMT")! as TimeZone
+        dateFormatterISO8601.calendar = gregorian as Calendar!
         
         return dateFormatterISO8601
     }
     
     ///Return cached ISO8601 date formatter for thread safe operation, assumes >iOS7 || >OSX10.9+64bit
-    class func ISO8601FormatterCached(precision:ISO8601ExtendedPrecision = .conforming) -> NSDateFormatter {
+    class func ISO8601FormatterCached(_ precision:ISO8601ExtendedPrecision = .conforming) -> DateFormatter {
         let formatterKey:String = "com.cyberdev.ISO8601Formatter.\(precision.rawValue)"
-        if let formatter:NSDateFormatter = formatterCache[formatterKey] {
+        if let formatter:DateFormatter = formatterCache[formatterKey] {
             return formatter
         } else {
-            let formatter:NSDateFormatter = ISO8601Formatter(precision)
+            let formatter:DateFormatter = ISO8601Formatter(precision)
             formatterCache[formatterKey] = formatter
             return formatter
         }
     }
     
     ///Attempts to parse a string to a date using one of the common variations on ISO8601
-    class func tryParseISO8601LikeDateString(date:String) -> NSDate? {
+    class func tryParseISO8601LikeDateString(_ date:String) -> Date? {
         for precision in ISO8601ExtendedPrecision.allValues {
-            let formatter:NSDateFormatter = ISO8601FormatterCached(precision)
-            if let result = formatter.dateFromString(date) {
+            let formatter:DateFormatter = ISO8601FormatterCached(precision)
+            if let result = formatter.date(from: date) {
                 return result
             }
         }

@@ -16,14 +16,14 @@ extension UIColor {
        - htmlHex: HTML style hex description of RGB color: #RRGGBB
     */
     public convenience init(htmlHex:String) {
-        let hexScanner:NSScanner = NSScanner(string: htmlHex)
+        let hexScanner:Scanner = Scanner(string: htmlHex)
         
         //step over # if included
         if htmlHex.hasPrefix("#") {
             hexScanner.scanLocation = 1
         }
         var rgbInt:UInt32 = 0
-        hexScanner.scanHexInt(&rgbInt)
+        hexScanner.scanHexInt32(&rgbInt)
         
         let red:CGFloat = CGFloat((rgbInt & 0xFF0000) >> 16)/255.0
         let green:CGFloat = CGFloat((rgbInt & 0xFF00) >> 8)/255.0

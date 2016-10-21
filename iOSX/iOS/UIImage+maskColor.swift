@@ -9,16 +9,16 @@
 import UIKit
 
 extension UIImage {
-    func maskWithColor(color:UIColor) -> UIImage? {
-        let newRect:CGRect = CGRect(origin: CGPointZero, size: size)
+    func maskWithColor(_ color:UIColor) -> UIImage? {
+        let newRect:CGRect = CGRect(origin: CGPoint.zero, size: size)
         
         UIGraphicsBeginImageContextWithOptions(newRect.size, false, scale)
-        let context:CGContextRef = UIGraphicsGetCurrentContext()!
+        let context:CGContext = UIGraphicsGetCurrentContext()!
         
-        drawInRect(newRect)
-        CGContextSetFillColorWithColor(context, color.CGColor)
-        CGContextSetBlendMode(context, .SourceAtop)
-        CGContextFillRect(context, newRect)
+        draw(in: newRect)
+        context.setFillColor(color.cgColor)
+        context.setBlendMode(.sourceAtop)
+        context.fill(newRect)
         
         let result:UIImage? = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
@@ -26,38 +26,38 @@ extension UIImage {
         return result
     }
     
-    func clipMaskWithColor(color:UIColor) -> UIImage? {
-        let rect:CGRect = CGRect(origin: CGPointZero, size: size)
+    func clipMaskWithColor(_ color:UIColor) -> UIImage? {
+        let rect:CGRect = CGRect(origin: CGPoint.zero, size: size)
         
         UIGraphicsBeginImageContext(rect.size)
-        let context:CGContextRef = UIGraphicsGetCurrentContext()!
+        let context:CGContext = UIGraphicsGetCurrentContext()!
         
-        CGContextClipToMask(context, rect, self.CGImage!)
-        CGContextSetFillColorWithColor(context, color.CGColor)
-        CGContextFillRect(context, rect)
+        context.clip(to: rect, mask: self.cgImage!)
+        context.setFillColor(color.cgColor)
+        context.fill(rect)
         
         let masked:UIImage? = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext();
 
-        guard let image = masked?.CGImage else {
+        guard let image = masked?.cgImage else {
             return nil
         }
 
-        let flippedImage:UIImage = UIImage(CGImage: image, scale: 1.0, orientation: .DownMirrored)
+        let flippedImage:UIImage = UIImage(cgImage: image, scale: 1.0, orientation: .downMirrored)
         return flippedImage
     }
 
-    public func rotated(degrees: CGFloat) -> UIImage? {
-        let rotatedView = UIView(frame: CGRect(origin: CGPointZero, size: size))
-        rotatedView.transform = CGAffineTransformMakeRotation(degrees/180.0 * CGFloat(M_PI))
+    public func rotated(_ degrees: CGFloat) -> UIImage? {
+        let rotatedView = UIView(frame: CGRect(origin: CGPoint.zero, size: size))
+        rotatedView.transform = CGAffineTransform(rotationAngle: degrees/180.0 * CGFloat(M_PI))
         let rotatedSize = rotatedView.frame.size
         
         UIGraphicsBeginImageContext(rotatedSize)
         let context = UIGraphicsGetCurrentContext()
         
-        CGContextTranslateCTM(context!, rotatedSize.width / 2.0, rotatedSize.height / 2.0);
-        CGContextRotateCTM(context!, degrees/180.0 * CGFloat(M_PI));
-        CGContextDrawImage(context!, CGRectMake(-size.width / 2, -size.height / 2, size.width, size.height), CGImage!)
+        context!.translateBy(x: rotatedSize.width / 2.0, y: rotatedSize.height / 2.0);
+        context!.rotate(by: degrees/180.0 * CGFloat(M_PI));
+        draw(in: CGRect(x: -size.width / 2, y: -size.height / 2, width: size.width, height: size.height))
         
         let result:UIImage? = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()

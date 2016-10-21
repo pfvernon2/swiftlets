@@ -9,21 +9,21 @@
 import Foundation
 
 /// An NSTimer wrapper with closure semantics. Wrapper ensures all operations occur on main thread.
-public class Timer {
-    private var completion: (timer: Timer) -> () = { (timer: Timer) in }
-    private var timer:NSTimer?
-    private var duration:NSTimeInterval? {
+open class Timer {
+    fileprivate var completion: (_ timer: Timer) -> () = { (timer: Timer) in }
+    fileprivate var timer:Foundation.Timer?
+    fileprivate var duration:TimeInterval? {
         didSet {
             if running {
                 restart()
             }
         }
     }
-    private var tolerance:Float?
-    private var repeats:Bool = false
+    fileprivate var tolerance:Float?
+    fileprivate var repeats:Bool = false
     
-    private var _running:Bool = false
-    public var running:Bool {
+    fileprivate var _running:Bool = false
+    open var running:Bool {
         get {
             return _running
         }
@@ -42,17 +42,17 @@ public class Timer {
      - Parameter handler: The completion block to be invoked when the timer fires.
 
      */
-    public func start(duration: NSTimeInterval, repeats: Bool = false, tolerance:Float = 0.1, handler:(timer: Timer)->()) {
-        dispatch_async(dispatch_get_main_queue(), { () -> Void in
+    open func start(_ duration: TimeInterval, repeats: Bool = false, tolerance:Float = 0.1, handler:@escaping (_ timer: Timer)->()) {
+        DispatchQueue.main.async(execute: { () -> Void in
             self._stop()
             self.completion = handler
             self.repeats = repeats
-            self.timer = NSTimer.scheduledTimerWithTimeInterval(duration,
+            self.timer = Foundation.Timer.scheduledTimer(timeInterval: duration,
                 target: self,
                 selector: #selector(Timer.processHandler(_:)),
                 userInfo: nil,
                 repeats: repeats)
-            self.timer!.tolerance = duration * NSTimeInterval(tolerance)
+            self.timer!.tolerance = duration * TimeInterval(tolerance)
             self._running = true
         })
     }
@@ -60,8 +60,8 @@ public class Timer {
     /**
      Restart a running or stopped timer. Noop if timer has not previously been started.
      */
-    public func restart() {
-        dispatch_async(dispatch_get_main_queue(), { () -> Void in
+    open func restart() {
+        DispatchQueue.main.async(execute: { () -> Void in
             guard let duration = self.duration else {
                 return
             }
@@ -77,30 +77,30 @@ public class Timer {
     /**
      Stop the timer.
      */
-    public func stop() {
-        dispatch_async(dispatch_get_main_queue(), { () -> Void in
+    open func stop() {
+        DispatchQueue.main.async(execute: { () -> Void in
             self._stop()
         })
     }
     
-    private func _stop() {
+    fileprivate func _stop() {
         self._running = false
         if let timer = self.timer {
             timer.invalidate()
         }
     }
     
-    @objc private func processHandler(timer: NSTimer) {
-        dispatch_async(dispatch_get_main_queue(), { () -> Void in
+    @objc fileprivate func processHandler(_ timer: Foundation.Timer) {
+        DispatchQueue.main.async(execute: { () -> Void in
             if !self.repeats {
                 self._stop()
             }
-            self.completion(timer: self)
+            self.completion(self)
         })
     }
     
-    public func fire() {
-        dispatch_async(dispatch_get_main_queue(), { () -> Void in
+    open func fire() {
+        DispatchQueue.main.async(execute: { () -> Void in
             if let timer = self.timer {
                 timer.fire()
             }

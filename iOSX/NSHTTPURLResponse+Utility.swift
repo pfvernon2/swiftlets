@@ -8,7 +8,7 @@
 
 import Foundation
 
-extension NSHTTPURLResponse {
+extension HTTPURLResponse {
     func isOK() -> Bool {
         return statusCode == 200
     }

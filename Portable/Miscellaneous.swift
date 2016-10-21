@@ -11,11 +11,11 @@ import QuartzCore
 
 extension CGRect {
     var center:CGPoint {
-        return CGPointMake(CGRectGetMidX(self), CGRectGetMidY(self));
+        return CGPoint(x: self.midX, y: self.midY);
     }
     
-    static func rectCenteredOn(center:CGPoint, radius:CGFloat) -> CGRect {
-        return CGRectMake(floor(center.x - radius), floor(center.y - radius), floor(radius*2.0), floor(radius*2.0))
+    static func rectCenteredOn(_ center:CGPoint, radius:CGFloat) -> CGRect {
+        return CGRect(x: floor(center.x - radius), y: floor(center.y - radius), width: floor(radius*2.0), height: floor(radius*2.0))
     }
 
     var top:CGFloat {
@@ -45,7 +45,7 @@ extension CGSize {
     }
 }
 
-extension NSTimeInterval {
+extension TimeInterval {
     func toPicoseconds() -> Double {
         return self * 1000.0 * 1000.0 * 1000.0 * 1000.0
     }
@@ -84,27 +84,27 @@ extension NSTimeInterval {
      * About 1 hour, 7 minutes
      */
     func approximateDurationLocalizedDescription() -> String {
-        let start = NSDate()
-        let end = NSDate(timeInterval: self, sinceDate: start)
+        let start = Date()
+        let end = Date(timeInterval: self, since: start)
 
-        let formatter = NSDateComponentsFormatter()
-        formatter.unitsStyle = .Full
+        let formatter = DateComponentsFormatter()
+        formatter.unitsStyle = .full
         formatter.includesApproximationPhrase = true
         formatter.includesTimeRemainingPhrase = false
-        formatter.allowedUnits = [.Day, .Hour, .Minute]
+        formatter.allowedUnits = [.weekday, .hour, .minute]
         formatter.maximumUnitCount = 2
         
-        return formatter.stringFromDate(start, toDate: end) ?? ""
+        return formatter.string(from: start, to: end) ?? ""
     }
 }
 
-extension NSUserDefaults {
+extension UserDefaults {
     ///setObject(forKey:) where value != nil, removeObjectForKey where value == nil
-    func setOrRemoveObject(value: AnyObject?, forKey defaultName: String) {
+    func setOrRemoveObject(_ value: Any?, forKey defaultName: String) {
         if value != nil {
-            NSUserDefaults.standardUserDefaults().setObject(value, forKey: defaultName)
+            UserDefaults.standard.set(value, forKey: defaultName)
         } else {
-            NSUserDefaults.standardUserDefaults().removeObjectForKey(defaultName)
+            UserDefaults.standard.removeObject(forKey: defaultName)
         }
     }
 }
@@ -126,16 +126,16 @@ extension CGAffineTransform {
 }
 
 ///Trivial indexing generator that wraps back to startIndex when reaching endIndex
-class WrappingIndexingGenerator<C: CollectionType>: GeneratorType {
+class WrappingIndexingGenerator<C: Collection>: IteratorProtocol {
     var _colletion: C
     var _index: C.Index
-    func next() -> C.Generator.Element? {
-        var item:C.Generator.Element?
+    func next() -> C.Iterator.Element? {
+        var item:C.Iterator.Element?
         if _index == _colletion.endIndex {
             _index = _colletion.startIndex
         }
         item = _colletion[_index]
-        _index = _index.successor()
+        _index = _colletion.index(after: _index)
         return item
     }
     init(_ colletion: C) {

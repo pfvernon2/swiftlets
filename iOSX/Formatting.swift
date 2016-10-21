@@ -18,12 +18,12 @@ extension Int {
      1.format("04") -> "0001"
      ~~~
      */
-    func format(formatString: String) -> String {
+    func format(_ formatString: String) -> String {
         return String(format: "%\(formatString)d", self)
     }
     
-    static func randomNumberFrom(from: Range<Int>) -> Int {
-        return from.startIndex + Int(arc4random_uniform(UInt32(from.endIndex - from.startIndex)))
+    static func randomNumberFrom(_ from: Range<Int>) -> Int {
+        return from.lowerBound + Int(arc4random_uniform(UInt32(from.upperBound - from.lowerBound)))
     }
 }
 
@@ -38,7 +38,7 @@ extension Double {
     0.12345.format("0.0") -> "0"
      ~~~
     */
-    func format(formatString: String) -> String {
+    func format(_ formatString: String) -> String {
         return String(format: "%\(formatString)f", self)
     }
 }
@@ -54,7 +54,7 @@ extension Float {
      0.12345.format("0.0") -> "0"
      ~~~
      */
-    func format(formatString: String) -> String {
+    func format(_ formatString: String) -> String {
         return String(format: "%\(formatString)f", self)
     }
 }

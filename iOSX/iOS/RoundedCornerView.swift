@@ -16,7 +16,7 @@ import QuartzCore
     @IBInspectable var borderColor:UIColor? = nil {
         didSet {
             if let borderColor = borderColor {
-                layer.borderColor = borderColor.CGColor
+                layer.borderColor = borderColor.cgColor
             } else {
                 layer.borderColor = nil
             }
@@ -49,8 +49,8 @@ import QuartzCore
         self.cornerRadius = 3.0
     }
 
-    override func hitTest(point: CGPoint, withEvent event: UIEvent?) -> UIView? {
-        let hitView:UIView? = super.hitTest(point, withEvent: event)
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        let hitView:UIView? = super.hitTest(point, with: event)
         if self.passthroughTouches {
             return hitView == self ? nil : hitView
         } else {
@@ -63,9 +63,9 @@ import QuartzCore
     
     let circlePathLayer = CAShapeLayer()
 
-    @IBInspectable var borderColor:UIColor = UIColor.blackColor() {
+    @IBInspectable var borderColor:UIColor = UIColor.black {
         didSet {
-            layer.borderColor = borderColor.CGColor
+            layer.borderColor = borderColor.cgColor
         }
     }
 
@@ -103,8 +103,8 @@ import QuartzCore
         
         circlePathLayer.frame = bounds
         circlePathLayer.lineWidth = 2.0
-        circlePathLayer.fillColor = UIColor.clearColor().CGColor
-        circlePathLayer.strokeColor = UIColor.blackColor().CGColor
+        circlePathLayer.fillColor = UIColor.clear.cgColor
+        circlePathLayer.strokeColor = UIColor.black.cgColor
         layer.addSublayer(circlePathLayer)
     }    
 }
@@ -114,7 +114,7 @@ import QuartzCore
     @IBInspectable var borderColor:UIColor? = nil {
         didSet {
             if let borderColor = borderColor {
-                layer.borderColor = borderColor.CGColor
+                layer.borderColor = borderColor.cgColor
             } else {
                 layer.borderColor = nil
             }

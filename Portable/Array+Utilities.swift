@@ -18,8 +18,8 @@ extension Array {
          - toIndex: The index of a position in the array to which to move the element
      */
 
-    public mutating func moveElement(fromIndex fromIndex:Int, toIndex:Int) {
-        self.insert(removeAtIndex(fromIndex), atIndex: toIndex)
+    public mutating func moveElement(fromIndex:Int, toIndex:Int) {
+        self.insert(self.remove(at: fromIndex), at: toIndex)
     }
     
     /**
@@ -37,7 +37,7 @@ extension Array {
     }
 
     ///Simplified queue semantics
-    public mutating func push(newElement: Element) {
+    public mutating func push(_ newElement: Element) {
         return append(newElement)
     }
 
@@ -52,9 +52,9 @@ extension Array {
 }
 
 extension Array where Element: Equatable {
-    mutating func remove(object: Element) {
-        if let index = indexOf({ $0 == object }) {
-            removeAtIndex(index)
+    mutating func remove(_ object: Element) {
+        if let index = index(where: { $0 == object }) {
+            self.remove(at: index)
         }
     }
 }
@@ -62,12 +62,12 @@ extension Array where Element: Equatable {
 /// A first-in/first-out queue of unconstrained size
 /// - Complexity: push is O(1), pop is O(`count`)
 /// http://ericasadun.com/2016/03/08/swift-queue-fun/
-public struct Queue<T>: ArrayLiteralConvertible {
+public struct Queue<T>: ExpressibleByArrayLiteral {
     /// backing array store
-    public private(set) var elements: Array<T> = []
+    public fileprivate(set) var elements: Array<T> = []
 
     /// introduce a new element to the queue in O(1) time
-    public mutating func push(value: T) { elements.append(value) }
+    public mutating func push(_ value: T) { elements.append(value) }
 
     /// remove the front of the queue in O(`count` time
     public mutating func pop() -> T { return elements.removeFirst() }

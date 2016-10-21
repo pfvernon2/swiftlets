@@ -30,9 +30,9 @@ public class AudioPlayerEngine: NSObject {
     //MARK: - Member variables - private
     
     //AVAudioEngine and nodes
-    private var engine:AVAudioEngine = AVAudioEngine()
-    private var player:AVAudioPlayerNode = AVAudioPlayerNode()
-    private var audioFile:AVAudioFile?
+    internal var engine:AVAudioEngine = AVAudioEngine()
+    internal var player:AVAudioPlayerNode = AVAudioPlayerNode()
+    internal var audioFile:AVAudioFile?
 
     //seek position for next start
     private var seekPosition:AVAudioFramePosition
@@ -41,8 +41,8 @@ public class AudioPlayerEngine: NSObject {
     private var interrupted:Bool = false
     
     //Buffer queue management and thread safety
-    private let bufferQueue:dispatch_queue_t = dispatch_queue_create("com.cyberdev.AudioPlayerEngine.buffers", DISPATCH_QUEUE_SERIAL)
-    private let bufferGroup:dispatch_group_t = dispatch_group_create()
+    private let bufferQueue:DispatchQueue = DispatchQueue(label: "com.cyberdev.AudioPlayerEngine.buffers")
+    private let bufferGroup:DispatchGroup = DispatchGroup()
     private var buffersInFlight:Int = 0
 
     //MARK: - Member variables - public
@@ -50,23 +50,23 @@ public class AudioPlayerEngine: NSObject {
     //delegate for start/stop notifications
     weak public var delegate:AudioPlayerEngineWatcher?
 
-    private var _trackLength:NSTimeInterval = 0.0
-    public var trackLength:NSTimeInterval {
+    private var _trackLength:TimeInterval = 0.0
+    public var trackLength:TimeInterval {
         get {
             return _trackLength
         }
     }
 
     //playback position in seconds
-    public var trackPosition:NSTimeInterval {
+    public var trackPosition:TimeInterval {
         get {
-            var result:NSTimeInterval = 0.0
+            var result:TimeInterval = 0.0
             if self.isPlaying() {
                 if let playerTime:AVAudioTime = currentPlayerTime() {
                     result = Double(playerTime.sampleTime) / playerTime.sampleRate
                 }
             } else if let currentAudioFile = self.audioFile {
-                result = NSTimeInterval(self.seekPosition/AVAudioFramePosition(currentAudioFile.fileFormat.sampleRate))
+                result = TimeInterval(self.seekPosition/AVAudioFramePosition(currentAudioFile.fileFormat.sampleRate))
             }
             return result
         }
@@ -98,7 +98,7 @@ public class AudioPlayerEngine: NSObject {
         }
         
         set(position) {
-            let offsetSeconds:NSTimeInterval = self.trackLength * NSTimeInterval(position)
+            let offsetSeconds:TimeInterval = self.trackLength * TimeInterval(position)
             self.trackPosition = offsetSeconds
         }
     }
@@ -114,12 +114,12 @@ public class AudioPlayerEngine: NSObject {
     }
     
     deinit {
-        NSNotificationCenter.defaultCenter().removeObserver(self)
+        NotificationCenter.default.removeObserver(self)
     }
     
-    private func initAudioEngine () {
-        engine.attachNode(player)
-        engine.connect(player, to: engine.mainMixerNode, format: engine.mainMixerNode.outputFormatForBus(0))
+    internal func initAudioEngine () {
+        engine.attach(player)
+        engine.connect(player, to: engine.mainMixerNode, format: engine.mainMixerNode.outputFormat(forBus: 0))
         engine.prepare()
     }
     
@@ -132,7 +132,7 @@ public class AudioPlayerEngine: NSObject {
         }
         
         do {
-            self.audioFile = try AVAudioFile.init(forReading: url)
+            self.audioFile = try AVAudioFile.init(forReading: url as URL)
             let processingFormat:AVAudioFormat = self.audioFile!.processingFormat
             self._trackLength = Double(self.audioFile!.length)/processingFormat.sampleRate
             self.seekPosition = kTrackHeadFramePosition
@@ -153,8 +153,8 @@ public class AudioPlayerEngine: NSObject {
     
     public func isPlaying() -> Bool {
         var result:Bool = false
-        dispatch_sync(self.bufferQueue) { () -> Void in
-            result = self.player.playing
+        self.bufferQueue.sync() { () -> Void in
+            result = self.player.isPlaying
         }
         
         return result;
@@ -162,11 +162,11 @@ public class AudioPlayerEngine: NSObject {
 
     public func play() -> Bool {
         if _play() {
-            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+            DispatchQueue.main.async {
                 if let delegate = self.delegate {
                     delegate.playbackStarted()
                 }
-            })
+            }
             
             return true;
         }
@@ -176,7 +176,7 @@ public class AudioPlayerEngine: NSObject {
 
     public func pause() {
         if isPlaying() {
-            let now:NSTimeInterval = self.trackPosition
+            let now:TimeInterval = self.trackPosition
             stop()
             self.trackPosition = now
         }
@@ -196,9 +196,9 @@ public class AudioPlayerEngine: NSObject {
         if isPlaying() {
             let progress:Float = self.trackProgress
             _stop()
-            gcd.main().async { () -> () in
+            DispatchQueue.main.async {
                 if let delegate = self.delegate {
-                    delegate.playbackStopped(progress >= 1.0)
+                    delegate.playbackStopped(trackCompleted: progress >= 1.0)
                 }
             }
         }
@@ -223,11 +223,11 @@ public class AudioPlayerEngine: NSObject {
                 trackToPlay.framePosition = self.seekPosition
                 initBuffers()
                 
-                dispatch_sync(self.bufferQueue) { () -> Void in
+                self.bufferQueue.sync {
                     if let currentPos:AVAudioFramePosition = self.player.lastRenderTime?.sampleTime {
                         let playTime:AVAudioTime = AVAudioTime(sampleTime: currentPos-self.seekPosition,
                             atRate: trackToPlay.processingFormat.sampleRate)
-                        self.player.playAtTime(playTime)
+                        self.player.play(at: playTime)
                     }
                 }
                 
@@ -241,7 +241,7 @@ public class AudioPlayerEngine: NSObject {
                 trackToPlay.framePosition = 0
                 initBuffers()
                 
-                dispatch_sync(self.bufferQueue) { () -> Void in
+                self.bufferQueue.sync {
                     self.player.play()
                 }
             }
@@ -253,18 +253,18 @@ public class AudioPlayerEngine: NSObject {
     }
 
     private func _stop() {
-        dispatch_sync(self.bufferQueue) { () -> Void in
+        self.bufferQueue.sync {
             self.player.stop()
         }
         
         //wait for buffer queue to drain
-        dispatch_group_wait(self.bufferGroup, DISPATCH_TIME_FOREVER)
+        self.bufferGroup.wait(timeout: DispatchTime.distantFuture)
     }
 
     //MARK: - Utility
     
     private func startEngine() -> Bool {
-        if !engine.running {
+        if !engine.isRunning {
             do {
                 try engine.start()
             } catch let error as NSError {
@@ -272,15 +272,15 @@ public class AudioPlayerEngine: NSObject {
             }
         }
 
-        return engine.running
+        return engine.isRunning
     }
     
     private func currentPlayerTime() -> AVAudioTime? {
         var result:AVAudioTime? = nil
         
-        dispatch_sync(self.bufferQueue) { () -> Void in
+        self.bufferQueue.sync {
             if let nodeTime:AVAudioTime = self.player.lastRenderTime {
-                result = self.player.playerTimeForNodeTime(nodeTime)
+                result = self.player.playerTime(forNodeTime: nodeTime)
             }
         }
         
@@ -291,27 +291,26 @@ public class AudioPlayerEngine: NSObject {
     
     private func initBuffers() {
         for _ in 1...self.kMaxBuffersInFlight {
-            if let buffer:AVAudioPCMBuffer = AVAudioPCMBuffer(PCMFormat: self.audioFile!.processingFormat, frameCapacity: self.kBufferFrameCount) {
-                self.scheduleBuffer(buffer)
-            }
+            let buffer:AVAudioPCMBuffer = AVAudioPCMBuffer(pcmFormat: self.audioFile!.processingFormat, frameCapacity: self.kBufferFrameCount)
+            self.scheduleBuffer(buffer: buffer)
         }
     }
     
     private func scheduleBuffer(buffer:AVAudioPCMBuffer) -> Bool {
         var result:Bool = false
         
-        dispatch_sync(self.bufferQueue) { () -> Void in
+        self.bufferQueue.sync {
             //Fill next buffer from file
-            if self.readNextBuffer(buffer) {
-                dispatch_group_enter(self.bufferGroup)
+            if self.readNextBuffer(buffer: buffer) {
+                self.bufferGroup.enter()
                 self.buffersInFlight += 1
                 
                 //schedule buffer for playback at end of player queue
                 self.player.scheduleBuffer(buffer) { () -> Void in
                     var bufferQueueExhausted:Bool = false
-                    dispatch_sync(self.bufferQueue) { () -> Void in
+                    self.bufferQueue.sync {
                         self.buffersInFlight -= 1
-                        dispatch_group_leave(self.bufferGroup)
+                        self.bufferGroup.leave()
                         bufferQueueExhausted = self.buffersInFlight <= 0
                     }
                     
@@ -320,7 +319,7 @@ public class AudioPlayerEngine: NSObject {
                         if bufferQueueExhausted {
                             self.stop()
                         } else {
-                            self.scheduleBuffer(buffer)
+                            self.scheduleBuffer(buffer: buffer)
                         }
                     }
                 }
@@ -333,7 +332,7 @@ public class AudioPlayerEngine: NSObject {
     
     private func readNextBuffer(buffer:AVAudioPCMBuffer) -> Bool {
         do {
-            try self.audioFile?.readIntoBuffer(buffer)
+            try self.audioFile?.read(into: buffer)
         } catch let error as NSError {
             print("Exception in buffer read: \(error.localizedDescription)")
         }
@@ -344,35 +343,35 @@ public class AudioPlayerEngine: NSObject {
     //MARK: - Session notificaiton handling
     
     private func registerForMediaServerNotifications() {
-        NSNotificationCenter.defaultCenter().removeObserver(self, name: AVAudioSessionInterruptionNotification, object: nil)
-        NSNotificationCenter.defaultCenter().addObserverForName(AVAudioSessionInterruptionNotification, object: nil, queue: nil) { (notification:NSNotification) in
-            let why : AnyObject? = notification.userInfo?[AVAudioSessionInterruptionTypeKey]
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name.AVAudioSessionInterruption, object: nil)
+        NotificationCenter.default.addObserver(forName: NSNotification.Name.AVAudioSessionInterruption, object: nil, queue: nil) { (notification:Notification) in
+            let why:Any? = notification.userInfo?[AVAudioSessionInterruptionTypeKey]
             if let why = why as? UInt {
                 if let why = AVAudioSessionInterruptionType(rawValue: why) {
                     switch why {
-                    case .Began:
+                    case .began:
                         self.interruptSessionBegin()
-                    case .Ended:
+                    case .ended:
                         self.interruptSessionEnd()
                     }
                 }
             }
         }
 
-        NSNotificationCenter.defaultCenter().removeObserver(self, name: AVAudioSessionMediaServicesWereLostNotification, object: nil)
-        NSNotificationCenter.defaultCenter().addObserverForName(AVAudioSessionMediaServicesWereLostNotification, object: nil, queue: nil) { (notification:NSNotification) in
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name.AVAudioSessionMediaServicesWereLost, object: nil)
+        NotificationCenter.default.addObserver(forName: NSNotification.Name.AVAudioSessionMediaServicesWereLost, object: nil, queue: nil) { (notification:Notification) in
             //TODO: Reset everything here
         }
 
-        NSNotificationCenter.defaultCenter().removeObserver(self, name: AVAudioSessionMediaServicesWereResetNotification, object: nil)
-        NSNotificationCenter.defaultCenter().addObserverForName(AVAudioSessionMediaServicesWereResetNotification, object: nil, queue: nil) { (notification:NSNotification) in
+        NotificationCenter.default.removeObserver(self, name: NSNotification.Name.AVAudioSessionMediaServicesWereReset, object: nil)
+        NotificationCenter.default.addObserver(forName: NSNotification.Name.AVAudioSessionMediaServicesWereReset, object: nil, queue: nil) { (notification:Notification) in
             //TODO: restart playback?
         }
     }
     
     private func interruptSessionBegin() {
         let nodeTime:AVAudioTime = self.player.lastRenderTime!
-        let playerTime:AVAudioTime = self.player.playerTimeForNodeTime(nodeTime)!
+        let playerTime:AVAudioTime = self.player.playerTime(forNodeTime: nodeTime)!
         
         self.interrupted = true
         self.seekPosition = playerTime.sampleTime
@@ -425,7 +424,7 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
     
     public var outputSampleRate:Double {
         get {
-            return self.engine.mainMixerNode.outputFormatForBus(0).sampleRate
+            return self.engine.mainMixerNode.outputFormat(forBus: 0).sampleRate
         }
     }
     
@@ -433,10 +432,10 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
         didSet {
             if outputRouting != oldValue {
                 engine.disconnectNodeOutput(routingMixer)
-                let outputFormat = engine.mainMixerNode.outputFormatForBus(0)
+                let outputFormat = engine.mainMixerNode.outputFormat(forBus: 0)
                 let monoFormat = AVAudioFormat(commonFormat:outputFormat.commonFormat,
                     sampleRate: outputFormat.sampleRate,
-                    interleaved: outputFormat.interleaved,
+                    interleaved: outputFormat.isInterleaved,
                     channelLayout: AVAudioChannelLayout(layoutTag: kAudioChannelLayoutTag_Mono))
 
                 switch outputRouting {
@@ -501,8 +500,8 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
         }
         
         set(bands) {
-            for (index, band) in bands.enumerate() {
-                setFilterAtIndex(index, filter: band)
+            for (index, band) in bands.enumerated() {
+                setFilterAtIndex(filterIndex: index, filter: band)
             }
         }
     }
@@ -513,31 +512,31 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
         super.init()
     }
     
-    override private func initAudioEngine () {
+    override internal func initAudioEngine () {
         //super first so it will setup player, etc.
         super.initAudioEngine()
         
         //configure time pitch
         timePitch = AVAudioUnitTimePitch()
         timePitch.bypass = false
-        engine.attachNode(timePitch)
+        engine.attach(timePitch)
         
         //configure eq
         equalizer = AVAudioUnitEQ(numberOfBands: 4)
         equalizer.globalGain = 0.0
         equalizer.bypass = false
-        engine.attachNode(equalizer)
+        engine.attach(equalizer)
         normalizeEQ()
         
         //configure mixer
         routingMixer = AVAudioMixerNode()
-        engine.attachNode(routingMixer)
+        engine.attach(routingMixer)
 
         //disconnect player so we can insert our effects between player and output
         engine.disconnectNodeOutput(player);
         
         //format of output
-        let outputFormat = engine.mainMixerNode.outputFormatForBus(0)
+        let outputFormat = engine.mainMixerNode.outputFormat(forBus: 0)
 
         //construct node graph
         engine.connect(player, to: timePitch, format: outputFormat)
@@ -563,24 +562,24 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
 
     ///Reset EQ to nominal (flat) values
     public func normalizeEQ() {
-        equalizer.bands[0].filterType = .LowShelf
+        equalizer.bands[0].filterType = .lowShelf
         equalizer.bands[0].frequency = FXAudioPlayerEngine.kLowShelfInitialFrequency
         equalizer.bands[0].gain = 0.0
         equalizer.bands[0].bypass = false
         
-        equalizer.bands[1].filterType = .Parametric
+        equalizer.bands[1].filterType = .parametric
         equalizer.bands[1].frequency = FXAudioPlayerEngine.kParametricLowInitialFrequency
         equalizer.bands[1].gain = 0.0
         equalizer.bands[1].bandwidth = 1.0
         equalizer.bands[1].bypass = false
         
-        equalizer.bands[2].filterType = .Parametric
+        equalizer.bands[2].filterType = .parametric
         equalizer.bands[2].frequency = FXAudioPlayerEngine.kParametricHighInitialFrequency
         equalizer.bands[2].gain = 0.0
         equalizer.bands[2].bandwidth = 1.0
         equalizer.bands[2].bypass = false
         
-        equalizer.bands[3].filterType = .HighShelf
+        equalizer.bands[3].filterType = .highShelf
         equalizer.bands[3].frequency = FXAudioPlayerEngine.kHighShelfInitialFrequency
         equalizer.bands[3].gain = 0.0
         equalizer.bands[3].bypass = false
@@ -589,7 +588,7 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
     ///Adjust EQ filter at given index to given set of filter parameters
     public func setFilterAtIndex(filterIndex:Int, filter:AudioUnitEQFilterParameters) {
         equalizer.bands[filterIndex].filterType = filter.filterType;
-        setFilterAtIndex(filterIndex, frequency: filter.frequency, gain: filter.gain, bandwidth: filter.bandwidth)
+        setFilterAtIndex(filterIndex: filterIndex, frequency: filter.frequency, gain: filter.gain, bandwidth: filter.bandwidth)
     }
     
     ///Adjust EQ filter at given index to given set of filter parameters
@@ -629,21 +628,21 @@ public class AudioUnitEQFilterParameters: NSObject, NSCoding {
     }
     
     @objc public required init?(coder aDecoder: NSCoder) {
-        self.filterType = AVAudioUnitEQFilterType(rawValue: aDecoder.decodeIntegerForKey("filterType"))!
-        self.frequency = aDecoder.decodeFloatForKey("frequency")
-        self.bandwidth = aDecoder.decodeFloatForKey("bandwidth")
-        self.gain = aDecoder.decodeFloatForKey("gain")
-        self.bypass = aDecoder.decodeBoolForKey("bypass")
+        self.filterType = AVAudioUnitEQFilterType(rawValue: aDecoder.decodeInteger(forKey: "filterType"))!
+        self.frequency = aDecoder.decodeFloat(forKey: "frequency")
+        self.bandwidth = aDecoder.decodeFloat(forKey: "bandwidth")
+        self.gain = aDecoder.decodeFloat(forKey: "gain")
+        self.bypass = aDecoder.decodeBool(forKey: "bypass")
 
         super.init()
     }
     
-    @objc public func encodeWithCoder(aCoder: NSCoder) {
-        aCoder.encodeInteger(self.filterType.rawValue, forKey: "filterType")
-        aCoder.encodeFloat(self.frequency, forKey: "frequency")
-        aCoder.encodeFloat(self.bandwidth, forKey: "bandwidth")
-        aCoder.encodeFloat(self.gain, forKey: "gain")
-        aCoder.encodeBool(self.bypass, forKey: "bypass")
+    @objc public func encode(with aCoder: NSCoder) {
+        aCoder.encode(self.filterType.rawValue, forKey: "filterType")
+        aCoder.encode(self.frequency, forKey: "frequency")
+        aCoder.encode(self.bandwidth, forKey: "bandwidth")
+        aCoder.encode(self.gain, forKey: "gain")
+        aCoder.encode(self.bypass, forKey: "bypass")
     }
     
     override public var description : String {

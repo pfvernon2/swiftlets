@@ -9,15 +9,15 @@
 import Foundation
 
 extension String {
-    public init(localized:String, comment:String?) {
+    public init?(localized:String, comment:String?) {
         self.init(NSLocalizedString(localized, comment: comment ?? ""))
     }
     
     var localized: String {
-        return NSLocalizedString(self, tableName: nil, bundle: NSBundle.mainBundle(), value: "", comment: "")
+        return NSLocalizedString(self, tableName: nil, bundle: Bundle.main, value: "", comment: "")
     }
     
-    func localizedWithComment(comment:String, bundle:NSBundle = NSBundle.mainBundle(), tableName:String? = nil) -> String {
-        return NSLocalizedString(self, tableName: tableName, bundle: NSBundle.mainBundle(), value: "", comment: comment)
+    func localizedWithComment(_ comment:String, bundle:Bundle = Bundle.main, tableName:String? = nil) -> String {
+        return NSLocalizedString(self, tableName: tableName, bundle: Bundle.main, value: "", comment: comment)
     }
 }

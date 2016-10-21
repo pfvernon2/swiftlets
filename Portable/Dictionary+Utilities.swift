@@ -9,13 +9,13 @@
 import Foundation
 
 extension Dictionary {
-    mutating func union(dictionary: Dictionary) {
+    mutating func union(_ dictionary: Dictionary) {
         dictionary.forEach {
             self.updateValue($1, forKey: $0)
         }
     }
 
-    func dictionaryAsUnionOf(dictionary: Dictionary) -> Dictionary {
+    func dictionaryAsUnionOf(_ dictionary: Dictionary) -> Dictionary {
         var result = dictionary
         result.union(self)
         return dictionary

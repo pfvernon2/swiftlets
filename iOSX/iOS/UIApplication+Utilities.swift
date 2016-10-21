@@ -10,17 +10,17 @@ import UIKit
 
 extension UIApplication {
     class func jumpOutToAppPreferences() {
-        guard let settingsURL:NSURL = NSURL(string: UIApplicationOpenSettingsURLString)
-            where UIApplication.sharedApplication().canOpenURL(settingsURL) else {
+        guard let settingsURL:URL = URL(string: UIApplicationOpenSettingsURLString)
+            , UIApplication.shared.canOpenURL(settingsURL) else {
                 return
         }
         
-        UIApplication.sharedApplication().openURL(settingsURL)
+        UIApplication.shared.openURL(settingsURL)
     }
 
     class func appInBackground() -> Bool {
-        switch UIApplication.sharedApplication().applicationState {
-        case .Background, .Inactive:
+        switch UIApplication.shared.applicationState {
+        case .background, .inactive:
             return true
         default:
             return false
@@ -28,7 +28,7 @@ extension UIApplication {
     }
 
     public class func appVersion() -> String {
-        guard let dictionary = NSBundle.mainBundle().infoDictionary else {
+        guard let dictionary = Bundle.main.infoDictionary else {
             return ""
         }
 
@@ -40,7 +40,7 @@ extension UIApplication {
     }
 
     public class func appDescription() -> String {
-        guard let dictionary = NSBundle.mainBundle().infoDictionary else {
+        guard let dictionary = Bundle.main.infoDictionary else {
             return ""
         }
 

@@ -12,8 +12,8 @@ class CSVHelper: NSObject {
 	
 	let delimiter:Character = ","
 	
-	func read(contentsOfURL url: NSURL, useEncoding encoding: UInt = NSUTF8StringEncoding) -> [[String]] {
-		let characterData:String = try! String(contentsOfFile: url.path!, encoding: encoding)
+	func read(contentsOfURL url: URL, useEncoding encoding: UInt = String.Encoding.utf8) -> [[String]] {
+		let characterData:String = try! String(contentsOfFile: url.path, encoding: String.Encoding(rawValue: encoding))
 		var table:[[String]] = []
 		
 		var quoted:Bool = false
@@ -73,13 +73,13 @@ class CSVHelper: NSObject {
 		return table
 	}
 	
-	func write(table: [[String]], toFile url: NSURL, useEncoding encoding: UInt = NSUTF8StringEncoding) {
+	func write(_ table: [[String]], toFile url: URL, useEncoding encoding: UInt = String.Encoding.utf8) {
 		var output:String = String()
 		
-		for (_, record) in table.enumerate() {
+		for (_, record) in table.enumerated() {
 			var row:String = ""
-			for (_, field) in record.enumerate() {
-				let escaped = field.stringByReplacingOccurrencesOfString("\"", withString: "\"\"", options: NSStringCompareOptions.LiteralSearch, range: nil)
+			for (_, field) in record.enumerated() {
+				let escaped = field.replacingOccurrences(of: "\"", with: "\"\"", options: NSString.CompareOptions.literal, range: nil)
 				let quoted = "\"" + escaped + "\""
 				
 				if row.characters.count > 0 {
@@ -93,7 +93,7 @@ class CSVHelper: NSObject {
 		}
 		
 		do {
-			try output.writeToURL(url, atomically: true, encoding: encoding)
+			try output.write(to: url, atomically: true, encoding: String.Encoding(rawValue: encoding))
 		} catch _ {
 		}
 	}
