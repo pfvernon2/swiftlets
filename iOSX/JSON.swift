@@ -15,11 +15,11 @@ import Foundation
  
  ```
  extension NSDate: JSONTransformable {
-    func toJSONType() -> AnyObject {
+    func toJSONType() -> Any {
         return NSDateFormatter.ISO8601FormatterCached(.microseconds).stringFromDate(self)
     }
  
-    public static func fromJSONType(json:AnyObject) -> AnyObject? {
+    public static func fromJSONType(json:Any) -> Any? {
         guard let jsonString:String = json as? String else {
             return nil
         }
@@ -47,61 +47,48 @@ public typealias JSONElement = [String:Any?]
 open class JSON {
     fileprivate var value:Any?
 
-    func transform<T:JSONTransformable>() -> T? {
-        guard let value = value else {
-            return nil
-        }
-
-        return T.fromJSONType(value) as? T
-    }
-
-    /// unwraps the JSON object
+    /// unwraps the object to JSON values
     open class func unwrap(_ obj:Any?) -> Any {
         switch obj {
         case let json as JSON:
             return json.value ?? NSNull()
-            
-        case let array as NSArray:
-            var result = [Any]()
-            for element in array {
-                result.append(unwrap(element))
-            }
-            return result
-            
-        case let dictionary as NSDictionary:
+
+        case let element as JSONElement:
             var result = [String:Any]()
-            for (key, value) in dictionary {
-                if let k = key as? String {
-                    result[k] = unwrap(value)
-                }
+            element.forEach { (key, value) in
+                result[key] = unwrap(value)
             }
             return result
 
         case let transform as JSONTransformable:
             return transform.toJSONType()
 
+        case let array as NSArray:
+            var result = [Any]()
+            array.forEach { (element) in
+                result.append(unwrap(element))
+            }
+            return result
+
+        case let dictionary as NSDictionary:
+            var result = [String:Any]()
+            dictionary.forEach { (key, value) in
+                if let key = key as? String {
+                    result[key] = unwrap(value)
+                }
+            }
+            return result
+
         default:
             return obj ?? NSNull()
         }
     }
-    
-    open class func unwrap(_ element:JSONElement) -> Any {
-        var result = [String:Any]()
-        for (key, value) in element {
-            result[key] = unwrap(value)
-        }
-        return result
-    }
-    
+
     public init(_ object:Any?) {
         self.value = JSON.unwrap(object)
     }
     
-    public init(_ element:JSONElement) {
-        self.value = JSON.unwrap(element)
-    }
-    
-    public init(_ json:JSON) {
+    public init(json:JSON) {
         self.value = json.value
     }
 }
@@ -129,7 +116,7 @@ extension JSON {
     
     /// constructs JSON object from string
     public convenience init(string:String) {
-        self.init(data: string.data(using: String.Encoding.utf8)!)
+        self.init(data: string.data(using: .utf8)!)
     }
     
     /// parses string to the JSON object
@@ -140,7 +127,7 @@ extension JSON {
     
     /// constructs JSON object from the content of NSURL
     public convenience init(nsurl:URL) {
-        var enc:String.Encoding = String.Encoding.utf8
+        var enc:String.Encoding = .utf8
         do {
             let str = try NSString(contentsOf:nsurl, usedEncoding:&enc.rawValue)
             self.init(string:str as String)
@@ -156,7 +143,7 @@ extension JSON {
     }
     
     public func toData() -> Data? {
-        return toString(false).data(using: String.Encoding.utf8)
+        return toString(prettyPrint: false).data(using: .utf8)
     }
 
     /// constructs JSON object from the content of URL
@@ -180,16 +167,16 @@ extension JSON {
     
     /// does what JSON.stringify in ES5 does.
     /// when the 2nd argument is set to true it pretty prints
-    public class func stringify(_ obj:AnyObject, prettyPrint:Bool=false) -> String! {
+    public class func stringify(_ obj:Any, prettyPrint:Bool=false) -> String! {
         if !JSONSerialization.isValidJSONObject(obj) {
             let error = JSON(NSError(
                 domain:"JSONErrorDomain",
                 code:422,
                 userInfo:[NSLocalizedDescriptionKey: "not an JSON object"]
                 ))
-            return JSON(error).toString(prettyPrint)
+            return JSON(error).toString(prettyPrint: prettyPrint)
         }
-        return JSON(obj).toString(prettyPrint)
+        return JSON(obj).toString(prettyPrint: prettyPrint)
     }
 }
 
@@ -251,7 +238,7 @@ extension JSON {
 
     public func removeValue(forKey key:String) {
         switch value {
-        case var valueDictionary as Dictionary<String, AnyObject>:
+        case var valueDictionary as Dictionary<String, Any>:
             valueDictionary.removeValue(forKey: key)
             value = valueDictionary
         default:
@@ -261,7 +248,7 @@ extension JSON {
 
     public func removeValue(atIndex index:Int) {
         switch value {
-        case var valueArray as Array<AnyObject>:
+        case var valueArray as Array<Any>:
             valueArray.remove(at: index)
             value = valueArray
         default:
@@ -622,7 +609,7 @@ extension JSON : Sequence {
 extension JSON : CustomStringConvertible {
     /// stringifies self.
     /// if pretty:true it pretty prints
-    public func toString(_ pretty:Bool=false)->String {
+    public func toString(prettyPrint pretty:Bool=false)->String {
         switch value {
         case is NSError: return "\(value)"
         case is NSNull: return "null"
@@ -646,24 +633,30 @@ extension JSON : CustomStringConvertible {
         case let o as NSString:
             return o.debugDescription
         default:
-            if let value:Any = self.value {
-                let opts = pretty ? JSONSerialization.WritingOptions.prettyPrinted : JSONSerialization.WritingOptions()
-                if let data = (try? JSONSerialization.data(withJSONObject: value, options:opts)) as Data? {
-                    if let result = NSString(data:data, encoding:String.Encoding.utf8.rawValue) as? String {
-                        return result
-                    }
-                }
+            guard let value = self.value else {
+                return ""
             }
+
+            do {
+                let opts = pretty ? JSONSerialization.WritingOptions.prettyPrinted : JSONSerialization.WritingOptions()
+                let data:Data = try JSONSerialization.data(withJSONObject:value, options:opts)
+                if let result = String(data: data, encoding: .utf8) {
+                    return result
+                }
+            } catch {
+                print("JSON serialization error")
+            }
+
             return ""
         }
     }
     
     public var description:String {
-        return toString(true)
+        return toString(prettyPrint: true)
     }
 
     public var debugDescription:String {
-        return toString(true)
+        return toString(prettyPrint: true)
     }
 }
 
@@ -721,7 +714,7 @@ public extension URLSession {
      - returns: NSURLSessionDataTask already resumed
      */
 
-    func httpGet(_ url:URL, success:HTTPJSONSuccessClosure, failure:HTTPJSONFailureClosure) -> URLSessionDataTask?
+    @discardableResult func httpGet(_ url:URL, success:@escaping HTTPJSONSuccessClosure, failure:@escaping HTTPJSONFailureClosure) -> URLSessionDataTask?
     {
         return httpDataTask(url,
                             method: kHTTPGetMethod,
@@ -745,7 +738,7 @@ public extension URLSession {
      - returns: NSURLSessionDataTask already resumed
      */
 
-    func httpPost(_ url:URL, success:HTTPJSONSuccessClosure, failure:HTTPJSONFailureClosure) -> URLSessionDataTask?
+    @discardableResult func httpPost(_ url:URL, success:@escaping HTTPJSONSuccessClosure, failure:@escaping HTTPJSONFailureClosure) -> URLSessionDataTask?
     {
         return httpDataTask(url,
                             method: kHTTPPostMethod,
@@ -768,7 +761,7 @@ public extension URLSession {
      - returns: NSURLSessionDataTask already resumed
      */
 
-    func httpPost(_ url:URL, bodyJSON:JSON, success:HTTPJSONSuccessClosure, failure:HTTPJSONFailureClosure) -> URLSessionDataTask?
+    @discardableResult func httpPost(_ url:URL, bodyJSON:JSON, success:@escaping HTTPJSONSuccessClosure, failure:@escaping HTTPJSONFailureClosure) -> URLSessionDataTask?
     {
         let data:Data? = bodyJSON.toData()
 
@@ -793,7 +786,7 @@ public extension URLSession {
      - returns: NSURLSessionDataTask already resumed
      */
 
-    func httpPost(_ url:URL, bodyParameters:[URLQueryItem], success:HTTPJSONSuccessClosure, failure:HTTPJSONFailureClosure) -> URLSessionDataTask?
+    @discardableResult func httpPost(_ url:URL, bodyParameters:[URLQueryItem], success:@escaping HTTPJSONSuccessClosure, failure:@escaping HTTPJSONFailureClosure) -> URLSessionDataTask?
     {
         var body:String = ""
         for queryItem:URLQueryItem in bodyParameters {
@@ -807,7 +800,7 @@ public extension URLSession {
                 body = escapedItem
             }
         }
-        let data:Data? = body.data(using: String.Encoding.utf8)
+        let data:Data? = body.data(using: .utf8)
 
         return httpDataTask(url,
                             method: kHTTPPostMethod,
@@ -821,12 +814,12 @@ public extension URLSession {
 
     ///Utilty method to create an automatically resumed data task given the input configuration.
     /// The body of the result is assumed to be JSON and is parsed and returned as such.
-    fileprivate func httpDataTask(_ url:URL,
+    @discardableResult fileprivate func httpDataTask(_ url:URL,
                               method:String,
                               contentType:String?,
                               body:Data?,
-                              success:HTTPJSONSuccessClosure,
-                              failure:HTTPJSONFailureClosure) -> URLSessionDataTask?
+                              success:@escaping HTTPJSONSuccessClosure,
+                              failure:@escaping HTTPJSONFailureClosure) -> URLSessionDataTask?
     {
         func dataTaskSuccessHandler(_ request:URLRequest?, data:Data?, response:HTTPURLResponse, error:Error?) {
             #if DUMP_NETWORK_RESULTS
@@ -899,7 +892,7 @@ public extension URLSession {
         }
 
         if let data = data {
-            result += String("data: \(String(data:data, encoding:String.Encoding.utf8))\n\n")
+            result += String("data: \(String(data:data, encoding:.utf8))\n\n")
         }
 
         if let response = response {

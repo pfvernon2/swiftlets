@@ -8,6 +8,24 @@
 
 import Foundation
 
+public extension DispatchQueue {
+    private func dispatchTimeSinceNow(seconds: TimeInterval) -> DispatchTime {
+        let nanoseconds:Int = Int(seconds.toNanoseconds())
+        let dispatchOffset:DispatchTime = .now() + .nanoseconds(nanoseconds)
+        return dispatchOffset
+    }
+
+    ///asyncAfter with TimeInterval semanics, i.e. nanosecond precision out to 10,000 years.
+    func asyncAfter(secondsSinceNow seconds: TimeInterval, execute work: @escaping @convention(block) () -> Swift.Void) {
+        asyncAfter(deadline: dispatchTimeSinceNow(seconds: seconds), execute: work)
+    }
+
+    ///asyncAfter with TimeInterval semanics, i.e. nanosecond precision out to 10,000 years.
+    func asyncAfter(secondsSinceNow seconds: TimeInterval, execute: DispatchWorkItem) {
+        asyncAfter(deadline: dispatchTimeSinceNow(seconds: seconds), execute: execute)
+    }
+}
+
 public class DispatchReaderWriter {
     private var concurrentQueue:DispatchQueue = DispatchQueue(label: "com.cyberdev.Dispatch.readerWriter", attributes: .concurrent)
 

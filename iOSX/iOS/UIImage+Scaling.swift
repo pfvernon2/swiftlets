@@ -13,7 +13,8 @@ extension UIImage {
         let colorSpace:CGColorSpace = CGColorSpaceCreateDeviceRGB()        
         let context:CGContext = CGContext(data: nil, width: Int(size.width), height: Int(size.height), bitsPerComponent: 8, bytesPerRow: 0, space: colorSpace, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!
         context.clear(CGRect(x: 0, y: 0, width: size.width, height: size.height))
-        
+
+        UIGraphicsPushContext(context)
         if self.imageOrientation == .right
         {
             context.rotate(by: CGFloat(-M_PI_2))
@@ -23,11 +24,13 @@ extension UIImage {
         else {
             draw(in: CGRect(x: 0, y: 0, width: size.width, height: size.height))
         }
-        
-        let scaledImage:CGImage = context.makeImage()!
-        
-        let image:UIImage = UIImage(cgImage: scaledImage)
-        
+        UIGraphicsPopContext()
+
+        var image:UIImage? = nil
+        if let scaledImage:CGImage = context.makeImage() {
+            image = UIImage(cgImage: scaledImage)
+        }
+
         return image
     }
     
