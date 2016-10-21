@@ -1,6 +1,6 @@
 //
 //  UIImage+maskColor.swift
-//  Segues
+//  swiftlets
 //
 //  Created by Frank Vernon on 1/3/16.
 //  Copyright © 2016 Frank Vernon. All rights reserved.

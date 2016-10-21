@@ -1,6 +1,6 @@
 //
 //  Timer.swift
-//  Segues
+//  swiftlets
 //
 //  Created by Frank Vernon on 9/15/15.
 //  Copyright © 2015 Frank Vernon. All rights reserved.

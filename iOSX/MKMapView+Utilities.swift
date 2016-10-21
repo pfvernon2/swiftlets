@@ -1,6 +1,6 @@
 //
 //  MKMapView+Zoom.swift
-//  Apple Maps Demo
+//  swiftlets
 //
 //  Created by Frank Vernon on 4/23/16.
 //  Copyright © 2016 Frank Vernon. All rights reserved.

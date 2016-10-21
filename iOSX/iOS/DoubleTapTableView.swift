@@ -1,6 +1,6 @@
 //
 //  DoubleTapTableView.swift
-//  Segues
+//  swiftlets
 //
 //  Created by Frank Vernon on 12/2/15.
 //  Copyright © 2015 Frank Vernon. All rights reserved.

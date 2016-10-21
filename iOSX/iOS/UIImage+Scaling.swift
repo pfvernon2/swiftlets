@@ -1,6 +1,6 @@
 //
 //  UIImage+Scaling.swift
-//  Segues
+//  swiftlets
 //
 //  Created by Frank Vernon on 1/19/16.
 //  Copyright © 2016 Frank Vernon. All rights reserved.

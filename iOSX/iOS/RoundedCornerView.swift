@@ -1,6 +1,6 @@
 //
 //  RoundedCornerView.swift
-//  Segues
+//  swiftlets
 //
 //  Created by Frank Vernon on 11/28/15.
 //  Copyright © 2015 Frank Vernon. All rights reserved.

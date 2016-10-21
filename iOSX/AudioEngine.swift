@@ -1,6 +1,6 @@
 //
 //  AudioEngine.swift
-//  Segues
+//  swiftlets
 //
 //  Created by Frank Vernon on 7/18/15.
 //  Copyright © 2015 Frank Vernon. All rights reserved.
@@ -160,7 +160,7 @@ public class AudioPlayerEngine: NSObject {
         return result;
     }
 
-    public func play() -> Bool {
+    @discardableResult public func play() -> Bool {
         if _play() {
             DispatchQueue.main.async {
                 if let delegate = self.delegate {
@@ -182,7 +182,7 @@ public class AudioPlayerEngine: NSObject {
         }
     }
     
-    public func plause() -> Bool {
+    @discardableResult public func plause() -> Bool {
         if isPlaying() {
             pause()
         } else {
@@ -206,7 +206,7 @@ public class AudioPlayerEngine: NSObject {
 
     //MARK: - Private Methods
     
-    private func _play() -> Bool {
+    @discardableResult private func _play() -> Bool {
         if self.isPlaying() {
             return true
         }
@@ -258,7 +258,7 @@ public class AudioPlayerEngine: NSObject {
         }
         
         //wait for buffer queue to drain
-        self.bufferGroup.wait(timeout: DispatchTime.distantFuture)
+        _ = self.bufferGroup.wait(timeout: DispatchTime.distantFuture)
     }
 
     //MARK: - Utility
@@ -292,7 +292,7 @@ public class AudioPlayerEngine: NSObject {
     private func initBuffers() {
         for _ in 1...self.kMaxBuffersInFlight {
             let buffer:AVAudioPCMBuffer = AVAudioPCMBuffer(pcmFormat: self.audioFile!.processingFormat, frameCapacity: self.kBufferFrameCount)
-            self.scheduleBuffer(buffer: buffer)
+            _ = self.scheduleBuffer(buffer: buffer)
         }
     }
     
@@ -319,7 +319,7 @@ public class AudioPlayerEngine: NSObject {
                         if bufferQueueExhausted {
                             self.stop()
                         } else {
-                            self.scheduleBuffer(buffer: buffer)
+                            _ = self.scheduleBuffer(buffer: buffer)
                         }
                     }
                 }

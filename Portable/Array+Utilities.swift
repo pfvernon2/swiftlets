@@ -1,6 +1,6 @@
 //
 //  Array+DHV.swift
-//  WebResearch
+//  swiftlets
 //
 //  Created by David Vernon on 6/5/16.
 //  Copyright © 2016 David Vernon. All rights reserved.

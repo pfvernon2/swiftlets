@@ -1,6 +1,6 @@
 //
 //  CSVHelper.swift
-//  Flowchart
+//  swiftlets
 //
 //  Created by Frank Vernon on 10/28/14.
 //  Copyright (c) 2014 Frank Vernon. All rights reserved.
@@ -12,8 +12,8 @@ class CSVHelper: NSObject {
 	
 	let delimiter:Character = ","
 	
-	func read(contentsOfURL url: URL, useEncoding encoding: UInt = String.Encoding.utf8) -> [[String]] {
-		let characterData:String = try! String(contentsOfFile: url.path, encoding: String.Encoding(rawValue: encoding))
+	func read(contentsOfURL url: URL, useEncoding encoding: String.Encoding = String.Encoding.utf8) -> [[String]] {
+		let characterData:String = try! String(contentsOfFile: url.path, encoding: encoding)
 		var table:[[String]] = []
 		
 		var quoted:Bool = false
@@ -73,7 +73,7 @@ class CSVHelper: NSObject {
 		return table
 	}
 	
-	func write(_ table: [[String]], toFile url: URL, useEncoding encoding: UInt = String.Encoding.utf8) {
+	func write(_ table: [[String]], toFile url: URL, useEncoding encoding: String.Encoding = String.Encoding.utf8) {
 		var output:String = String()
 		
 		for (_, record) in table.enumerated() {
@@ -93,7 +93,7 @@ class CSVHelper: NSObject {
 		}
 		
 		do {
-			try output.write(to: url, atomically: true, encoding: String.Encoding(rawValue: encoding))
+			try output.write(to: url, atomically: true, encoding: encoding)
 		} catch _ {
 		}
 	}

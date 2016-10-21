@@ -1,6 +1,6 @@
 //
 //  MKMapKit+Helpers.swift
-//  Apple Maps Demo
+//  swiftlets
 //
 //  Created by Frank Vernon on 4/24/16.
 //  Copyright © 2016 Frank Vernon. All rights reserved.
