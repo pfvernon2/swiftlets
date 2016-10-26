@@ -125,10 +125,10 @@ extension JSON {
     }
     
     /// constructs JSON object from the content of NSURL
-    public convenience init(nsurl:URL) {
+    public convenience init(url:URL) {
         var enc:String.Encoding = .utf8
         do {
-            let str = try NSString(contentsOf:nsurl, usedEncoding:&enc.rawValue)
+            let str = try NSString(contentsOf:url, usedEncoding:&enc.rawValue)
             self.init(string:str as String)
         } catch let err as NSError {
             self.init(err)
@@ -137,31 +137,12 @@ extension JSON {
     
     /// fetch the JSON string from NSURL and parse it
     /// same as JSON(nsurl:NSURL)
-    public class func fromNSURL(_ nsurl:URL) -> JSON {
-        return JSON(nsurl:nsurl)
+    public class func from(url:URL) -> JSON {
+        return JSON(url:url)
     }
     
     public func toData() -> Data? {
         return toString(prettyPrint: false).data(using: .utf8)
-    }
-
-    /// constructs JSON object from the content of URL
-    public convenience init(url:String) {
-        if let nsurl = URL(string:url) as URL? {
-            self.init(nsurl:nsurl)
-        } else {
-            self.init(NSError(
-                domain:"JSONErrorDomain",
-                code:400,
-                userInfo:[NSLocalizedDescriptionKey: "malformed URL"]
-                )
-            )
-        }
-    }
-    
-    /// fetch the JSON string from URL in the string
-    public class func fromURL(_ url:String) -> JSON {
-        return JSON(url:url)
     }
     
     /// does what JSON.stringify in ES5 does.

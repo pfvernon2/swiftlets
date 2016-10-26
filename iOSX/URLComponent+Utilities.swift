@@ -53,7 +53,7 @@ public extension URLComponents {
         }
     }
     
-    func URLByAppendingPath(_ path:String? = nil, parameters:[URLQueryItem]? = nil) -> URL? {
+    func URLByAppending(path:String? = nil, parameters:[URLQueryItem]? = nil) -> URL? {
         var baseURLCopy = (self as NSURLComponents).copy() as! URLComponents
         
         //append sub-path if supplied
