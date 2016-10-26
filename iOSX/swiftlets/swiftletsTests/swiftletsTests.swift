@@ -39,6 +39,12 @@ class swiftletsTests: XCTestCase {
         //test nilability
         json["int"] = JSON(nil)
         XCTAssert(json["int"].isNull)
+        
+        //test Date JSONTransformable protocol
+        let date:Date = Date()
+        json["date"] = JSON(date)
+        print(json.toString(prettyPrint: true))
+        XCTAssertTrue(floor(json["date"].asDate!.timeIntervalSinceReferenceDate) == floor(date.timeIntervalSinceReferenceDate))
     }
     
 //    func testPerformanceExample() {

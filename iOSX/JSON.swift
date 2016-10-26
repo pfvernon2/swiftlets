@@ -14,25 +14,24 @@ import Foundation
  Protocol one can adopt to convert to and from JSON primative types: Number, String, NULL, Array, Dictionary
  
  ```
- extension NSDate: JSONTransformable {
-    func toJSONType() -> Any {
-        return NSDateFormatter.ISO8601FormatterCached(.microseconds).stringFromDate(self)
+ extension Date: JSONTransformable {
+    public func toJSONType() -> JSON {
+        return JSON(ISO8601DateFormatter().string(from: self))
     }
  
-    public static func fromJSONType(json:Any) -> Any? {
-        guard let jsonString:String = json as? String else {
+    public static func fromJSONType(json:JSON) -> Any? {
+        guard let jsonString:String = json.asString else {
             return nil
         }
-
-        return NSDateFormatter.ISO8601FormatterCached(.microseconds).dateFromString(jsonString)
+ 
+        return ISO8601DateFormatter().date(from: jsonString)
     }
  }
-
  ```
  */
 public protocol JSONTransformable {
-    func toJSONType() -> Any
-    static func fromJSONType(_ json:Any) -> Any?
+    func toJSONType() -> JSON
+    static func fromJSONType(json:JSON) -> Any?
 }
 
 /**
@@ -61,7 +60,7 @@ open class JSON {
             return result
 
         case let transform as JSONTransformable:
-            return transform.toJSONType()
+            return unwrap(transform.toJSONType())
 
         case let array as NSArray:
             var result = [Any]()
@@ -538,7 +537,7 @@ extension JSON {
     }
 
     func asTransformable<T:JSONTransformable>() -> T? {
-        return T.fromJSONType(value) as? T
+        return T.fromJSONType(json: self) as? T
     }
 
     /// gives the number of elements if an array or a dictionary.
