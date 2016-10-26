@@ -1,5 +1,5 @@
 //
-//  AudioEngine.swift
+//  AudioPlayerEngine.swift
 //  swiftlets
 //
 //  Created by Frank Vernon on 7/18/15.
@@ -143,12 +143,12 @@ public class AudioPlayerEngine: NSObject {
                 _play()
             }
 
-            return true;
+            return true
         } catch let error as NSError {
             print("Exception in audio engine scheduleFile: \(error.localizedDescription)")
         }
         
-        return false;
+        return false
     }
     
     public func isPlaying() -> Bool {
@@ -157,7 +157,7 @@ public class AudioPlayerEngine: NSObject {
             result = self.player.isPlaying
         }
         
-        return result;
+        return result
     }
 
     @discardableResult public func play() -> Bool {
@@ -168,10 +168,10 @@ public class AudioPlayerEngine: NSObject {
                 }
             }
             
-            return true;
+            return true
         }
         
-        return false;
+        return false
     }
 
     public func pause() {
@@ -395,9 +395,9 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
     
     public enum OutputRouting {
         case Stereo
+        case Mono
         case MonoLeft
         case MonoRight
-        case MonoLeftRight
     }
     
     //TimePitch Rate constants
@@ -443,6 +443,10 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
                     engine.connect(routingMixer, to: engine.mainMixerNode, format: outputFormat)
                     routingMixer.pan = 0.0
                     
+                case .Mono:
+                    engine.connect(routingMixer, to: engine.mainMixerNode, format: monoFormat)
+                    routingMixer.pan = 0.0
+
                 case .MonoLeft:
                     engine.connect(routingMixer, to: engine.mainMixerNode, format: monoFormat)
                     routingMixer.pan = -1.0
@@ -450,10 +454,6 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
                 case .MonoRight:
                     engine.connect(routingMixer, to: engine.mainMixerNode, format: monoFormat)
                     routingMixer.pan = 1.0
-
-                case .MonoLeftRight:
-                    engine.connect(routingMixer, to: engine.mainMixerNode, format: monoFormat)
-                    routingMixer.pan = 0.0
                 }
             }
         }
@@ -533,7 +533,7 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
         engine.attach(routingMixer)
 
         //disconnect player so we can insert our effects between player and output
-        engine.disconnectNodeOutput(player);
+        engine.disconnectNodeOutput(player)
         
         //format of output
         let outputFormat = engine.mainMixerNode.outputFormat(forBus: 0)
@@ -587,22 +587,22 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
     
     ///Adjust EQ filter at given index to given set of filter parameters
     public func setFilterAtIndex(filterIndex:Int, filter:AudioUnitEQFilterParameters) {
-        equalizer.bands[filterIndex].filterType = filter.filterType;
+        equalizer.bands[filterIndex].filterType = filter.filterType
         setFilterAtIndex(filterIndex: filterIndex, frequency: filter.frequency, gain: filter.gain, bandwidth: filter.bandwidth)
     }
     
     ///Adjust EQ filter at given index to given set of filter parameters
     public func setFilterAtIndex(filterIndex:Int, frequency:Float , gain:Float, bandwidth:Float = 0.0) {
-        equalizer.bands[filterIndex].frequency = frequency;
+        equalizer.bands[filterIndex].frequency = frequency
         
         if fabs(gain) <= FXAudioPlayerEngine.kEQGainDetentRange {
-            equalizer.bands[filterIndex].gain = 0.0;
+            equalizer.bands[filterIndex].gain = 0.0
         } else {
-            equalizer.bands[filterIndex].gain = gain;
+            equalizer.bands[filterIndex].gain = gain
         }
         
         if bandwidth > 0.0 {
-            equalizer.bands[filterIndex].bandwidth = bandwidth;
+            equalizer.bands[filterIndex].bandwidth = bandwidth
         }
     }
 }

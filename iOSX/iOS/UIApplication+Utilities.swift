@@ -9,16 +9,16 @@
 import UIKit
 
 extension UIApplication {
-    class func jumpOutToAppPreferences() {
-        guard let settingsURL:URL = URL(string: UIApplicationOpenSettingsURLString)
-            , UIApplication.shared.canOpenURL(settingsURL) else {
+    public class func jumpOutToAppPreferences() {
+        guard let settingsURL:URL = URL(string: UIApplicationOpenSettingsURLString),
+            UIApplication.shared.canOpenURL(settingsURL) else {
                 return
         }
         
-        UIApplication.shared.openURL(settingsURL)
+        UIApplication.shared.open(settingsURL)
     }
 
-    class func appInBackground() -> Bool {
+    public class func appInBackground() -> Bool {
         switch UIApplication.shared.applicationState {
         case .background, .inactive:
             return true

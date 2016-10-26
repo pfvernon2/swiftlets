@@ -21,16 +21,31 @@ class swiftletsTests: XCTestCase {
         super.tearDown()
     }
     
-    func testExample() {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
+    func testJSON() {
+        let jsonString = "{\"string\":\"foo\",\"int\":500,\"double\":5200.0,\"date\":\"2016-10-26T16:39:52Z\"}"
+        
+        //test parsing
+        let json:JSON = JSON(string: jsonString)
+        XCTAssertEqual(json["string"].asString, "foo")
+        XCTAssertEqual(json["int"].asInt, 500)
+        XCTAssertEqual(json["double"].asDouble, 5200.0)
+        XCTAssertEqual(json["date"].asDate, ISO8601DateFormatter().date(from: "2016-10-26T16:39:52Z"))
+        
+        //test mutability
+        json["string"] = JSON("bar")
+        XCTAssertNotEqual(json["string"].asString, "foo")
+        XCTAssertEqual(json["string"].asString, "bar")
+
+        //test nilability
+        json["int"] = JSON(nil)
+        XCTAssert(json["int"].isNull)
     }
     
-    func testPerformanceExample() {
-        // This is an example of a performance test case.
-        self.measureBlock {
-            // Put the code you want to measure the time of here.
-        }
-    }
+//    func testPerformanceExample() {
+//        // This is an example of a performance test case.
+//        self.measure {
+//            // Put the code you want to measure the time of here.
+//        }
+//    }
     
 }

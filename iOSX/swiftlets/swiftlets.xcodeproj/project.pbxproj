@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0111A0281D2180CD00A9B35E /* NSHTTPURLResponse+Utility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0111A0271D2180CD00A9B35E /* NSHTTPURLResponse+Utility.swift */; };
+		0111A0281D2180CD00A9B35E /* HTTPURLResponse+Utility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0111A0271D2180CD00A9B35E /* HTTPURLResponse+Utility.swift */; };
 		0111A02E1D21CB6F00A9B35E /* JSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0111A02D1D21CB6F00A9B35E /* JSON.swift */; };
 		0111A0301D21CBC700A9B35E /* Dictionary+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0111A02F1D21CBC700A9B35E /* Dictionary+Utilities.swift */; };
 		011330811D05CC27002DA0F0 /* String+Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011330801D05CC27002DA0F0 /* String+Localization.swift */; };
@@ -17,19 +17,19 @@
 		01533ACC1C9DDAE700C6E69D /* swiftlets.h in Headers */ = {isa = PBXBuildFile; fileRef = 01533ACB1C9DDAE700C6E69D /* swiftlets.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		01533AD31C9DDAE700C6E69D /* swiftlets.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 01533AC81C9DDAE700C6E69D /* swiftlets.framework */; };
 		01533AD81C9DDAE700C6E69D /* swiftletsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01533AD71C9DDAE700C6E69D /* swiftletsTests.swift */; };
-		01533B061C9DDF2000C6E69D /* AudioEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01533AFF1C9DDF2000C6E69D /* AudioEngine.swift */; };
-		01533B071C9DDF2000C6E69D /* Timer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01533B001C9DDF2000C6E69D /* Timer.swift */; };
+		01533B061C9DDF2000C6E69D /* AudioPlayerEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01533AFF1C9DDF2000C6E69D /* AudioPlayerEngine.swift */; };
+		01533B071C9DDF2000C6E69D /* CoalescingTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01533B001C9DDF2000C6E69D /* CoalescingTimer.swift */; };
 		01533B081C9DDF2000C6E69D /* DoubleTapTableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01533B011C9DDF2000C6E69D /* DoubleTapTableView.swift */; };
 		01533B091C9DDF2000C6E69D /* UIImage+maskColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01533B021C9DDF2000C6E69D /* UIImage+maskColor.swift */; };
 		01533B0A1C9DDF2000C6E69D /* UIImage+Scaling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01533B031C9DDF2000C6E69D /* UIImage+Scaling.swift */; };
 		01533B0B1C9DDF2000C6E69D /* RoundedCornerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01533B041C9DDF2000C6E69D /* RoundedCornerView.swift */; };
 		015710CF1D049C1F0057C1FB /* Array+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 015710CE1D049C1F0057C1FB /* Array+Utilities.swift */; };
-		016310871D03660500862035 /* NSURLComponent+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 016310861D03660500862035 /* NSURLComponent+Utilities.swift */; };
+		016310871D03660500862035 /* URLComponent+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 016310861D03660500862035 /* URLComponent+Utilities.swift */; };
 		01A3E9191CFE6FE300BE5AAA /* Miscellaneous.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A3E9181CFE6FE300BE5AAA /* Miscellaneous.swift */; };
 		01ADE31B1D34AD5E005424EF /* UIFont+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01ADE31A1D34AD5E005424EF /* UIFont+Utilities.swift */; };
 		01CD89E21CDD0B24000790C2 /* UIAlertController+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01CD89E11CDD0B24000790C2 /* UIAlertController+Utilities.swift */; };
 		01D1ED151D415FE600886D3D /* Platform.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01D1ED141D415FE600886D3D /* Platform.swift */; };
-		01E6783F1CD5145E00ABE1CB /* NSData+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E6783E1CD5145E00ABE1CB /* NSData+Utilities.swift */; };
+		01E6783F1CD5145E00ABE1CB /* Data+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E6783E1CD5145E00ABE1CB /* Data+Utilities.swift */; };
 		01E6784E1CD5315D00ABE1CB /* MKMapKit+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E6784C1CD5315D00ABE1CB /* MKMapKit+Utilities.swift */; };
 		01E6784F1CD5315D00ABE1CB /* MKMapView+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E6784D1CD5315D00ABE1CB /* MKMapView+Utilities.swift */; };
 		01E678511CD5317400ABE1CB /* Formatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E678501CD5317400ABE1CB /* Formatting.swift */; };
@@ -37,7 +37,7 @@
 		01E678551CD531AA00ABE1CB /* UIView+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E678531CD531AA00ABE1CB /* UIView+Utilities.swift */; };
 		01E759531CDD373C00DA15F1 /* String+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E759521CDD373C00DA15F1 /* String+Utilities.swift */; };
 		01E769711CEF85B600866433 /* UIViewController+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E769701CEF85B600866433 /* UIViewController+Utilities.swift */; };
-		01E769781CF22D1500866433 /* NSDateFormatter+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E769771CF22D1500866433 /* NSDateFormatter+Utilities.swift */; };
+		01E769781CF22D1500866433 /* DateFormatter+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E769771CF22D1500866433 /* DateFormatter+Utilities.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -51,7 +51,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		0111A0271D2180CD00A9B35E /* NSHTTPURLResponse+Utility.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "NSHTTPURLResponse+Utility.swift"; path = "../../NSHTTPURLResponse+Utility.swift"; sourceTree = "<group>"; };
+		0111A0271D2180CD00A9B35E /* HTTPURLResponse+Utility.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "HTTPURLResponse+Utility.swift"; path = "../../HTTPURLResponse+Utility.swift"; sourceTree = "<group>"; };
 		0111A02D1D21CB6F00A9B35E /* JSON.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = JSON.swift; path = ../../JSON.swift; sourceTree = "<group>"; };
 		0111A02F1D21CBC700A9B35E /* Dictionary+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Dictionary+Utilities.swift"; path = "../../../Portable/Dictionary+Utilities.swift"; sourceTree = "<group>"; };
 		011330801D05CC27002DA0F0 /* String+Localization.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "String+Localization.swift"; path = "../../../Portable/String+Localization.swift"; sourceTree = "<group>"; };
@@ -64,19 +64,19 @@
 		01533AD21C9DDAE700C6E69D /* swiftletsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = swiftletsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		01533AD71C9DDAE700C6E69D /* swiftletsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = swiftletsTests.swift; sourceTree = "<group>"; };
 		01533AD91C9DDAE700C6E69D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		01533AFF1C9DDF2000C6E69D /* AudioEngine.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = AudioEngine.swift; path = ../../AudioEngine.swift; sourceTree = "<group>"; };
-		01533B001C9DDF2000C6E69D /* Timer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Timer.swift; path = ../../Timer.swift; sourceTree = "<group>"; };
+		01533AFF1C9DDF2000C6E69D /* AudioPlayerEngine.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = AudioPlayerEngine.swift; path = ../../AudioPlayerEngine.swift; sourceTree = "<group>"; };
+		01533B001C9DDF2000C6E69D /* CoalescingTimer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CoalescingTimer.swift; path = ../../CoalescingTimer.swift; sourceTree = "<group>"; };
 		01533B011C9DDF2000C6E69D /* DoubleTapTableView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DoubleTapTableView.swift; path = ../../iOS/DoubleTapTableView.swift; sourceTree = "<group>"; };
 		01533B021C9DDF2000C6E69D /* UIImage+maskColor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIImage+maskColor.swift"; path = "../../iOS/UIImage+maskColor.swift"; sourceTree = "<group>"; };
 		01533B031C9DDF2000C6E69D /* UIImage+Scaling.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIImage+Scaling.swift"; path = "../../iOS/UIImage+Scaling.swift"; sourceTree = "<group>"; };
 		01533B041C9DDF2000C6E69D /* RoundedCornerView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = RoundedCornerView.swift; path = ../../iOS/RoundedCornerView.swift; sourceTree = "<group>"; };
 		015710CE1D049C1F0057C1FB /* Array+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Array+Utilities.swift"; path = "../../../Portable/Array+Utilities.swift"; sourceTree = "<group>"; };
-		016310861D03660500862035 /* NSURLComponent+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "NSURLComponent+Utilities.swift"; path = "../../NSURLComponent+Utilities.swift"; sourceTree = "<group>"; };
+		016310861D03660500862035 /* URLComponent+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "URLComponent+Utilities.swift"; path = "../../URLComponent+Utilities.swift"; sourceTree = "<group>"; };
 		01A3E9181CFE6FE300BE5AAA /* Miscellaneous.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Miscellaneous.swift; path = ../../../Portable/Miscellaneous.swift; sourceTree = "<group>"; };
 		01ADE31A1D34AD5E005424EF /* UIFont+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIFont+Utilities.swift"; path = "../../UIFont+Utilities.swift"; sourceTree = "<group>"; };
 		01CD89E11CDD0B24000790C2 /* UIAlertController+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIAlertController+Utilities.swift"; path = "../../iOS/UIAlertController+Utilities.swift"; sourceTree = "<group>"; };
 		01D1ED141D415FE600886D3D /* Platform.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Platform.swift; path = ../../Platform.swift; sourceTree = "<group>"; };
-		01E6783E1CD5145E00ABE1CB /* NSData+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "NSData+Utilities.swift"; path = "../../NSData+Utilities.swift"; sourceTree = "<group>"; };
+		01E6783E1CD5145E00ABE1CB /* Data+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Data+Utilities.swift"; path = "../../Data+Utilities.swift"; sourceTree = "<group>"; };
 		01E6784C1CD5315D00ABE1CB /* MKMapKit+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "MKMapKit+Utilities.swift"; path = "../../MKMapKit+Utilities.swift"; sourceTree = "<group>"; };
 		01E6784D1CD5315D00ABE1CB /* MKMapView+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "MKMapView+Utilities.swift"; path = "../../MKMapView+Utilities.swift"; sourceTree = "<group>"; };
 		01E678501CD5317400ABE1CB /* Formatting.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Formatting.swift; path = ../../Formatting.swift; sourceTree = "<group>"; };
@@ -84,7 +84,7 @@
 		01E678531CD531AA00ABE1CB /* UIView+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIView+Utilities.swift"; path = "../../iOS/UIView+Utilities.swift"; sourceTree = "<group>"; };
 		01E759521CDD373C00DA15F1 /* String+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "String+Utilities.swift"; path = "../../../Portable/String+Utilities.swift"; sourceTree = "<group>"; };
 		01E769701CEF85B600866433 /* UIViewController+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIViewController+Utilities.swift"; path = "../../iOS/UIViewController+Utilities.swift"; sourceTree = "<group>"; };
-		01E769771CF22D1500866433 /* NSDateFormatter+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "NSDateFormatter+Utilities.swift"; path = "../../NSDateFormatter+Utilities.swift"; sourceTree = "<group>"; };
+		01E769771CF22D1500866433 /* DateFormatter+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "DateFormatter+Utilities.swift"; path = "../../DateFormatter+Utilities.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -133,17 +133,17 @@
 				0111A02D1D21CB6F00A9B35E /* JSON.swift */,
 				011914C21D74984D009B578A /* Dispatch+Utilities.swift */,
 				012047C01D0C854A00E79510 /* UIApplication+Utilities.swift */,
-				01533AFF1C9DDF2000C6E69D /* AudioEngine.swift */,
-				016310861D03660500862035 /* NSURLComponent+Utilities.swift */,
-				0111A0271D2180CD00A9B35E /* NSHTTPURLResponse+Utility.swift */,
-				01533B001C9DDF2000C6E69D /* Timer.swift */,
+				01533AFF1C9DDF2000C6E69D /* AudioPlayerEngine.swift */,
+				016310861D03660500862035 /* URLComponent+Utilities.swift */,
+				0111A0271D2180CD00A9B35E /* HTTPURLResponse+Utility.swift */,
+				01533B001C9DDF2000C6E69D /* CoalescingTimer.swift */,
 				011330801D05CC27002DA0F0 /* String+Localization.swift */,
 				01533B011C9DDF2000C6E69D /* DoubleTapTableView.swift */,
 				01533B021C9DDF2000C6E69D /* UIImage+maskColor.swift */,
 				01533B031C9DDF2000C6E69D /* UIImage+Scaling.swift */,
 				01533B041C9DDF2000C6E69D /* RoundedCornerView.swift */,
 				01A3E9181CFE6FE300BE5AAA /* Miscellaneous.swift */,
-				01E6783E1CD5145E00ABE1CB /* NSData+Utilities.swift */,
+				01E6783E1CD5145E00ABE1CB /* Data+Utilities.swift */,
 				01E678521CD531AA00ABE1CB /* UIColor+Utilities.swift */,
 				01E678531CD531AA00ABE1CB /* UIView+Utilities.swift */,
 				01E769701CEF85B600866433 /* UIViewController+Utilities.swift */,
@@ -154,7 +154,7 @@
 				0111A02F1D21CBC700A9B35E /* Dictionary+Utilities.swift */,
 				015710CE1D049C1F0057C1FB /* Array+Utilities.swift */,
 				01E759521CDD373C00DA15F1 /* String+Utilities.swift */,
-				01E769771CF22D1500866433 /* NSDateFormatter+Utilities.swift */,
+				01E769771CF22D1500866433 /* DateFormatter+Utilities.swift */,
 				01ADE31A1D34AD5E005424EF /* UIFont+Utilities.swift */,
 				01D1ED141D415FE600886D3D /* Platform.swift */,
 			);
@@ -280,8 +280,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				01533B071C9DDF2000C6E69D /* Timer.swift in Sources */,
-				01533B061C9DDF2000C6E69D /* AudioEngine.swift in Sources */,
+				01533B071C9DDF2000C6E69D /* CoalescingTimer.swift in Sources */,
+				01533B061C9DDF2000C6E69D /* AudioPlayerEngine.swift in Sources */,
 				01E678541CD531AA00ABE1CB /* UIColor+Utilities.swift in Sources */,
 				01ADE31B1D34AD5E005424EF /* UIFont+Utilities.swift in Sources */,
 				01CD89E21CDD0B24000790C2 /* UIAlertController+Utilities.swift in Sources */,
@@ -290,22 +290,22 @@
 				01E678551CD531AA00ABE1CB /* UIView+Utilities.swift in Sources */,
 				0111A0301D21CBC700A9B35E /* Dictionary+Utilities.swift in Sources */,
 				01A3E9191CFE6FE300BE5AAA /* Miscellaneous.swift in Sources */,
-				01E6783F1CD5145E00ABE1CB /* NSData+Utilities.swift in Sources */,
+				01E6783F1CD5145E00ABE1CB /* Data+Utilities.swift in Sources */,
 				011914C31D74984D009B578A /* Dispatch+Utilities.swift in Sources */,
 				015710CF1D049C1F0057C1FB /* Array+Utilities.swift in Sources */,
 				01533B0A1C9DDF2000C6E69D /* UIImage+Scaling.swift in Sources */,
 				01D1ED151D415FE600886D3D /* Platform.swift in Sources */,
 				011330811D05CC27002DA0F0 /* String+Localization.swift in Sources */,
-				0111A0281D2180CD00A9B35E /* NSHTTPURLResponse+Utility.swift in Sources */,
+				0111A0281D2180CD00A9B35E /* HTTPURLResponse+Utility.swift in Sources */,
 				01E6784F1CD5315D00ABE1CB /* MKMapView+Utilities.swift in Sources */,
-				016310871D03660500862035 /* NSURLComponent+Utilities.swift in Sources */,
+				016310871D03660500862035 /* URLComponent+Utilities.swift in Sources */,
 				0111A02E1D21CB6F00A9B35E /* JSON.swift in Sources */,
 				01533B091C9DDF2000C6E69D /* UIImage+maskColor.swift in Sources */,
 				01E769711CEF85B600866433 /* UIViewController+Utilities.swift in Sources */,
 				012047C11D0C854A00E79510 /* UIApplication+Utilities.swift in Sources */,
 				01E6784E1CD5315D00ABE1CB /* MKMapKit+Utilities.swift in Sources */,
 				01533B0B1C9DDF2000C6E69D /* RoundedCornerView.swift in Sources */,
-				01E769781CF22D1500866433 /* NSDateFormatter+Utilities.swift in Sources */,
+				01E769781CF22D1500866433 /* DateFormatter+Utilities.swift in Sources */,
 				0130BE251DBA9203008EEEE4 /* CSVHelper.swift in Sources */,
 				01E759531CDD373C00DA15F1 /* String+Utilities.swift in Sources */,
 			);
@@ -435,6 +435,7 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				INFOPLIST_FILE = swiftlets/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.cyberdev.swiftlets;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -455,6 +456,7 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				INFOPLIST_FILE = swiftlets/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.cyberdev.swiftlets;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -467,6 +469,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				INFOPLIST_FILE = swiftletsTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.cyberdev.swiftletsTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -478,6 +481,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				INFOPLIST_FILE = swiftletsTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.cyberdev.swiftletsTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";

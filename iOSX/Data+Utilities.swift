@@ -19,10 +19,8 @@ extension Data {
         
         return result
     }
-}
-
-extension NSMutableData {
-    func appendStringAsUTF8(_ string: String) -> Bool {
+    
+    @discardableResult mutating func appendStringAsUTF8(_ string: String) -> Bool {
         if let data = string.data(using: String.Encoding.utf8, allowLossyConversion: true) {
             append(data)
             return true

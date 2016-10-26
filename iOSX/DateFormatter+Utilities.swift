@@ -52,7 +52,7 @@ extension DateFormatter {
     }
     
     ///Return cached ISO8601 date formatter for thread safe operation, assumes >iOS7 || >OSX10.9+64bit
-    class func ISO8601FormatterCached(_ precision:ISO8601ExtendedPrecision = .conforming) -> DateFormatter {
+    class func cachedISO8601Formatter(ofPrecision precision:ISO8601ExtendedPrecision = .conforming) -> DateFormatter {
         let formatterKey:String = "com.cyberdev.ISO8601Formatter.\(precision.rawValue)"
         if let formatter:DateFormatter = formatterCache[formatterKey] {
             return formatter
@@ -66,7 +66,7 @@ extension DateFormatter {
     ///Attempts to parse a string to a date using one of the common variations on ISO8601
     class func tryParseISO8601LikeDateString(_ date:String) -> Date? {
         for precision in ISO8601ExtendedPrecision.allValues {
-            let formatter:DateFormatter = ISO8601FormatterCached(precision)
+            let formatter:DateFormatter = cachedISO8601Formatter(ofPrecision: precision)
             if let result = formatter.date(from: date) {
                 return result
             }

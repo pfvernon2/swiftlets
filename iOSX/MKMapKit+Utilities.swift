@@ -17,11 +17,11 @@ let meterToDegreesRatio = 111325.0
 ///A simple typealias to maintain explicit distance typing
 typealias CLLocationDistanceMiles = CLLocationDistance
 
-func metersToMiles(_ meters:CLLocationDistance) -> CLLocationDistanceMiles {
+fileprivate func metersToMiles(_ meters:CLLocationDistance) -> CLLocationDistanceMiles {
     return meters / mileMeterRatio
 }
 
-func milesToMeters(_ miles:CLLocationDistanceMiles) -> CLLocationDistance {
+fileprivate func milesToMeters(_ miles:CLLocationDistanceMiles) -> CLLocationDistance {
     return miles * mileMeterRatio
 }
 
@@ -30,11 +30,11 @@ func metersToApproximateDegreesLatLong(_ meters:CLLocationDistance) -> Double {
     return meters / meterToDegreesRatio
 }
 
-func radiansToDegrees(_ radians: Double) -> Double {
-    return radians * 180.0 / M_PI;
+fileprivate func radiansToDegrees(_ radians: Double) -> Double {
+    return radians * 180.0 / M_PI
 }
 
-func degreesToRadians(_ degrees: Double) -> Double {
+fileprivate func degreesToRadians(_ degrees: Double) -> Double {
     return degrees * M_PI / 180
 }
 
@@ -95,43 +95,33 @@ extension CLLocationDistance {
         return self != CLLocationDistance.nan
     }
 
-    func toMiles() -> Double {
+    func toMiles() -> CLLocationDistanceMiles {
         return metersToMiles(self)
     }
 }
 
 extension MKRouteStep {
     var distanceMiles:CLLocationDistanceMiles {
-        return metersToMiles(distance)
+        return distance.toMiles()
     }
 }
 
 extension MKRoute {
     var distanceMiles:CLLocationDistanceMiles {
-        return metersToMiles(distance)
+        return distance.toMiles()
     }
 
     /**
     Returns a localized human readable description of the time interval.
 
-     - note: The result is limited to Days, Hours, and Minutes and includes an indication of approximation.
+     - note: The result is limited to Days, Hours, and Minutes and includes a localized indication of approximation.
 
      Examples:
      * About 14 minutes
      * About 1 hour, 7 minutes
     */
     var expectedTravelTimeLocalizedDescription:String {
-        let start = Date()
-        let end = Date(timeInterval: expectedTravelTime, since: start)
-
-        let formatter = DateComponentsFormatter()
-        formatter.unitsStyle = .full
-        formatter.includesApproximationPhrase = true
-        formatter.includesTimeRemainingPhrase = false
-        formatter.allowedUnits = [.day, .hour, .minute]
-        formatter.maximumUnitCount = 2
-
-        return formatter.string(from: start, to: end) ?? ""
+        return expectedTravelTime.approximateDurationLocalizedDescription()
     }
 }
 
@@ -142,13 +132,13 @@ extension MKMapPoint {
         self.y = mapPoint.y
     }
 
-    func distanceTo(_ point:MKMapPoint) -> CLLocationDistance {
+    func distanceTo(point:MKMapPoint) -> CLLocationDistance {
         return MKMetersBetweenMapPoints(self, point)
     }
 
-    func bearingTo(_ otherPoint: MKMapPoint) -> CLLocationDirection {
-        let x = otherPoint.x - self.x
-        let y = otherPoint.y - self.y
+    func bearingTo(point: MKMapPoint) -> CLLocationDirection {
+        let x = point.x - self.x
+        let y = point.y - self.y
 
         var result = radiansToDegrees(atan2(y, x)).truncatingRemainder(dividingBy: 360.0) + 90.0
         if result < 0.0 {
@@ -172,15 +162,15 @@ public func ==(lhs: MKMapPoint, rhs: MKMapPoint) -> Bool {
 }
 
 extension MKMapRect {
-    func containsPoint(_ point:MKMapPoint) -> Bool {
+    func contains(point:MKMapPoint) -> Bool {
         return MKMapRectContainsPoint(self, point)
     }
 
-    func containsRect(_ rect:MKMapRect) -> Bool {
+    func contains(rect:MKMapRect) -> Bool {
         return MKMapRectContainsRect(self, rect)
     }
 
-    func intersectsRect(_ rect:MKMapRect) -> Bool {
+    func intersects(rect:MKMapRect) -> Bool {
         return MKMapRectIntersectsRect(self, rect)
     }
 }
@@ -198,7 +188,7 @@ extension MKCoordinateRegion {
     }
 
     ///Determine if a location is within the region
-    func locationInRegion(_ location:CLLocationCoordinate2D) -> Bool {
+    func contains(location:CLLocationCoordinate2D) -> Bool {
         return location.latitude >= center.latitude - span.latitudeDelta &&
             location.latitude <= center.latitude + span.latitudeDelta &&
             location.longitude >= center.longitude - span.longitudeDelta &&
@@ -214,7 +204,7 @@ extension MKCoordinateRegion {
         return (northWest, southEast)
     }
 
-    ///Returns the radius (in meters) of the bounding box defined by the region.
+    ///Returns the radius of the bounding box defined by the region.
     func boundingRadius() -> CLLocationDistance {
         let (northWest, southEast) = boundingCoordinates()
 
@@ -230,7 +220,7 @@ extension MKCoordinateRegion {
 
 extension MKMapView {
     ///The maximum length in meters of current viewport
-    func maxDimensionMeters() -> CLLocationDistance {
+    func maxDimension() -> CLLocationDistance {
         let topLeft:MKMapPoint = visibleMapRect.origin
         let topRight:MKMapPoint = MKMapPoint(x: visibleMapRect.origin.x + visibleMapRect.size.width,
                                              y: visibleMapRect.origin.y)
@@ -276,10 +266,10 @@ extension CLLocationCoordinate2D {
     /// - note: This not accurate on large scales.
     /// MKMapPoint should be used for earth projections.
     func bearingTo(_ location:CLLocationCoordinate2D) -> CLLocationDirection {
-        let x = self.longitude - location.longitude;
-        let y = self.latitude - location.latitude;
+        let x = self.longitude - location.longitude
+        let y = self.latitude - location.latitude
 
-        return fmod(radiansToDegrees(atan2(y, x)), 360.0) + 90.0;
+        return fmod(radiansToDegrees(atan2(y, x)), 360.0) + 90.0
     }
 
     func greatCircleDistance(toLocation location:CLLocationCoordinate2D) -> CLLocationDistance {
@@ -316,7 +306,7 @@ extension CLLocation {
     ///
     /// - note: CLLocationDirection is always specified as a positive value so result may be larger than 180
     ///
-    func relativeBearingTo(_ location:CLLocation) -> CLLocationDirection {
+    func relativeBearingTo(location:CLLocation) -> CLLocationDirection {
         guard self.course.isValidDirection() &&
             coordinate.isValid() &&
             location.coordinate.isValid() else {
@@ -344,7 +334,7 @@ extension MKDirectionsResponse {
     }
     
     public func minimumRouteDistance() -> CLLocationDistance {
-        var minDistanceMeters:CLLocationDistance = Double.infinity;
+        var minDistanceMeters:CLLocationDistance = Double.infinity
         routes.forEach { (route) in
             minDistanceMeters = min(route.distance, minDistanceMeters)
         }
@@ -352,7 +342,7 @@ extension MKDirectionsResponse {
     }
 
     public func minimumRouteTravelTime() -> TimeInterval {
-        var minTravelTime:TimeInterval = Double.infinity;
+        var minTravelTime:TimeInterval = Double.infinity
         routes.forEach { (route) in
             minTravelTime = min(route.expectedTravelTime, minTravelTime)
         }

@@ -48,7 +48,7 @@ extension UIView {
                                          toItem:self,
                                          attribute:.centerX,
                                          multiplier:1.0,
-                                         constant:0.0);
+                                         constant:0.0)
         self.addConstraint(centerX)
         
         let centerY = NSLayoutConstraint(item:view,
@@ -57,7 +57,7 @@ extension UIView {
                                          toItem:self,
                                          attribute:.centerY,
                                          multiplier:1.0,
-                                         constant:0.0);
+                                         constant:0.0)
         self.addConstraint(centerY)
         
         let width = NSLayoutConstraint(item:view,
@@ -66,7 +66,7 @@ extension UIView {
                                        toItem:self,
                                        attribute:.width,
                                        multiplier:1.0,
-                                       constant:0.0);
+                                       constant:0.0)
         self.addConstraint(width)
         
         let height = NSLayoutConstraint(item:view,
@@ -75,7 +75,7 @@ extension UIView {
                                         toItem:self,
                                         attribute:.height,
                                         multiplier:1.0,
-                                        constant:0.0);
+                                        constant:0.0)
         self.addConstraint(height)
     }
     
@@ -89,7 +89,7 @@ extension UIView {
                                          toItem:self,
                                          attribute:.centerX,
                                          multiplier:1.0,
-                                         constant:0.0);
+                                         constant:0.0)
         self.addConstraint(centerX)
         
         let centerY = NSLayoutConstraint(item:view,
@@ -98,7 +98,7 @@ extension UIView {
                                          toItem:self,
                                          attribute:.centerY,
                                          multiplier:1.0,
-                                         constant:0.0);
+                                         constant:0.0)
         self.addConstraint(centerY)
     }
 
@@ -113,7 +113,7 @@ extension UIView {
                                      toItem:self,
                                      attribute:.top,
                                      multiplier:1.0,
-                                     constant:insets.top);
+                                     constant:insets.top)
         self.addConstraint(top)
 
         
@@ -123,7 +123,7 @@ extension UIView {
                                      toItem:view,
                                      attribute:.bottom,
                                      multiplier:1.0,
-                                     constant:insets.bottom);
+                                     constant:insets.bottom)
         self.addConstraint(bottom)
 
         let left = NSLayoutConstraint(item:view,
@@ -132,7 +132,7 @@ extension UIView {
                                         toItem:self,
                                         attribute:.left,
                                         multiplier:1.0,
-                                        constant:insets.left);
+                                        constant:insets.left)
         self.addConstraint(left)
         
         let right = NSLayoutConstraint(item:self,
@@ -141,7 +141,7 @@ extension UIView {
                                       toItem:view,
                                       attribute:.right,
                                       multiplier:1.0,
-                                      constant:insets.right);
+                                      constant:insets.right)
         self.addConstraint(right)
     }
 
@@ -152,7 +152,7 @@ extension UIView {
                                        toItem:nil,
                                        attribute:.notAnAttribute,
                                        multiplier:1.0,
-                                       constant:bounds.width);
+                                       constant:bounds.width)
         self.addConstraint(width)
 
         let height = NSLayoutConstraint(item:self,
@@ -161,7 +161,7 @@ extension UIView {
                                         toItem:nil,
                                         attribute:.notAnAttribute,
                                         multiplier:1.0,
-                                        constant:bounds.height);
+                                        constant:bounds.height)
         self.addConstraint(height)
     }
     
@@ -247,17 +247,22 @@ extension UIView {
     }
 
     /**
-     Identical to animateWithDuration() but returns percentage of progress in closure should animation be interrupted.
+     Identical to UIView.animate(withDuration:) but returns percentage of progress in closure should animation be interrupted.
      Progress will be 1.0 in the event of sucessful completion of the animation, 0.0..<1.0 in the event of cancellation.
 
-     - note: The progress is an estimatation based on the start time, end time, and duration of the animation.
+     - note: The progress is an estimatation based on the start time, end time, and duration of the animation. There is no compensation for any curve that may have been applied.
      */
-    class func animateWithDuration(_ duration: TimeInterval, delay: TimeInterval, options: UIViewAnimationOptions, animations: @escaping () -> Void, progress: ((_ progress:Double) -> Void)?) {
+    open class func animationProgress(withDuration duration: TimeInterval, delay: TimeInterval, options: UIViewAnimationOptions, animations: @escaping () -> Void, progress: ((_ progress: Double) -> Swift.Void)? = nil) {
         let startTime = Date()
         UIView.animate(withDuration: duration, delay: delay, options: options, animations: animations, completion: { (success) in
             if let progress = progress {
                 progress(success ? 1.0 : (Date().timeIntervalSince(startTime)/duration))
             }
         } )
+    }
+    
+    // delay = 0.0, options = 0
+    open class func animationProgress(withDuration duration: TimeInterval, animations: @escaping () -> Swift.Void, progress: ((_ progress: Double) -> Swift.Void)? = nil) {
+        animationProgress(withDuration: duration, delay: 0.0, options: UIViewAnimationOptions(rawValue: UInt(0)), animations: animations, progress: progress)
     }
 }

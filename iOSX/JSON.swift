@@ -45,13 +45,13 @@ public typealias JSONElement = [String:Any?]
 
 /// init
 open class JSON {
-    fileprivate var value:Any?
+    fileprivate var value:Any = NSNull()
 
     /// unwraps the object to JSON values
     open class func unwrap(_ obj:Any?) -> Any {
         switch obj {
         case let json as JSON:
-            return json.value ?? NSNull()
+            return json.value 
 
         case let element as JSONElement:
             var result = [String:Any]()
@@ -532,7 +532,7 @@ extension JSON {
     /// Yields date from string
     public var asDate:Date? {
         if let dateString = value as? String {
-            return DateFormatter.tryParseISO8601LikeDateString(dateString)
+            return ISO8601DateFormatter().date(from: dateString)
         }
         return nil
     }
@@ -633,10 +633,6 @@ extension JSON : CustomStringConvertible {
         case let o as NSString:
             return o.debugDescription
         default:
-            guard let value = self.value else {
-                return ""
-            }
-
             do {
                 let opts = pretty ? JSONSerialization.WritingOptions.prettyPrinted : JSONSerialization.WritingOptions()
                 let data:Data = try JSONSerialization.data(withJSONObject:value, options:opts)
@@ -713,15 +709,14 @@ public extension URLSession {
          - failure: A closure to be called on failure. The NSURLResponse and an error may be included.
      - returns: NSURLSessionDataTask already resumed
      */
-
-    @discardableResult func httpGet(_ url:URL, success:@escaping HTTPJSONSuccessClosure, failure:@escaping HTTPJSONFailureClosure) -> URLSessionDataTask?
+    @discardableResult func httpGet(with url:URL, success:@escaping HTTPJSONSuccessClosure, failure:@escaping HTTPJSONFailureClosure) -> URLSessionDataTask?
     {
-        return httpDataTask(url,
+        return httpDataTask(with: url,
                             method: kHTTPGetMethod,
                             contentType: nil,
                             body: nil,
                             success: success,
-                            failure: failure);
+                            failure: failure)
     }
 
     //MARK: - POST
@@ -737,15 +732,14 @@ public extension URLSession {
          - failure: A closure to be called on failure. The NSURLResponse and an error may be included.
      - returns: NSURLSessionDataTask already resumed
      */
-
-    @discardableResult func httpPost(_ url:URL, success:@escaping HTTPJSONSuccessClosure, failure:@escaping HTTPJSONFailureClosure) -> URLSessionDataTask?
+    @discardableResult func httpPost(with url:URL, success:@escaping HTTPJSONSuccessClosure, failure:@escaping HTTPJSONFailureClosure) -> URLSessionDataTask?
     {
-        return httpDataTask(url,
+        return httpDataTask(with: url,
                             method: kHTTPPostMethod,
                             contentType: kHTTPContentTypeJSON,
                             body: nil,
                             success: success,
-                            failure: failure);
+                            failure: failure)
     }
 
     /**
@@ -760,17 +754,16 @@ public extension URLSession {
          - failure: A closure to be called on failure. The NSURLResponse and an error may be included.
      - returns: NSURLSessionDataTask already resumed
      */
-
-    @discardableResult func httpPost(_ url:URL, bodyJSON:JSON, success:@escaping HTTPJSONSuccessClosure, failure:@escaping HTTPJSONFailureClosure) -> URLSessionDataTask?
+    @discardableResult func httpPost(with url:URL, bodyJSON:JSON, success:@escaping HTTPJSONSuccessClosure, failure:@escaping HTTPJSONFailureClosure) -> URLSessionDataTask?
     {
         let data:Data? = bodyJSON.toData()
 
-        return httpDataTask(url,
+        return httpDataTask(with: url,
                             method: kHTTPPostMethod,
                             contentType: kHTTPContentTypeJSON,
                             body: data,
                             success: success,
-                            failure: failure);
+                            failure: failure)
     }
 
     /**
@@ -785,8 +778,7 @@ public extension URLSession {
          - failure: A closure to be called on failure. The NSURLResponse and an error may be included.
      - returns: NSURLSessionDataTask already resumed
      */
-
-    @discardableResult func httpPost(_ url:URL, bodyParameters:[URLQueryItem], success:@escaping HTTPJSONSuccessClosure, failure:@escaping HTTPJSONFailureClosure) -> URLSessionDataTask?
+    @discardableResult func httpPost(with url:URL, bodyParameters:[URLQueryItem], success:@escaping HTTPJSONSuccessClosure, failure:@escaping HTTPJSONFailureClosure) -> URLSessionDataTask?
     {
         var body:String = ""
         for queryItem:URLQueryItem in bodyParameters {
@@ -802,28 +794,28 @@ public extension URLSession {
         }
         let data:Data? = body.data(using: .utf8)
 
-        return httpDataTask(url,
+        return httpDataTask(with: url,
                             method: kHTTPPostMethod,
                             contentType: kHTTPContentTypeFormURLEncoded,
                             body: data,
                             success: success,
-                            failure: failure);
+                            failure: failure)
     }
 
     //MARK: - Utility
 
     ///Utilty method to create an automatically resumed data task given the input configuration.
     /// The body of the result is assumed to be JSON and is parsed and returned as such.
-    @discardableResult fileprivate func httpDataTask(_ url:URL,
+    @discardableResult fileprivate func httpDataTask(with url:URL,
                               method:String,
                               contentType:String?,
                               body:Data?,
                               success:@escaping HTTPJSONSuccessClosure,
                               failure:@escaping HTTPJSONFailureClosure) -> URLSessionDataTask?
     {
-        func dataTaskSuccessHandler(_ request:URLRequest?, data:Data?, response:HTTPURLResponse, error:Error?) {
+        func dataTaskSuccessHandler(request:URLRequest?, data:Data?, response:HTTPURLResponse, error:Error?) {
             #if DUMP_NETWORK_RESULTS
-                printResult(request, data: data, response: response, error: error)
+                printResult(forRequest: request, data: data, response: response, error: error)
             #endif
 
             DispatchQueue.main.async {
@@ -831,9 +823,9 @@ public extension URLSession {
             }
         }
 
-        func dataTaskFailureHandler(_ request:URLRequest?, data:Data?, response:HTTPURLResponse?, error:Error?) {
+        func dataTaskFailureHandler(request:URLRequest?, data:Data?, response:HTTPURLResponse?, error:Error?) {
             #if DUMP_NETWORK_RESULTS || DEBUG
-                printResult(request, data: data, response: response, error: error)
+                printResult(forRequest: request, data: data, response: response, error: error)
             #endif
 
             DispatchQueue.main.async {
@@ -867,13 +859,13 @@ public extension URLSession {
         //create data task
         let httpDataTask:URLSessionDataTask = dataTask(with: request as URLRequest) { (data, response, error) in
             if let httpResponse:HTTPURLResponse = response as? HTTPURLResponse {
-                if httpResponse.isSuccess() {
-                    dataTaskSuccessHandler(request as URLRequest, data: data, response:httpResponse, error: error)
+                if httpResponse.statusCode >= 200 && httpResponse.statusCode < 300 {
+                    dataTaskSuccessHandler(request: request as URLRequest, data: data, response:httpResponse, error: error)
                 } else {
-                    dataTaskFailureHandler(request as URLRequest, data: data, response:httpResponse, error: error)
+                    dataTaskFailureHandler(request: request as URLRequest, data: data, response:httpResponse, error: error)
                 }
             } else {
-                dataTaskFailureHandler(request as URLRequest, data: data, response:nil, error: error)
+                dataTaskFailureHandler(request: request as URLRequest, data: data, response:nil, error: error)
             }
         }
 
@@ -884,7 +876,7 @@ public extension URLSession {
     }
 
     ///Utility method to print response and error objects for debugging purposes
-    fileprivate func printResult(_ request:URLRequest?, data:Data?, response:HTTPURLResponse?, error:Error?) {
+    fileprivate func printResult(forRequest request:URLRequest?, data:Data?, response:HTTPURLResponse?, error:Error?) {
         var result:String = ">>>>>>>>>>\n\nhttpDataTask\n\n"
 
         if let request = request {

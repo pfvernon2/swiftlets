@@ -15,18 +15,18 @@ public extension DispatchQueue {
         return dispatchOffset
     }
 
-    ///asyncAfter with TimeInterval semanics, i.e. nanosecond precision out to 10,000 years.
+    ///asyncAfter with TimeInterval semanics, i.e. microsecond precision out to 10,000 years.
     func asyncAfter(secondsSinceNow seconds: TimeInterval, execute work: @escaping @convention(block) () -> Swift.Void) {
         asyncAfter(deadline: dispatchTimeSinceNow(seconds: seconds), execute: work)
     }
 
-    ///asyncAfter with TimeInterval semanics, i.e. nanosecond precision out to 10,000 years.
+    ///asyncAfter with TimeInterval semanics, i.e. microsecond precision out to 10,000 years.
     func asyncAfter(secondsSinceNow seconds: TimeInterval, execute: DispatchWorkItem) {
         asyncAfter(deadline: dispatchTimeSinceNow(seconds: seconds), execute: execute)
     }
 }
 
-public class DispatchReaderWriter {
+open class DispatchReaderWriter {
     private var concurrentQueue:DispatchQueue = DispatchQueue(label: "com.cyberdev.Dispatch.readerWriter", attributes: .concurrent)
 
     public func read<T>(execute work: () throws -> T) rethrows -> T {
@@ -38,7 +38,7 @@ public class DispatchReaderWriter {
     }
 }
 
-public class readerWriterType<T> {
+open class readerWriterType<T> {
     private var queue:DispatchReaderWriter = DispatchReaderWriter()
     private var _value:T? = nil
     public var value:T? {

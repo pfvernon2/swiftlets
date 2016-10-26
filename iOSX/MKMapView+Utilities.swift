@@ -15,7 +15,7 @@ let kMAX_DEGREES_ARC:CLLocationDegrees = 360.0
 let kMINIMUM_ZOOM_ARC:CLLocationDegrees = 0.014 //approximately 1 mile (1 degree of arc ~= 69 miles)
 
 extension MKMapView {
-    func zoomMapViewToFitAnnotations(_ coordinates:[CLLocationCoordinate2D]?) {
+    func zoomMapViewToFit(coordinates:[CLLocationCoordinate2D]?) {
         if annotations.count == 0 {
             return
         }
@@ -44,7 +44,7 @@ extension MKMapView {
         setRegion(region, animated: true)
     }
     
-    func animateAnnotationViewDrop(_ annotationView:MKAnnotationView, closure:@escaping ()->()) {
+    func animateDrop(annotationView:MKAnnotationView, closure:@escaping ()->()) {
         let dropPoint:MKMapPoint = MKMapPointForCoordinate(annotationView.annotation!.coordinate)
         if MKMapRectContainsPoint(self.visibleMapRect, dropPoint) {
             let endRect = annotationView.frame
@@ -58,16 +58,15 @@ extension MKMapView {
                                         completion:
                 { (finished) in
                     UIView .animate(withDuration: 0.15, animations: {
-                        annotationView.transform = CGAffineTransform(scaleX: 1.0, y: 0.8);
+                        annotationView.transform = CGAffineTransform(scaleX: 1.0, y: 0.8)
                         },
                         completion:
                         { (finished) in
-                            annotationView.transform = CGAffineTransform.identity;
+                            annotationView.transform = CGAffineTransform.identity
                             closure()
                     })
             })
         }
-        
     }
 
     /**
@@ -75,12 +74,12 @@ extension MKMapView {
     The animations closure gives you access to a snapshot view of the annotation for you to perform animations on
 
      ```
-     self.mapView.removeAnnotations(annotations, duration: 0.5, animations: { (view) in
+     mapView.animateRemoval(annotations, duration: 0.5, animations: { (view) in
         view.alpha = 0.0
      })
      ```
      */
-    func removeAnnotations(_ annotations: [MKAnnotation], duration: TimeInterval, animations: @escaping (_ view:UIView) -> Void, completion:@escaping ()->()) {
+    func animateRemoval(annotations: [MKAnnotation], duration: TimeInterval, animations: @escaping (_ view:UIView) -> Void, completion:@escaping ()->()) {
         let visibleAnnotations:Set = self.annotations(in: visibleMapRect)
         var animationAnnotations:[MKAnnotation] = []
         annotations.forEach { (annotation) in

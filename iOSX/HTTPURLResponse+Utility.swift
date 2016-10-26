@@ -8,7 +8,7 @@
 
 import Foundation
 
-extension HTTPURLResponse {
+public extension HTTPURLResponse {
     func isOK() -> Bool {
         return statusCode == 200
     }
@@ -21,4 +21,3 @@ extension HTTPURLResponse {
         return statusCode == 404
     }
 }
-

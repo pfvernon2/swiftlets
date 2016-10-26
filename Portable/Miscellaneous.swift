@@ -11,10 +11,10 @@ import QuartzCore
 
 extension CGRect {
     var center:CGPoint {
-        return CGPoint(x: self.midX, y: self.midY);
+        return CGPoint(x: self.midX, y: self.midY)
     }
     
-    static func rectCenteredOn(_ center:CGPoint, radius:CGFloat) -> CGRect {
+    static func rectCenteredOn(center:CGPoint, radius:CGFloat) -> CGRect {
         return CGRect(x: floor(center.x - radius), y: floor(center.y - radius), width: floor(radius*2.0), height: floor(radius*2.0))
     }
 
@@ -77,7 +77,7 @@ extension TimeInterval {
     /**
      Returns a localized human readable description of the time interval.
 
-     - note: The result is limited to Days, Hours, and Minutes and includes an indication of approximation.
+     - note: The result is limited to Days, Hours, and Minutes and includes a localized indication of approximation.
 
      Examples:
      * About 14 minutes
@@ -91,7 +91,7 @@ extension TimeInterval {
         formatter.unitsStyle = .full
         formatter.includesApproximationPhrase = true
         formatter.includesTimeRemainingPhrase = false
-        formatter.allowedUnits = [.weekday, .hour, .minute]
+        formatter.allowedUnits = [.day, .hour, .minute]
         formatter.maximumUnitCount = 2
         
         return formatter.string(from: start, to: end) ?? ""
@@ -127,20 +127,22 @@ extension CGAffineTransform {
 
 ///Trivial indexing generator that wraps back to startIndex when reaching endIndex
 class WrappingIndexingGenerator<C: Collection>: IteratorProtocol {
-    var _colletion: C
+    var _collection: C
     var _index: C.Index
+    
     func next() -> C.Iterator.Element? {
         var item:C.Iterator.Element?
-        if _index == _colletion.endIndex {
-            _index = _colletion.startIndex
+        if _index == _collection.endIndex {
+            _index = _collection.startIndex
         }
-        item = _colletion[_index]
-        _index = _colletion.index(after: _index)
+        item = _collection[_index]
+        _index = _collection.index(after: _index)
         return item
     }
-    init(_ colletion: C) {
-        _colletion = colletion;
-        _index = _colletion.startIndex
+    
+    init(_ collection: C) {
+        _collection = collection
+        _index = _collection.startIndex
     }
 }
 

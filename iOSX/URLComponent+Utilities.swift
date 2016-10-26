@@ -10,8 +10,8 @@ import UIKit
 
 let kURLPathSeperator:String = "/"
 
-public extension URLComponents {    
-    mutating func appendPath(_ path:String) {
+public extension URLComponents {
+    mutating func append(path:String) {
         var oldPath:String = self.path
         if oldPath.hasSuffix(kURLPathSeperator) {
             oldPath.remove(at: oldPath.index(before: oldPath.endIndex))
@@ -25,13 +25,13 @@ public extension URLComponents {
         self.path = oldPath + kURLPathSeperator + newPath
     }
     
-    mutating func appendPathComponents(_ paths:[String]) {
+    mutating func append(pathComponents paths:[String]) {
         for path in paths {
-            appendPath(path)
+            append(path: path)
         }
     }
     
-    mutating func appendQueryParameter(_ parameter:URLQueryItem) {
+    mutating func append(queryParameter parameter:URLQueryItem) {
         var currentParams = queryItems
         if currentParams != nil {
             currentParams!.append(parameter)
@@ -42,7 +42,7 @@ public extension URLComponents {
         }
     }
     
-    mutating func appendQueryParameterComponents(_ parameters:[URLQueryItem]) {
+    mutating func append(queryParameterComponents parameters:[URLQueryItem]) {
         var currentParams = queryItems
         if currentParams != nil {
             currentParams!.append(contentsOf: parameters)
@@ -58,12 +58,12 @@ public extension URLComponents {
         
         //append sub-path if supplied
         if let path = path {
-            baseURLCopy.appendPath(path)
+            baseURLCopy.append(path: path)
         }
         
         //append additional parameters is supplied
         if let parameters = parameters {
-            baseURLCopy.appendQueryParameterComponents(parameters)
+            baseURLCopy.append(queryParameterComponents: parameters)
         }
         
         //ensure base URL is valid (after path/params updated)
@@ -97,8 +97,10 @@ public extension URLQueryItem {
     }
 }
 
+fileprivate let rfc2822LineEnding:String = "\r\n"
+
 public extension NSMutableURLRequest {
-    func appendJPEGImageFormSection(_ boundary:String,
+    func appendJPEGImageFormSection(withBoundary boundary:String,
                                     image:UIImage,
                                     fileName:String,
                                     isFinal:Bool = false) {
@@ -106,30 +108,39 @@ public extension NSMutableURLRequest {
             return
         }
 
-        appendFormSection(boundary, mimeType: "image/jpeg", name: "data", fileName: fileName, contentData: scaledImageData, isFinal: isFinal)
+        appendFormSection(withBoundary: boundary, mimeType: "image/jpeg", name: "data", fileName: fileName, contentData: scaledImageData, isFinal: isFinal)
     }
 
-    func appendFormSection(_ boundary:String,
+    func appendFormSection(withBoundary boundary:String,
                            mimeType:String,
                            name:String,
                            fileName:String,
                            contentData:Data,
                            isFinal:Bool = false) {
-        let body:NSMutableData = NSMutableData()
-        if let existingBody = httpBody {
-            body.append(existingBody)
-        }
+        var boundaryHeader:String = "--\(boundary)" + rfc2822LineEnding
+        boundaryHeader += "Content-Disposition: form-data; name=\"\(name)\"; filename=\"\(fileName)\""  + rfc2822LineEnding
+        boundaryHeader += "Content-Type: \(mimeType)" + rfc2822LineEnding
+        boundaryHeader += rfc2822LineEnding
 
-        _ = body.appendStringAsUTF8("--\(boundary)\r\n")
-        _ = body.appendStringAsUTF8("Content-Disposition: form-data; name=\"\(name)\"; filename=\"\(fileName)\"\r\n")
-        _ = body.appendStringAsUTF8("Content-Type: \(mimeType)\r\n\r\n")
-
-        _ = body.append(contentData)
-
-        if isFinal {
-            _ = body.appendStringAsUTF8("\r\n--\(boundary)--\r\n")
+        guard let boundaryHeaderData:Data = boundaryHeader.data(using: String.Encoding.utf8) else {
+            return
         }
         
-        httpBody = body as Data
+        var section:Data = Data()
+        section.append(boundaryHeaderData)
+        section.append(contentData)
+        if isFinal {
+            let boundaryTermination = rfc2822LineEnding + "--\(boundary)--" + rfc2822LineEnding
+            guard let boundaryTerminationData:Data = boundaryTermination.data(using: String.Encoding.utf8) else {
+                return
+            }
+            section.append(boundaryTerminationData)
+       }
+        
+        if httpBody == nil {
+            httpBody = Data()
+        }
+        
+        httpBody?.append(section)
     }
 }
