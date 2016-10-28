@@ -21,7 +21,7 @@ The library is organized into portable and platform specific directories. Code t
 
 #### Usage
 
-It is suggested you simply clone the repo in a location that can be referenced from your projects. This allows for tracking updates from GitHub as they are made available. If this does not fit your project model or workflow it should be trivial to copy files into your projects on a case by case basis as there are never any dependencies.
+It is suggested you simply clone the repo in a location that can be referenced from your projects or include this repo as a submodule. This allows for tracking updates from GitHub as they are made available. If this does not fit your project model or workflow it should be trivial to copy files into your projects on a case by case basis as there are never any dependencies.
 
 Because each file is entirely standalone no package managers should be required and there are no plans to add support for package managers. 
 
