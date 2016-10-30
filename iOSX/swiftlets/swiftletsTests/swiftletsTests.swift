@@ -68,7 +68,7 @@ class swiftletsTests: XCTestCase {
     }
     
     func testCachedImage() {
-        guard let imageURL:URL = URL(string: "http://i.imgur.com/XQgHZ0a.jpg") else {
+        guard let imageURL:URL = URL(string: "http://i.imgur.com/a97SL24.jpg") else {
             XCTAssert(false)
             return
         }
