@@ -10,14 +10,16 @@ import XCTest
 @testable import swiftlets
 
 class swiftletsTests: XCTestCase {
-    
+    let testGroup:DispatchGroup = DispatchGroup()
+
     override func setUp() {
         super.setUp()
         // Put setup code here. This method is called before the invocation of each test method in the class.
     }
     
     override func tearDown() {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
+        testGroup.wait()
+        
         super.tearDown()
     }
     
@@ -71,20 +73,17 @@ class swiftletsTests: XCTestCase {
             return
         }
         
-        let group:DispatchGroup = DispatchGroup()
-        group.enter()
-
         let imageCache:RemoteImageCache = RemoteImageCache()
+        
+        testGroup.enter()
         
         imageCache.cachedImage(fromURL: imageURL) { image in
             XCTAssert(image != nil)
             imageCache.cachedImage(fromURL: imageURL) { image in
                 XCTAssert(image != nil)
-                group.leave()
+                self.testGroup.leave()
             }
         }
-        
-        group.wait()
     }
     
 //    func testPerformanceExample() {
