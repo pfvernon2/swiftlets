@@ -47,6 +47,46 @@ class swiftletsTests: XCTestCase {
         XCTAssertTrue(floor(json["date"].asDate!.timeIntervalSinceReferenceDate) == floor(date.timeIntervalSinceReferenceDate))
     }
     
+    func testHTTPResult() {
+        let httpResult = HTTPURLReponseStatus(statusCode: 200)
+        
+        switch httpResult {
+        case .success(let successStatus):
+            switch successStatus {
+            case .ok:
+                XCTAssert(true)
+                
+            default:
+                XCTAssert(false)
+            }
+            
+        default:
+            XCTAssert(false)
+        }
+    }
+    
+    func testCachedImage() {
+        guard let imageURL:URL = URL(string: "http://i.imgur.com/XQgHZ0a.jpg") else {
+            XCTAssert(false)
+            return
+        }
+        
+        let group:DispatchGroup = DispatchGroup()
+        group.enter()
+
+        let imageCache:RemoteImageCache = RemoteImageCache()
+        
+        imageCache.cachedImage(fromURL: imageURL) { image in
+            XCTAssert(image != nil)
+            imageCache.cachedImage(fromURL: imageURL) { image in
+                XCTAssert(image != nil)
+                group.leave()
+            }
+        }
+        
+        group.wait()
+    }
+    
 //    func testPerformanceExample() {
 //        // This is an example of a performance test case.
 //        self.measure {
