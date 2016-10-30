@@ -24,3 +24,9 @@ extension Date: JSONTransformable {
         return ISO8601DateFormatter().date(from: jsonString)
     }
 }
+
+extension JSON {
+    public var asDate:Date? {
+        return Date.fromJSONType(json: self) as? Date
+    }
+}

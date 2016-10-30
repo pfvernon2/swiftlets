@@ -135,6 +135,7 @@
 				01533ACB1C9DDAE700C6E69D /* swiftlets.h */,
 				0130BE241DBA9203008EEEE4 /* CSVHelper.swift */,
 				0111A02D1D21CB6F00A9B35E /* JSON.swift */,
+				015BF0281DC137F700312A7E /* Date+JSONTransformable.swift */,
 				01382E891DC66D5B00B55A9C /* RemoteImageCache.swift */,
 				011914C21D74984D009B578A /* Dispatch+Utilities.swift */,
 				012047C01D0C854A00E79510 /* UIApplication+Utilities.swift */,
@@ -160,7 +161,6 @@
 				015710CE1D049C1F0057C1FB /* Array+Utilities.swift */,
 				01E759521CDD373C00DA15F1 /* String+Utilities.swift */,
 				01E769771CF22D1500866433 /* DateFormatter+Utilities.swift */,
-				015BF0281DC137F700312A7E /* Date+JSONTransformable.swift */,
 				01ADE31A1D34AD5E005424EF /* UIFont+Utilities.swift */,
 				01D1ED141D415FE600886D3D /* Platform.swift */,
 			);

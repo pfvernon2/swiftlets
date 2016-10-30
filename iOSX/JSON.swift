@@ -509,14 +509,6 @@ extension JSON {
         }
     }
 
-    /// Yields date from string
-    public var asDate:Date? {
-        if let dateString = value as? String {
-            return ISO8601DateFormatter().date(from: dateString)
-        }
-        return nil
-    }
-
     func asTransformable<T:JSONTransformable>() -> T? {
         return T.fromJSONType(json: self) as? T
     }

@@ -24,14 +24,13 @@ class swiftletsTests: XCTestCase {
     }
     
     func testJSON() {
-        let jsonString = "{\"string\":\"foo\",\"int\":500,\"double\":5200.0,\"date\":\"2016-10-26T16:39:52Z\"}"
+        let jsonString = "{\"string\":\"foo\",\"int\":500,\"double\":5200.0}"
         
         //test parsing
         let json:JSON = JSON(string: jsonString)
         XCTAssertEqual(json["string"].asString, "foo")
         XCTAssertEqual(json["int"].asInt, 500)
         XCTAssertEqual(json["double"].asDouble, 5200.0)
-        XCTAssertEqual(json["date"].asDate, ISO8601DateFormatter().date(from: "2016-10-26T16:39:52Z"))
         
         //test mutability
         json["string"] = JSON("bar")
@@ -45,7 +44,6 @@ class swiftletsTests: XCTestCase {
         //test Date JSONTransformable protocol
         let date:Date = Date()
         json["date"] = JSON(date)
-        print(json.toString(prettyPrint: true))
         XCTAssertTrue(floor(json["date"].asDate!.timeIntervalSinceReferenceDate) == floor(date.timeIntervalSinceReferenceDate))
     }
     
