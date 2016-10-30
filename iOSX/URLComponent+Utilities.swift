@@ -12,13 +12,15 @@ let kURLPathSeperator:String = "/"
 
 public extension URLComponents {
     mutating func append(path:String) {
+        //strip any trailing path seperators to avoid bad path construction
         var oldPath:String = self.path
-        if oldPath.hasSuffix(kURLPathSeperator) {
+        while oldPath.hasSuffix(kURLPathSeperator) {
             oldPath.remove(at: oldPath.index(before: oldPath.endIndex))
         }
         
+        //strip any leading path seperators to avoid bad path construction
         var newPath:String = path
-        if newPath.hasPrefix(kURLPathSeperator) {
+        while newPath.hasPrefix(kURLPathSeperator) {
             newPath.remove(at: newPath.startIndex)
         }
         
