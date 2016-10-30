@@ -73,7 +73,7 @@ class swiftletsTests: XCTestCase {
             return
         }
         
-        let imageCache:RemoteImageCache = RemoteImageCache()
+        let imageCache:RemoteImageCache = RemoteImageCache(cacheName: imageURL.host)
         
         testGroup.enter()
         
