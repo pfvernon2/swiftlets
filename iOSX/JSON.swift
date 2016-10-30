@@ -839,9 +839,11 @@ public extension URLSession {
         //create data task
         let httpDataTask:URLSessionDataTask = dataTask(with: request as URLRequest) { (data, response, error) in
             if let httpResponse:HTTPURLResponse = response as? HTTPURLResponse {
-                if httpResponse.statusCode >= 200 && httpResponse.statusCode < 300 {
+                //because we are assuming RESTful style operation require a 2xx class response for success
+                switch httpResponse.statusCode {
+                case 200..<300:
                     dataTaskSuccessHandler(request: request as URLRequest, data: data, response:httpResponse, error: error)
-                } else {
+                default:
                     dataTaskFailureHandler(request: request as URLRequest, data: data, response:httpResponse, error: error)
                 }
             } else {
