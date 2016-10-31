@@ -31,7 +31,7 @@ import Foundation
  */
 public protocol JSONTransformable {
     func toJSONType() -> JSON
-    static func fromJSONType(json:JSON) -> Any?
+    static func fromJSONType(json:JSON) -> Self?
 }
 
 /**
@@ -510,7 +510,7 @@ extension JSON {
     }
 
     func asTransformable<T:JSONTransformable>() -> T? {
-        return T.fromJSONType(json: self) as? T
+        return T.fromJSONType(json: self)
     }
 
     /// gives the number of elements if an array or a dictionary.

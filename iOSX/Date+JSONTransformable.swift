@@ -16,7 +16,7 @@ extension Date: JSONTransformable {
         return JSON(ISO8601DateFormatter().string(from: self))
     }
     
-    public static func fromJSONType(json:JSON) -> Any? {
+    public static func fromJSONType(json:JSON) -> Date? {
         guard let jsonString:String = json.asString else {
             return nil
         }
@@ -27,6 +27,6 @@ extension Date: JSONTransformable {
 
 extension JSON {
     public var asDate:Date? {
-        return Date.fromJSONType(json: self) as? Date
+        return Date.fromJSONType(json: self)
     }
 }
