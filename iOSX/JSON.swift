@@ -43,11 +43,11 @@ public protocol JSONTransformable {
 public typealias JSONElement = [String:Any?]
 
 /// init
-open class JSON {
+final public class JSON {
     fileprivate var value:Any = NSNull()
 
     /// unwraps the object to JSON values
-    open class func unwrap(_ obj:Any?) -> Any {
+    public class func unwrap(_ obj:Any?) -> Any {
         switch obj {
         case let json as JSON:
             return json.value 
@@ -451,8 +451,9 @@ extension JSON {
         }
     }
     
-    // an alias to asDouble
+    /// an alias to asDouble
     public var asNumber:Double? { return asDouble }
+    
     /// gives String if self holds it. nil otherwise
     public var asString:String? {
         switch value {
@@ -514,7 +515,6 @@ extension JSON {
     }
 
     /// gives the number of elements if an array or a dictionary.
-    /// you can use this to check if you can iterate.
     public var count:Int {
         switch value {
         case let o as NSArray:      return o.count
@@ -523,7 +523,6 @@ extension JSON {
         }
     }
     
-    public var length:Int { return self.count }
     // gives all values content in JSON object.
     public var values:JSON {
         guard let dictionary = self.asDictionary else {
@@ -656,18 +655,30 @@ public func ==(lhs:JSON, rhs:JSON)->Bool {
 
 //MARK: - NSURLSession JSON Extensions
 
-private let kHTTPPostMethod:String = "POST"
-private let kHTTPGetMethod:String = "GET"
-private let kHTTPAcceptHeader:String = "Accept"
-private let kHTTPContentTypeHeader:String = "Content-Type"
-private let kHTTPContentTypeJSON:String = "application/json"
-private let kHTTPContentTypeFormURLEncoded:String = "application/x-www-form-urlencoded"
-
-public typealias HTTPJSONSuccessClosure = (HTTPURLResponse, JSON) -> Void
-public typealias HTTPJSONFailureClosure = (HTTPURLResponse?, NSError?) -> Void
-
 public extension URLSession {
+    public typealias HTTPJSONSuccessClosure = (HTTPURLResponse, JSON) -> Void
+    public typealias HTTPJSONFailureClosure = (HTTPURLResponse? , Error?) -> Void
+    
+    public enum JSONSessionErrors: Error {
+        case invalidQueryItem(String)
+        case badHTTPResponse(Data)
+    }
+    
+    private enum HTTPMethods:String {
+        case get = "GET"
+        case post = "POST"
+    }
+    
+    private enum HTTPHeaders:String {
+        case accept = "Accept"
+        case contentType = "Content-Type"
+    }
 
+    private enum HTTPContentType:String {
+        case applicationJSON = "application/json"
+        case formURLEncoded = "application/x-www-form-urlencoded"
+    }
+    
     //MARK: - Get
 
     /**
@@ -684,9 +695,7 @@ public extension URLSession {
     @discardableResult func httpGet(with url:URL, success:@escaping HTTPJSONSuccessClosure, failure:@escaping HTTPJSONFailureClosure) -> URLSessionDataTask?
     {
         return httpDataTask(with: url,
-                            method: kHTTPGetMethod,
-                            contentType: nil,
-                            body: nil,
+                            method: .get,
                             success: success,
                             failure: failure)
     }
@@ -707,9 +716,8 @@ public extension URLSession {
     @discardableResult func httpPost(with url:URL, success:@escaping HTTPJSONSuccessClosure, failure:@escaping HTTPJSONFailureClosure) -> URLSessionDataTask?
     {
         return httpDataTask(with: url,
-                            method: kHTTPPostMethod,
-                            contentType: kHTTPContentTypeJSON,
-                            body: nil,
+                            method: .post,
+                            contentType: .applicationJSON,
                             success: success,
                             failure: failure)
     }
@@ -721,7 +729,7 @@ public extension URLSession {
 
      - parameters:
          - url: The url of the request
-         - bodyJSON: An optional JSON object to included as the body of the post
+         - bodyJSON: A JSON object to included as the body of the post
          - success: A closure to be called on success. The NSURLResponse and a JSON object will be included.
          - failure: A closure to be called on failure. The NSURLResponse and an error may be included.
      - returns: NSURLSessionDataTask already resumed
@@ -731,8 +739,8 @@ public extension URLSession {
         let data:Data? = bodyJSON.toData()
 
         return httpDataTask(with: url,
-                            method: kHTTPPostMethod,
-                            contentType: kHTTPContentTypeJSON,
+                            method: .post,
+                            contentType: .applicationJSON,
                             body: data,
                             success: success,
                             failure: failure)
@@ -745,31 +753,44 @@ public extension URLSession {
 
      - parameters:
          - url: The url of the request
-         - bodyParameters: An optional array of NSURLQueryItem to be escaped and included in the body of the post
+         - bodyParameters: An array of NSURLQueryItem objects to be escaped and included in the body of the post
          - success: A closure to be called on success. The NSURLResponse and a JSON object will be included.
          - failure: A closure to be called on failure. The NSURLResponse and an error may be included.
      - returns: NSURLSessionDataTask already resumed
      */
     @discardableResult func httpPost(with url:URL, bodyParameters:[URLQueryItem], success:@escaping HTTPJSONSuccessClosure, failure:@escaping HTTPJSONFailureClosure) -> URLSessionDataTask?
     {
-        var body:String = ""
-        for queryItem:URLQueryItem in bodyParameters {
-            guard let escapedItem = queryItem.urlEscapedItem() else {
-                continue
+        func escapedURLQueryItem(item:URLQueryItem) -> String? {
+            guard let encodedName = item.name.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
+                return nil
             }
-
-            if !body.isEmpty {
-                body = body + "&" + escapedItem
-            } else {
-                body = escapedItem
+            
+            guard let encodedValue = item.value?.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
+                return nil
             }
+            
+            return encodedName + "=" + encodedValue
         }
-        let data:Data? = body.data(using: .utf8)
+
+        
+        //Build body from (escaped) body parameters
+        var body:String = ""
+        bodyParameters.forEach { (queryItem) in
+            guard let escapedQueryItem = escapedURLQueryItem(item: queryItem) else {
+                failure(nil, JSONSessionErrors.invalidQueryItem(queryItem.description))
+                return
+            }
+            
+            if !body.isEmpty {
+                body.append("&")
+            }
+            body.append(escapedQueryItem)
+        }
 
         return httpDataTask(with: url,
-                            method: kHTTPPostMethod,
-                            contentType: kHTTPContentTypeFormURLEncoded,
-                            body: data,
+                            method: .post,
+                            contentType: .formURLEncoded,
+                            body: body.data(using: .utf8),
                             success: success,
                             failure: failure)
     }
@@ -778,10 +799,10 @@ public extension URLSession {
 
     ///Utilty method to create an automatically resumed data task given the input configuration.
     /// The body of the result is assumed to be JSON and is parsed and returned as such.
-    @discardableResult fileprivate func httpDataTask(with url:URL,
-                              method:String,
-                              contentType:String?,
-                              body:Data?,
+    @discardableResult private func httpDataTask(with url:URL,
+                              method:HTTPMethods,
+                              contentType:HTTPContentType? = nil,
+                              body:Data? = nil,
                               success:@escaping HTTPJSONSuccessClosure,
                               failure:@escaping HTTPJSONFailureClosure) -> URLSessionDataTask?
     {
@@ -790,9 +811,7 @@ public extension URLSession {
                 printResult(forRequest: request, data: data, response: response, error: error)
             #endif
 
-            DispatchQueue.main.async {
-                success(response, JSON(data: data ?? Data()))
-            }
+            success(response, JSON(data: data ?? Data()))
         }
 
         func dataTaskFailureHandler(request:URLRequest?, data:Data?, response:HTTPURLResponse?, error:Error?) {
@@ -800,12 +819,10 @@ public extension URLSession {
                 printResult(forRequest: request, data: data, response: response, error: error)
             #endif
 
-            DispatchQueue.main.async {
-                if let data = data , error == nil {
-                    failure(response, NSError(domain: #function, code: 0, userInfo: ["data":data]))
-                } else {
-                    failure(response, error as NSError?)
-                }
+            if let data = data, error == nil {
+                failure(response, JSONSessionErrors.badHTTPResponse(data))
+            } else {
+                failure(response, error)
             }
         }
 
@@ -814,14 +831,14 @@ public extension URLSession {
 
         //configure content-type
         if let contentType = contentType {
-            request.setValue(contentType, forHTTPHeaderField: kHTTPContentTypeHeader)
+            request.setValue(contentType.rawValue, forHTTPHeaderField: HTTPHeaders.contentType.rawValue)
         }
 
         //configure request to expect JSON result
-        request.setValue(kHTTPContentTypeJSON, forHTTPHeaderField: kHTTPAcceptHeader)
+        request.setValue(HTTPContentType.applicationJSON.rawValue, forHTTPHeaderField: HTTPHeaders.accept.rawValue)
 
         //configure method
-        request.httpMethod = method
+        request.httpMethod = method.rawValue
 
         //add body, if appropriate
         if let body = body {

@@ -47,6 +47,33 @@ class swiftletsTests: XCTestCase {
         XCTAssertTrue(floor(json["date"].asDate!.timeIntervalSinceReferenceDate) == floor(date.timeIntervalSinceReferenceDate))
     }
     
+    //Test using jsontest.com json validation method
+    //  http://validate.jsontest.com/?json={"key":"value"}
+
+    func testJSONRequest() {
+        var urlComponents:URLComponents? = URLComponents(string: "http://echo.jsontest.com/")
+        let queryItem:URLQueryItem = URLQueryItem(name:"json", value:"{\"key\":\"value\"}")
+        urlComponents?.append(queryParameter:queryItem)
+        
+        guard let url:URL = urlComponents?.url else {
+            XCTAssert(false)
+            return
+        }
+
+        testGroup.enter()
+        
+        let session:URLSession = URLSession(configuration: .default)
+        session.httpGet(with: url,
+                        success: { (response, json) in
+                            XCTAssert(json.count > 0)
+                            self.testGroup.leave()
+            },
+                        failure: { (response , error)  in
+                            XCTAssert(false)
+                            self.testGroup.leave()
+            })
+    }
+    
     func testHTTPResult() {
         let httpResult = HTTPURLReponseStatus(statusCode: 200)
         
