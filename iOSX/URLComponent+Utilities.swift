@@ -11,6 +11,7 @@ import UIKit
 let kURLPathSeperator:String = "/"
 
 public extension URLComponents {
+    ///Append a path component to the current path. Extraneous path seperators will be automatically removed.
     mutating func append(path:String) {
         //strip any trailing path seperators to avoid bad path construction
         var oldPath:String = self.path
@@ -27,12 +28,14 @@ public extension URLComponents {
         self.path = oldPath + kURLPathSeperator + newPath
     }
     
+    ///Append multiple path components to the current path. Extraneous path seperators will be automatically removed.
     mutating func append(pathComponents paths:[String]) {
         for path in paths {
             append(path: path)
         }
     }
     
+    ///Append a query parameter to the current set of query parameters.
     mutating func append(queryParameter parameter:URLQueryItem) {
         var currentParams = queryItems
         if currentParams != nil {
@@ -44,6 +47,7 @@ public extension URLComponents {
         }
     }
     
+    ///Append multiple query parameters to the current set of query parameters.
     mutating func append(queryParameterComponents parameters:[URLQueryItem]) {
         var currentParams = queryItems
         if currentParams != nil {
@@ -54,7 +58,11 @@ public extension URLComponents {
             queryItems = parameters
         }
     }
-    
+
+    ///Create and return URL based on current components by appending supplied paths and parameters.
+    /// This is useful for working with templated URLs where path and/or query may vary.
+    ///
+    ///- Note: This method DOES NOT mutate the URLComponent object.
     func URLByAppending(path:String? = nil, parameters:[URLQueryItem]? = nil) -> URL? {
         var baseURLCopy = (self as NSURLComponents).copy() as! URLComponents
         
@@ -86,6 +94,7 @@ public extension URLQueryItem {
         self.init(name: name, value: String(floatValue))
     }
     
+    ///Utility method to return the URL Query Item description with the name and value escaped for use in a URL query
     public func urlEscapedItem() -> String? {
         guard let encodedName = self.name.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
             return nil
@@ -101,31 +110,58 @@ public extension URLQueryItem {
 
 fileprivate let rfc2822LineEnding:String = "\r\n"
 
-public extension NSMutableURLRequest {
-    func appendJPEGImageFormSection(withBoundary boundary:String,
+public extension URLRequest {
+    /**
+     Appends a UIImage as a form section to a URLRequest body.
+     
+     - Parameter boundary: The boundary for the form section
+     - Parameter image: The image to include in the form section
+     - Parameter fileName: The filename for the form section
+     - Parameter isFinal: Boolean indicating if a MIME boundary termination should be included
+     
+     - Returns: True if form section was appended, false otherwise
+     */
+    @discardableResult mutating func appendJPEGImageFormSection(withBoundary boundary:String = UUID().uuidString,
                                     image:UIImage,
                                     fileName:String,
-                                    isFinal:Bool = false) {
+                                    isFinal:Bool = false) -> Bool {
         guard let scaledImageData:Data = UIImageJPEGRepresentation(image, 1.0) else {
-            return
+            return false
         }
 
-        appendFormSection(withBoundary: boundary, mimeType: "image/jpeg", name: "data", fileName: fileName, contentData: scaledImageData, isFinal: isFinal)
+        return appendFormSection(withBoundary: boundary,
+                                 mimeType: "image/jpeg",
+                                 name: "data",
+                                 fileName: fileName,
+                                 contentData: scaledImageData,
+                                 isFinal: isFinal)
     }
 
-    func appendFormSection(withBoundary boundary:String,
+    /**
+     Appends a form section to a URLRequest body.
+     
+     - Parameter boundary: The boundary for the form section
+     - Parameter mimeType: The mime type for the form section
+     - Parameter name: The name for the form section
+     - Parameter fileName: The filename for the form section
+     - Parameter contentData: The content data for the form section
+     - Parameter isFinal: Boolean indicating if a MIME boundary termination should be included
+
+     - Returns: True if form section was appended, false otherwise
+     */
+    @discardableResult mutating func appendFormSection(withBoundary boundary:String = UUID().uuidString,
                            mimeType:String,
                            name:String,
                            fileName:String,
                            contentData:Data,
-                           isFinal:Bool = false) {
+                           isFinal:Bool = false) -> Bool {
         var boundaryHeader:String = "--\(boundary)" + rfc2822LineEnding
         boundaryHeader += "Content-Disposition: form-data; name=\"\(name)\"; filename=\"\(fileName)\""  + rfc2822LineEnding
         boundaryHeader += "Content-Type: \(mimeType)" + rfc2822LineEnding
         boundaryHeader += rfc2822LineEnding
 
         guard let boundaryHeaderData:Data = boundaryHeader.data(using: String.Encoding.utf8) else {
-            return
+            return false
         }
         
         var section:Data = Data()
@@ -134,7 +170,7 @@ public extension NSMutableURLRequest {
         if isFinal {
             let boundaryTermination = rfc2822LineEnding + "--\(boundary)--" + rfc2822LineEnding
             guard let boundaryTerminationData:Data = boundaryTermination.data(using: String.Encoding.utf8) else {
-                return
+                return false
             }
             section.append(boundaryTerminationData)
        }
@@ -144,5 +180,6 @@ public extension NSMutableURLRequest {
         }
         
         httpBody?.append(section)
+        return true
     }
 }

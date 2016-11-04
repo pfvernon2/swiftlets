@@ -133,15 +133,12 @@
 			children = (
 				01533ACD1C9DDAE700C6E69D /* Info.plist */,
 				01533ACB1C9DDAE700C6E69D /* swiftlets.h */,
+				01B4044C1DCBFADA00EA7400 /* JSON & REST */,
 				0130BE241DBA9203008EEEE4 /* CSVHelper.swift */,
-				0111A02D1D21CB6F00A9B35E /* JSON.swift */,
-				015BF0281DC137F700312A7E /* Date+JSONTransformable.swift */,
 				01382E891DC66D5B00B55A9C /* RemoteImageCache.swift */,
 				011914C21D74984D009B578A /* Dispatch+Utilities.swift */,
 				012047C01D0C854A00E79510 /* UIApplication+Utilities.swift */,
 				01533AFF1C9DDF2000C6E69D /* AudioPlayerEngine.swift */,
-				016310861D03660500862035 /* URLComponent+Utilities.swift */,
-				0111A0271D2180CD00A9B35E /* HTTPURLResponse+Utility.swift */,
 				01533B001C9DDF2000C6E69D /* CoalescingTimer.swift */,
 				011330801D05CC27002DA0F0 /* String+Localization.swift */,
 				01533B011C9DDF2000C6E69D /* DoubleTapTableView.swift */,
@@ -174,6 +171,17 @@
 				01533AD91C9DDAE700C6E69D /* Info.plist */,
 			);
 			path = swiftletsTests;
+			sourceTree = "<group>";
+		};
+		01B4044C1DCBFADA00EA7400 /* JSON & REST */ = {
+			isa = PBXGroup;
+			children = (
+				0111A02D1D21CB6F00A9B35E /* JSON.swift */,
+				015BF0281DC137F700312A7E /* Date+JSONTransformable.swift */,
+				016310861D03660500862035 /* URLComponent+Utilities.swift */,
+				0111A0271D2180CD00A9B35E /* HTTPURLResponse+Utility.swift */,
+			);
+			name = "JSON & REST";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

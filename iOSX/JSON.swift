@@ -19,7 +19,7 @@ import Foundation
         return JSON(ISO8601DateFormatter().string(from: self))
     }
  
-    public static func fromJSONType(json:JSON) -> Any? {
+    public static func fromJSONType(json:JSON) -> Date? {
         guard let jsonString:String = json.asString else {
             return nil
         }
@@ -736,12 +736,10 @@ public extension URLSession {
      */
     @discardableResult func httpPost(with url:URL, bodyJSON:JSON, success:@escaping HTTPJSONSuccessClosure, failure:@escaping HTTPJSONFailureClosure) -> URLSessionDataTask?
     {
-        let data:Data? = bodyJSON.toData()
-
         return httpDataTask(with: url,
                             method: .post,
                             contentType: .applicationJSON,
-                            body: data,
+                            body: bodyJSON.toData(),
                             success: success,
                             failure: failure)
     }
