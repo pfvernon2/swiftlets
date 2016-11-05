@@ -47,6 +47,19 @@ class swiftletsTests: XCTestCase {
         XCTAssertTrue(floor(json["date"].asDate!.timeIntervalSinceReferenceDate) == floor(date.timeIntervalSinceReferenceDate))
     }
     
+    func testPathComponents() {
+        let pathString:String = "1/2/3/4/5/"
+        var pathComponents:CommonPathComponents = CommonPathComponents(path: pathString)
+        XCTAssert(pathComponents.count == 5)
+        XCTAssert(pathComponents.description == pathString)
+        
+        pathComponents.isLeaf = !pathComponents.isLeaf
+        XCTAssert(pathComponents.description != pathString)
+
+        pathComponents.append(path: "//6/")
+        XCTAssert(pathComponents.count == 6)
+    }
+    
     //Test using jsontest.com json validation method
     //  http://echo.jsontest.com/?json={"key":"value"}
     func testJSONRequest() {
