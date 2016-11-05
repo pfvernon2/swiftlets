@@ -48,10 +48,9 @@ class swiftletsTests: XCTestCase {
     }
     
     //Test using jsontest.com json validation method
-    //  http://validate.jsontest.com/?json={"key":"value"}
-
+    //  http://echo.jsontest.com/?json={"key":"value"}
     func testJSONRequest() {
-        var urlComponents:URLComponents? = URLComponents(string: "http://echo.jsontest.com/")
+        var urlComponents:URLComponents? = URLComponents(scheme: .http, host: "echo.jsontest.com")
         let queryItem:URLQueryItem = URLQueryItem(name:"json", value:"{\"key\":\"value\"}")
         urlComponents?.append(queryParameter:queryItem)
         

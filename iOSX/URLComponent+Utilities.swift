@@ -11,6 +11,36 @@ import UIKit
 let kURLPathSeperator:String = "/"
 
 public extension URLComponents {
+    //Enumeration for most common URL schemes
+    public enum urlSchemes: String {
+        case http, file
+    }
+    
+    ///Convenience initializer to build object from components
+    init(scheme:urlSchemes? = nil, host:String? = nil, port:Int? = nil, user:String? = nil, password:String? = nil, pathComponents:[String]? = nil) {
+        self.init()
+        self.scheme = scheme?.rawValue
+        self.host = host
+        self.port = port
+        self.user = user
+        self.password = password
+        if let pathComponents = pathComponents {
+            append(pathComponents: pathComponents)
+        }
+    }
+    
+    ///Access path as array of path components
+    public var pathComponents:[String] {
+        get {
+            return self.path.components(separatedBy: kURLPathSeperator)
+        }
+        
+        set (pathComponents) {
+            self.path.removeAll()
+            append(pathComponents: pathComponents)
+        }
+    }
+    
     ///Append a path component to the current path. Extraneous path seperators will be automatically removed.
     mutating func append(path:String) {
         //strip any trailing path seperators to avoid bad path construction
@@ -95,7 +125,7 @@ public extension URLQueryItem {
     }
     
     ///Utility method to return the URL Query Item description with the name and value escaped for use in a URL query
-    public func urlEscapedItem() -> String? {
+    public func urlEscapedDescription() -> String? {
         guard let encodedName = self.name.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
             return nil
         }
