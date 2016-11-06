@@ -24,13 +24,13 @@ class swiftletsTests: XCTestCase {
     }
     
     func testJSON() {
-        let jsonString = "{\"string\":\"foo\",\"int\":500,\"double\":5200.0}"
+        let jsonString = "{\"string\":\"foo\",\"int\":500,\"double\":5200.01}"
         
         //test parsing
         let json:JSON = JSON(string: jsonString)
         XCTAssertEqual(json["string"].asString, "foo")
         XCTAssertEqual(json["int"].asInt, 500)
-        XCTAssertEqual(json["double"].asDouble, 5200.0)
+        XCTAssertEqual(json["double"].asDouble, 5200.01)
         
         //test mutability
         json["string"] = JSON("bar")
@@ -49,23 +49,24 @@ class swiftletsTests: XCTestCase {
     
     func testPathComponents() {
         let pathString:String = "1/2/3/4/5/"
-        var pathComponents:CommonPathComponents = CommonPathComponents(path: pathString)
-        XCTAssert(pathComponents.count == 5)
+        var pathComponents:UnixPathComponents = UnixPathComponents(path: pathString)
+        XCTAssert(pathComponents.components.count == 5)
         XCTAssert(pathComponents.description == pathString)
         
         pathComponents.isLeaf = !pathComponents.isLeaf
         XCTAssert(pathComponents.description != pathString)
 
-        pathComponents.append(path: "//6/")
-        XCTAssert(pathComponents.count == 6)
+        pathComponents.append(pathComponents: UnixPathComponents(path:"//6//"))
+        XCTAssert(pathComponents.components.count == 6)
     }
     
     //Test using jsontest.com json validation method
     //  http://echo.jsontest.com/?json={"key":"value"}
+    // Not really a unit test but oh well…
     func testJSONRequest() {
         var urlComponents:URLComponents? = URLComponents(scheme: .http, host: "echo.jsontest.com")
         let queryItem:URLQueryItem = URLQueryItem(name:"json", value:"{\"key\":\"value\"}")
-        urlComponents?.append(queryParameter:queryItem)
+        urlComponents?.append(queryParameterComponents:[queryItem])
         
         guard let url:URL = urlComponents?.url else {
             XCTAssert(false)
