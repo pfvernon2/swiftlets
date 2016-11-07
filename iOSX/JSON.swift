@@ -45,30 +45,30 @@ public typealias JSONElement = [String:Any?]
 /// init
 final public class JSON {
     fileprivate var value:Any = NSNull()
-
+    
     /// unwraps the object to JSON values
     public class func unwrap(_ obj:Any?) -> Any {
         switch obj {
         case let json as JSON:
-            return json.value 
-
+            return json.value
+            
         case let element as JSONElement:
             var result = [String:Any]()
             element.forEach { (key, value) in
                 result[key] = unwrap(value)
             }
             return result
-
+            
         case let transform as JSONTransformable:
             return unwrap(transform.toJSONType())
-
+            
         case let array as NSArray:
             var result = [Any]()
             array.forEach { (element) in
                 result.append(unwrap(element))
             }
             return result
-
+            
         case let dictionary as NSDictionary:
             var result = [String:Any]()
             dictionary.forEach { (key, value) in
@@ -77,12 +77,12 @@ final public class JSON {
                 }
             }
             return result
-
+            
         default:
             return obj ?? NSNull()
         }
     }
-
+    
     public init(_ object:Any?) {
         self.value = JSON.unwrap(object)
     }
@@ -120,77 +120,81 @@ extension JSON {
     
     /// parses string to the JSON object
     /// same as JSON(string:String)
-    public class func parse(_ string:String)->JSON {
+    public class func parse(string:String)->JSON {
         return JSON(string:string)
     }
     
-    /// constructs JSON object from the content of NSURL
-    public convenience init(url:URL) {
-        var enc:String.Encoding = .utf8
+    /// constructs JSON object from the content of URL
+    /// Note that this blocks the calling thread for IO operations
+    public convenience init(contentsOf url:URL) {
         do {
-            let str = try NSString(contentsOf:url, usedEncoding:&enc.rawValue)
+            let str = try String(contentsOf: url)
             self.init(string:str as String)
         } catch let err as NSError {
             self.init(err)
         }
     }
     
-    /// fetch the JSON string from NSURL and parse it
-    /// same as JSON(nsurl:NSURL)
+    /// fetch the JSON string from URL and parse it
+    /// same as JSON(contentsOf:URL)
     public class func from(url:URL) -> JSON {
-        return JSON(url:url)
+        return JSON(contentsOf:url)
     }
     
+    /// Convert JSON object to Data using UTF8 encoding
     public func toData() -> Data? {
         return toString(prettyPrint: false).data(using: .utf8)
     }
     
-    /// does what JSON.stringify in ES5 does.
-    /// when the 2nd argument is set to true it pretty prints
-    public class func stringify(_ obj:Any, prettyPrint:Bool=false) -> String! {
-        if !JSONSerialization.isValidJSONObject(obj) {
+    /// Convert any object to JSON encoded string with optional pretty printing.
+    /// - Returns: Error object as JSON on failure.
+    public class func stringify(obj:Any, prettyPrint:Bool = false) -> String {
+        guard JSONSerialization.isValidJSONObject(obj) else {
             let error = JSON(NSError(
                 domain:"JSONErrorDomain",
                 code:422,
-                userInfo:[NSLocalizedDescriptionKey: "not an JSON object"]
-                ))
+                userInfo:[NSLocalizedDescriptionKey: "not a JSON object"]
+            ))
             return JSON(error).toString(prettyPrint: prettyPrint)
         }
+        
         return JSON(obj).toString(prettyPrint: prettyPrint)
     }
 }
 
 /// instance properties
 extension JSON {
-    /// access the element like array
+    /// Access elements with array syntax
+    /// - Returns: Error object as JSON on failure.
     public subscript(index:Int) -> JSON {
         get {
-        switch value {
-        case _ as NSError:
-            return self
-        case let array as NSArray:
-            if 0 <= index && index < array.count {
-                return JSON(array[index])
+            switch value {
+            case _ as NSError:
+                return self
+            case let array as NSArray:
+                if 0 <= index && index < array.count {
+                    return JSON(array[index])
+                }
+                return JSON(NSError(
+                    domain:"JSONErrorDomain", code:404, userInfo:[
+                        NSLocalizedDescriptionKey:
+                        "[\(index)] out of range"
+                    ]))
+            default:
+                return JSON(NSError(
+                    domain:"JSONErrorDomain", code:500, userInfo:[
+                        NSLocalizedDescriptionKey: "not an array"
+                    ]))
             }
-            return JSON(NSError(
-                domain:"JSONErrorDomain", code:404, userInfo:[
-                    NSLocalizedDescriptionKey:
-                        "[\(index)] is out of range"
-                ]))
-        default:
-            return JSON(NSError(
-                domain:"JSONErrorDomain", code:500, userInfo:[
-                    NSLocalizedDescriptionKey: "not an array"
-                ]))
         }
-        }
-
+        
         set (newValue) {
             updateValue(newValue, atIndex: index)
         }
     }
-
-    /// access the element like dictionary
+    
+    /// Access elements with dictionary syntax
+    /// - Returns: Error object as JSON on failure.
     public subscript(key:String)->JSON {
         get {
             switch value {
@@ -201,7 +205,7 @@ extension JSON {
                 return JSON(NSError(
                     domain:"JSONErrorDomain", code:404, userInfo:[
                         NSLocalizedDescriptionKey:
-                            "[\"\(key)\"] not found"
+                        "[\"\(key)\"] not found"
                     ]))
             default:
                 return JSON(NSError(
@@ -210,12 +214,12 @@ extension JSON {
                     ]))
             }
         }
-
+        
         set (newValue) {
             updateValue(newValue, forKey: key)
         }
     }
-
+    
     public func removeValue(forKey key:String) {
         switch value {
         case var valueDictionary as Dictionary<String, Any>:
@@ -225,8 +229,8 @@ extension JSON {
             break
         }
     }
-
-    public func removeValue(atIndex index:Int) {
+    
+    public func remove(at index:Int) {
         switch value {
         case var valueArray as Array<Any>:
             valueArray.remove(at: index)
@@ -235,31 +239,31 @@ extension JSON {
             break
         }
     }
-
-    public func updateValue(_ newValue:Any?, forKey key:String) {
-        let json:JSON = JSON(newValue)
-        switch value {
+    
+    public func updateValue(_ value:Any?, forKey key:String) {
+        let json:JSON = JSON(value)
+        switch self.value {
         case var valueDictionary as Dictionary<String, Any>:
             valueDictionary[key] = json.value
-            value = valueDictionary
+            self.value = valueDictionary
         default:
             break
         }
     }
-
-    public func updateValue(_ newValue:Any?, atIndex index:Int) {
-        let json:JSON = JSON(newValue)
-        switch value {
+    
+    public func updateValue(_ value:Any?, atIndex index:Int) {
+        let json:JSON = JSON(value)
+        switch self.value {
         case var valueArray as Array<Any>:
             valueArray[index] = json.value
-            value = valueArray
+            self.value = valueArray
         default:
             break
         }
     }
-
-    /// access json data object
-    public var data:Any? {
+    
+    /// Access json value object
+    public var valueObject:Any? {
         return self.isError ? nil : self.value
     }
     
@@ -352,7 +356,7 @@ extension JSON {
         default: return nil
         }
     }
-
+    
     /// gives UInt if self holds it. nil otherwise
     public var asUInt:UInt? {
         switch value {
@@ -366,7 +370,7 @@ extension JSON {
         default: return nil
         }
     }
-
+    
     /// gives Int32 if self holds it. nil otherwise
     public var asInt32:Int32? {
         switch value {
@@ -394,7 +398,7 @@ extension JSON {
         default: return nil
         }
     }
-
+    
     /// gives Int32 if self holds it. nil otherwise
     public var asUInt32:UInt32? {
         switch value {
@@ -408,7 +412,7 @@ extension JSON {
         default: return nil
         }
     }
-
+    
     /// gives Int64 if self holds it. nil otherwise
     public var asUInt64:UInt64? {
         switch value {
@@ -422,7 +426,7 @@ extension JSON {
         default: return nil
         }
     }
-
+    
     /// gives Float if self holds it. nil otherwise
     public var asFloat:Float? {
         switch value {
@@ -493,7 +497,7 @@ extension JSON {
         default: return nil
         }
     }
-
+    
     /// if self holds NSDictionary, gives a JSONElement
     /// with elements therein. nil otherwise
     public var asElement:JSONElement? {
@@ -509,11 +513,11 @@ extension JSON {
         default: return nil
         }
     }
-
+    
     func asTransformable<T:JSONTransformable>() -> T? {
         return T.fromJSONType(json: self)
     }
-
+    
     /// gives the number of elements if an array or a dictionary.
     public var count:Int {
         switch value {
@@ -528,7 +532,7 @@ extension JSON {
         guard let dictionary = self.asDictionary else {
             return JSON([])
         }
-
+        
         return JSON(dictionary.values)
     }
     
@@ -537,7 +541,7 @@ extension JSON {
         guard let dictionary = self.asDictionary else {
             return JSON([])
         }
-
+        
         return JSON(dictionary.keys)
     }
 }
@@ -552,7 +556,7 @@ extension JSON : Sequence {
                 if i == o.count { return nil }
                 return (i, JSON(o[i]))
             }
-
+            
         case let o as NSDictionary:
             var ks = Array(o.allKeys.reversed())
             return AnyIterator {
@@ -563,7 +567,7 @@ extension JSON : Sequence {
                     return nil
                 }
             }
-
+            
         default:
             return AnyIterator{ nil }
         }
@@ -577,10 +581,10 @@ extension JSON : Sequence {
     }
 }
 
+//MARK: - JSON : CustomStringConvertible
+
 extension JSON : CustomStringConvertible {
-    /// stringifies self.
-    /// if pretty:true it pretty prints
-    public func toString(prettyPrint pretty:Bool=false)->String {
+    public func toString(prettyPrint pretty:Bool = false)->String {
         switch value {
         case is NSError: return "\(value)"
         case is NSNull: return "null"
@@ -613,7 +617,7 @@ extension JSON : CustomStringConvertible {
             } catch {
                 print("JSON serialization error")
             }
-
+            
             return ""
         }
     }
@@ -621,11 +625,13 @@ extension JSON : CustomStringConvertible {
     public var description:String {
         return toString(prettyPrint: true)
     }
-
+    
     public var debugDescription:String {
         return toString(prettyPrint: true)
     }
 }
+
+//MARK: - JSON : Equatable
 
 extension JSON : Equatable {}
 public func ==(lhs:JSON, rhs:JSON)->Bool {
@@ -673,23 +679,22 @@ public extension URLSession {
         case accept = "Accept"
         case contentType = "Content-Type"
     }
-
+    
     private enum HTTPContentType:String {
         case applicationJSON = "application/json"
         case formURLEncoded = "application/x-www-form-urlencoded"
     }
     
     //MARK: - Get
-
+    
     /**
      Perform GET request and expect JSON result in response.
-
+     
      - note: It is guaranteed that exactly one of the success or failure closures will be invoked after this method is called regardless of whether a valid NSURLSessionDataTask is returned.
-
-     - parameters:
-         - url: The url of the request
-         - success: A closure to be called on success. The NSURLResponse and a JSON object will be included.
-         - failure: A closure to be called on failure. The NSURLResponse and an error may be included.
+     
+     - Parameter url: The url of the request
+     - Parameter success: A closure to be called on success. The NSURLResponse and a JSON object will be included.
+     - Parameter failure: A closure to be called on failure. The NSURLResponse and an error may be included.
      - returns: NSURLSessionDataTask already resumed
      */
     @discardableResult func httpGet(with url:URL, success:@escaping HTTPJSONSuccessClosure, failure:@escaping HTTPJSONFailureClosure) -> URLSessionDataTask?
@@ -699,18 +704,17 @@ public extension URLSession {
                             success: success,
                             failure: failure)
     }
-
+    
     //MARK: - POST
-
+    
     /**
      Perform POST request and expect JSON result in response.
-
+     
      - note: It is guaranteed that exactly one of the success or failure closures will be invoked after this method is called regardless of whether a valid NSURLSessionDataTask is returned.
-
-     - parameters:
-         - url: The url of the request
-         - success: A closure to be called on success. The NSURLResponse and a JSON object will be included.
-         - failure: A closure to be called on failure. The NSURLResponse and an error may be included.
+     
+     - Parameter url: The url of the request
+     - Parameter success: A closure to be called on success. The NSURLResponse and a JSON object will be included.
+     - Parameter failure: A closure to be called on failure. The NSURLResponse and an error may be included.
      - returns: NSURLSessionDataTask already resumed
      */
     @discardableResult func httpPost(with url:URL, success:@escaping HTTPJSONSuccessClosure, failure:@escaping HTTPJSONFailureClosure) -> URLSessionDataTask?
@@ -721,17 +725,16 @@ public extension URLSession {
                             success: success,
                             failure: failure)
     }
-
+    
     /**
      Perform POST request with a JSON payload in the body and expect JSON result in response.
-
+     
      - note: It is guaranteed that exactly one of the success or failure closures will be invoked after this method is called regardless of whether a valid NSURLSessionDataTask is returned.
-
-     - parameters:
-         - url: The url of the request
-         - bodyJSON: A JSON object to included as the body of the post
-         - success: A closure to be called on success. The NSURLResponse and a JSON object will be included.
-         - failure: A closure to be called on failure. The NSURLResponse and an error may be included.
+     
+     - Parameter url: The url of the request
+     - Parameter bodyJSON: A JSON object to included as the body of the post
+     - Parameter success: A closure to be called on success. The NSURLResponse and a JSON object will be included.
+     - Parameter failure: A closure to be called on failure. The NSURLResponse and an error may be included.
      - returns: NSURLSessionDataTask already resumed
      */
     @discardableResult func httpPost(with url:URL, bodyJSON:JSON, success:@escaping HTTPJSONSuccessClosure, failure:@escaping HTTPJSONFailureClosure) -> URLSessionDataTask?
@@ -743,17 +746,16 @@ public extension URLSession {
                             success: success,
                             failure: failure)
     }
-
+    
     /**
      Perform POST request with a URL parameter payload in the body and expect JSON result in response.
-
+     
      - note: It is guaranteed that exactly one of the success or failure closures will be invoked after this method is called regardless of whether a valid NSURLSessionDataTask is returned.
-
-     - parameters:
-         - url: The url of the request
-         - bodyParameters: An array of NSURLQueryItem objects to be escaped and included in the body of the post
-         - success: A closure to be called on success. The NSURLResponse and a JSON object will be included.
-         - failure: A closure to be called on failure. The NSURLResponse and an error may be included.
+     
+     - Parameter url: The url of the request
+     - Parameter bodyParameters: An array of NSURLQueryItem objects to be escaped and included in the body of the post
+     - Parameter success: A closure to be called on success. The NSURLResponse and a JSON object will be included.
+     - fParameter ailure: A closure to be called on failure. The NSURLResponse and an error may be included.
      - returns: NSURLSessionDataTask already resumed
      */
     @discardableResult func httpPost(with url:URL, bodyParameters:[URLQueryItem], success:@escaping HTTPJSONSuccessClosure, failure:@escaping HTTPJSONFailureClosure) -> URLSessionDataTask?
@@ -769,7 +771,7 @@ public extension URLSession {
             
             return encodedName + "=" + encodedValue
         }
-
+        
         
         //Build body from (escaped) body parameters
         var body:String = ""
@@ -784,7 +786,7 @@ public extension URLSession {
             }
             body.append(escapedQueryItem)
         }
-
+        
         return httpDataTask(with: url,
                             method: .post,
                             contentType: .formURLEncoded,
@@ -792,57 +794,57 @@ public extension URLSession {
                             success: success,
                             failure: failure)
     }
-
+    
     //MARK: - Utility
-
+    
     ///Utilty method to create an automatically resumed data task given the input configuration.
     /// The body of the result is assumed to be JSON and is parsed and returned as such.
     @discardableResult private func httpDataTask(with url:URL,
-                              method:HTTPMethods,
-                              contentType:HTTPContentType? = nil,
-                              body:Data? = nil,
-                              success:@escaping HTTPJSONSuccessClosure,
-                              failure:@escaping HTTPJSONFailureClosure) -> URLSessionDataTask?
+                                                 method:HTTPMethods,
+                                                 contentType:HTTPContentType? = nil,
+                                                 body:Data? = nil,
+                                                 success:@escaping HTTPJSONSuccessClosure,
+                                                 failure:@escaping HTTPJSONFailureClosure) -> URLSessionDataTask?
     {
         func dataTaskSuccessHandler(request:URLRequest?, data:Data?, response:HTTPURLResponse, error:Error?) {
             #if DUMP_NETWORK_RESULTS
                 printResult(forRequest: request, data: data, response: response, error: error)
             #endif
-
+            
             success(response, JSON(data: data ?? Data()))
         }
-
+        
         func dataTaskFailureHandler(request:URLRequest?, data:Data?, response:HTTPURLResponse?, error:Error?) {
             #if DUMP_NETWORK_RESULTS || DEBUG
                 printResult(forRequest: request, data: data, response: response, error: error)
             #endif
-
+            
             if let data = data, error == nil {
                 failure(response, JSONSessionErrors.badHTTPResponse(data))
             } else {
                 failure(response, error)
             }
         }
-
+        
         //create request
         let request:NSMutableURLRequest = NSMutableURLRequest(url: url)
-
+        
         //configure content-type
         if let contentType = contentType {
             request.setValue(contentType.rawValue, forHTTPHeaderField: HTTPHeaders.contentType.rawValue)
         }
-
+        
         //configure request to expect JSON result
         request.setValue(HTTPContentType.applicationJSON.rawValue, forHTTPHeaderField: HTTPHeaders.accept.rawValue)
-
+        
         //configure method
         request.httpMethod = method.rawValue
-
+        
         //add body, if appropriate
         if let body = body {
             request.httpBody = body
         }
-
+        
         //create data task
         let httpDataTask:URLSessionDataTask = dataTask(with: request as URLRequest) { (data, response, error) in
             if let httpResponse:HTTPURLResponse = response as? HTTPURLResponse {
@@ -857,35 +859,35 @@ public extension URLSession {
                 dataTaskFailureHandler(request: request as URLRequest, data: data, response:nil, error: error)
             }
         }
-
+        
         //resume task
         httpDataTask.resume()
-
+        
         return httpDataTask
     }
-
+    
     ///Utility method to print response and error objects for debugging purposes
     fileprivate func printResult(forRequest request:URLRequest?, data:Data?, response:HTTPURLResponse?, error:Error?) {
         var result:String = ">>>>>>>>>>\n\nhttpDataTask\n\n"
-
+        
         if let request = request {
             result += String("request: \(request)\n\n")
         }
-
+        
         if let data = data {
             result += String("data: \(String(data:data, encoding:.utf8))\n\n")
         }
-
+        
         if let response = response {
             result += String("response: \(response)\n\n")
         }
-
+        
         if let error = error {
             result += String("error: \(error.localizedDescription)\n\n")
         }
-
+        
         result += "<<<<<<<<<<"
-
+        
         print(result)
     }
 }

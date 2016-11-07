@@ -24,18 +24,18 @@ class swiftletsTests: XCTestCase {
     }
     
     func testJSON() {
-        let jsonString = "{\"string\":\"foo\",\"int\":500,\"double\":5200.01}"
+        let jsonString = "{\"string\":\"foobar\",\"int\":42,\"double\":5200.01}"
         
-        //test parsing
+        //test json string parsing
         let json:JSON = JSON(string: jsonString)
-        XCTAssertEqual(json["string"].asString, "foo")
-        XCTAssertEqual(json["int"].asInt, 500)
+        XCTAssertEqual(json["string"].asString, "foobar")
+        XCTAssertEqual(json["int"].asInt, 42)
         XCTAssertEqual(json["double"].asDouble, 5200.01)
         
         //test mutability
-        json["string"] = JSON("bar")
-        XCTAssertNotEqual(json["string"].asString, "foo")
-        XCTAssertEqual(json["string"].asString, "bar")
+        json["string"] = JSON("barfoo")
+        XCTAssertNotEqual(json["string"].asString, "foobar")
+        XCTAssertEqual(json["string"].asString, "barfoo")
 
         //test nilability
         json["int"] = JSON(nil)
@@ -44,7 +44,12 @@ class swiftletsTests: XCTestCase {
         //test Date JSONTransformable protocol
         let date:Date = Date()
         json["date"] = JSON(date)
-        XCTAssertTrue(floor(json["date"].asDate!.timeIntervalSinceReferenceDate) == floor(date.timeIntervalSinceReferenceDate))
+        guard let jsonDate:Date = json["date"].asDate else {
+            XCTAssert(false)
+            return
+        }
+        //8601 conversion drops subsecond precision so simply ensure they are the same to the second
+        XCTAssertTrue(Calendar.current.compare(date, to: jsonDate, toGranularity: .second) == .orderedSame)
     }
     
     func testPathComponents() {

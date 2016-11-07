@@ -15,15 +15,12 @@ fileprivate let defaultMemoryCacheSize:Int = 100 * 1024 * 1024 //100 MiB
  Class that manages both an on-disk and in-memory cache of images retrieved from URLs. Caches are limited in size and can be configured.
  
  - Parameter memoryCapacity: Maximum size in bytes of images to keep in memory.
- - Parameter diskCapacity: Maximum size in bytes of images data to keep on disk.
+ - Parameter diskCapacity: Maximum size in bytes of image data to keep on disk.
  - Parameter cacheName: Optional name of the on-disk cache.
  
  - Note: This object is thread safe but you may encounter race conditions when updating the caches across multiple threads.
  
  - Note: Each instance of this class manages its own in-memory cache. However, to maintain seperate on-disk caches you must give them unique cache names.
-
- - Returns: Image, or nil in completion.
- 
 */
 open class RemoteImageCache {
     public var session:URLSession
@@ -38,6 +35,10 @@ open class RemoteImageCache {
         memoryCache.totalCostLimit = memoryCapacity
     }
     
+    ///Retrieve image from local cache or from URL. 
+    /// - Parameter fromURL: URL of the image resource.
+    /// - Parameter closure: closure called on success or failure.
+    /// - Returns: UIImage or nil if an error occurs.
     func cachedImage(fromURL url:URL, closure:@escaping (_ image:UIImage?) ->()) {
         let imageKey:NSString = url.absoluteString as NSString
         
