@@ -46,7 +46,7 @@ public extension pathComponents {
             return !pathComponent.isEmpty
         }
         isFullyQualified = path.hasPrefix(String(seperator))
-        isLeaf = (isFullyQualified && path.characters.count == 1) || !path.hasSuffix(String(seperator))
+        isLeaf = !path.hasSuffix(String(seperator))
     }
     
     mutating func append(pathComponents:pathComponents) {
@@ -60,7 +60,7 @@ public extension pathComponents {
         if isFullyQualified {
             result.insert(seperator, at: result.startIndex)
         }
-        if !isLeaf {
+        if !isLeaf && components.count > 0 {
             result.append(seperator)
         }
         return result

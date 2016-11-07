@@ -71,7 +71,7 @@ class swiftletsTests: XCTestCase {
         let rootPathString:String = "/"
         let rootDirectory:UnixPathComponents = UnixPathComponents(path: rootPathString)
         XCTAssert(rootDirectory.isFullyQualified)
-        XCTAssert(rootDirectory.isLeaf)
+        XCTAssert(!rootDirectory.isLeaf)
         XCTAssert(rootDirectory.description == rootPathString)
     }
     
