@@ -53,8 +53,11 @@ class swiftletsTests: XCTestCase {
     }
     
     func testPathComponents() {
-        let pathString:String = "1/2/3/4/5/"
+        //common use case
+        let pathString:String = "/1/2/3/4/5"
         var pathComponents:UnixPathComponents = UnixPathComponents(path: pathString)
+        XCTAssert(pathComponents.isFullyQualified)
+        XCTAssert(pathComponents.isLeaf)
         XCTAssert(pathComponents.components.count == 5)
         XCTAssert(pathComponents.description == pathString)
         
@@ -63,6 +66,13 @@ class swiftletsTests: XCTestCase {
 
         pathComponents.append(pathComponents: UnixPathComponents(path:"//6//"))
         XCTAssert(pathComponents.components.count == 6)
+        
+        //edge case - root directory
+        let rootPathString:String = "/"
+        let rootDirectory:UnixPathComponents = UnixPathComponents(path: rootPathString)
+        XCTAssert(rootDirectory.isFullyQualified)
+        XCTAssert(rootDirectory.isLeaf)
+        XCTAssert(rootDirectory.description == rootPathString)
     }
     
     //Test using jsontest.com json validation method

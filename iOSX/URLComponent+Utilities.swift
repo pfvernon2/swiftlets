@@ -19,9 +19,12 @@ public protocol pathComponents:CustomStringConvertible {
     //The components of the path
     var components:[String] { get set }
     
-    //An indication of whether the path is a leaf node. e.g. is it a file or a directory
-    var isLeaf:Bool { get set }
+    //An indication of whether the path is fully qualified or not. e.g. it begins at root directory
+    var isFullyQualified:Bool { get set }
 
+    //An indication of whether the path is a leaf node or not. e.g. is it a file or a directory
+    var isLeaf:Bool { get set }
+    
     ///Default initializer, you must implement this in your concrete instance
     init()
 
@@ -42,16 +45,21 @@ public extension pathComponents {
         components = path.components(separatedBy: String(seperator)).filter { (pathComponent) -> Bool in
             return !pathComponent.isEmpty
         }
-        isLeaf = !path.hasSuffix(String(seperator))
+        isFullyQualified = path.hasPrefix(String(seperator))
+        isLeaf = (isFullyQualified && path.characters.count == 1) || !path.hasSuffix(String(seperator))
     }
     
     mutating func append(pathComponents:pathComponents) {
         components.append(contentsOf: pathComponents.components)
+        //isFullyQualified - follows parent object
         isLeaf = pathComponents.isLeaf
     }
 
     var description:String {
         var result:String = components.joined(separator: String(seperator))
+        if isFullyQualified {
+            result.insert(seperator, at: result.startIndex)
+        }
         if !isLeaf {
             result.append(seperator)
         }
@@ -64,6 +72,7 @@ public struct UnixPathComponents:pathComponents {
     public var seperator: Character = "/"
     public var components: [String] = []
     public var isLeaf: Bool = true
+    public var isFullyQualified: Bool = true
     
     public init() {
     }
