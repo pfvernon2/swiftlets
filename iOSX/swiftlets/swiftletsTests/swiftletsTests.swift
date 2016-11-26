@@ -50,6 +50,33 @@ class swiftletsTests: XCTestCase {
         }
         //8601 conversion drops subsecond precision so simply ensure they are the same to the second
         XCTAssertTrue(Calendar.current.compare(date, to: jsonDate, toGranularity: .second) == .orderedSame)
+        
+        //test heterogeneous array unwrapping
+        let values:[Any] = [1,"a",date]
+        json["array"] = JSON(values)
+        XCTAssertTrue(json["array"].isArray)
+        XCTAssertTrue(json["array"].asArray?.count == values.count)
+        guard let jsonArray = json["array"].asArray, jsonArray.count == values.count else {
+            XCTAssert(false)
+            return
+        }
+        XCTAssertTrue(jsonArray[0].isNumber)
+        XCTAssertTrue(jsonArray[1].isString)
+        XCTAssertTrue(jsonArray[2].isDate)
+
+        //test heterogeneous dictionary unwrapping
+        let dictionary:[String:Any] = ["1":1,"a":"a","Date":date]
+        json["dictionary"] = JSON(dictionary)
+        XCTAssertTrue(json["dictionary"].isDictionary)
+        guard let jsonDictionary = json["dictionary"].asDictionary, jsonDictionary.count == values.count else {
+            XCTAssert(false)
+            return
+        }
+        XCTAssertTrue(jsonDictionary["1"]?.isNumber ?? false)
+        XCTAssertTrue(jsonDictionary["a"]?.isString ?? false)
+        XCTAssertTrue(jsonDictionary["Date"]?.isDate ?? false)
+        
+        print(json.toString(prettyPrint: true))
     }
     
     func testPathComponents() {

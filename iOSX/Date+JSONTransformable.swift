@@ -29,4 +29,8 @@ extension JSON {
     public var asDate:Date? {
         return Date.fromJSONType(json: self)
     }
+    
+    public var isDate:Bool {
+        return asDate != nil
+    }
 }

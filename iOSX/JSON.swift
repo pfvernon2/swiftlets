@@ -53,30 +53,16 @@ final public class JSON {
             return json.value
             
         case let element as JSONElement:
-            var result = [String:Any]()
-            element.forEach { (key, value) in
-                result[key] = unwrap(value)
-            }
-            return result
+            return element.mapPairs { (key, value) in (key, unwrap(value)) }
             
         case let transform as JSONTransformable:
             return unwrap(transform.toJSONType())
             
-        case let array as NSArray:
-            var result = [Any]()
-            array.forEach { (element) in
-                result.append(unwrap(element))
-            }
-            return result
+        case let array as Array<Any>:
+            return array.map { unwrap($0) }
             
-        case let dictionary as NSDictionary:
-            var result = [String:Any]()
-            dictionary.forEach { (key, value) in
-                if let key = key as? String {
-                    result[key] = unwrap(value)
-                }
-            }
-            return result
+        case let dictionary as Dictionary<String, Any>:
+            return dictionary.mapPairs { (key, value) in (key, unwrap(value)) }
             
         default:
             return obj ?? NSNull()
@@ -171,7 +157,7 @@ extension JSON {
             switch value {
             case _ as NSError:
                 return self
-            case let array as NSArray:
+            case let array as Array<Any>:
                 if 0 <= index && index < array.count {
                     return JSON(array[index])
                 }
@@ -200,7 +186,7 @@ extension JSON {
             switch value {
             case _ as NSError:
                 return self
-            case let dictionary as NSDictionary:
+            case let dictionary as Dictionary<String, Any>:
                 if let val:Any = dictionary[key] { return JSON(val) }
                 return JSON(NSError(
                     domain:"JSONErrorDomain", code:404, userInfo:[
