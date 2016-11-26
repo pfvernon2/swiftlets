@@ -36,10 +36,14 @@ class swiftletsTests: XCTestCase {
         json["string"] = JSON("barfoo")
         XCTAssertNotEqual(json["string"].asString, "foobar")
         XCTAssertEqual(json["string"].asString, "barfoo")
+        json["uint"] = JSON(UInt(4242))
+        XCTAssertEqual(json["uint"].asUInt, 4242)
+        json["bool"] = JSON(true)
+        XCTAssertTrue(json["bool"].asBool ?? false)
 
         //test nilability
-        json["int"] = JSON(nil)
-        XCTAssert(json["int"].isNull)
+        json["string"] = JSON(nil)
+        XCTAssertTrue(json["string"].isNull)
         
         //test Date JSONTransformable protocol
         let date:Date = Date()
@@ -76,7 +80,7 @@ class swiftletsTests: XCTestCase {
         XCTAssertTrue(jsonDictionary["a"]?.isString ?? false)
         XCTAssertTrue(jsonDictionary["Date"]?.isDate ?? false)
         
-        print(json.toString(prettyPrint: true))
+        XCTAssertNotNil(json.toString(prettyPrint: true))
     }
     
     func testPathComponents() {

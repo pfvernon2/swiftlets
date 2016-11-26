@@ -5,7 +5,7 @@
 //  Created by Frank Vernon on 6/22/16.
 //  Copyright © 2016 Frank Vernon. All rights reserved.
 //
-// Based, in large part, upon: https://github.com/dankogai/swift-json
+// Based upon: https://github.com/dankogai/swift-json
 // Copyright (c) 2014 Dan Kogai
 
 import Foundation
@@ -55,17 +55,32 @@ final public class JSON {
         case let element as JSONElement:
             return element.mapPairs { (key, value) in (key, unwrap(value)) }
             
-        case let transform as JSONTransformable:
-            return unwrap(transform.toJSONType())
-            
         case let array as Array<Any>:
             return array.map { unwrap($0) }
             
         case let dictionary as Dictionary<String, Any>:
             return dictionary.mapPairs { (key, value) in (key, unwrap(value)) }
             
+        case is Int, is UInt, is Double, is Bool, is String, is NSNull:
+            return obj!
+            
+        case let transform as JSONTransformable:
+            return unwrap(transform.toJSONType())
+            
+        case is NSError:
+            return obj!
+        
         default:
-            return obj ?? NSNull()
+            if obj == nil {
+                return NSNull()
+            } else {
+                assert(false, "not a valid type for JSON encoding")
+                return NSError(
+                    domain:"JSONErrorDomain",
+                    code:422,
+                    userInfo:[NSLocalizedDescriptionKey: "not a valid type for JSON encoding"]
+                )
+            }
         }
     }
     
