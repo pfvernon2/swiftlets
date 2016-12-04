@@ -47,15 +47,15 @@ extension CGSize {
 
 extension TimeInterval {
     func toPicoseconds() -> Double {
-        return self * 1000.0 * 1000.0 * 1000.0 * 1000.0
+        return toNanoseconds() * 1000.0
     }
 
     func toNanoseconds() -> Double {
-        return self * 1000.0 * 1000.0 * 1000.0
+        return toMicroseconds() * 1000.0
     }
 
     func toMicroseconds() -> Double {
-        return self * 1000.0 * 1000.0
+        return toMilliseconds() * 1000.0
     }
 
     func toMilliseconds() -> Double {
@@ -67,11 +67,11 @@ extension TimeInterval {
     }
     
     func toHours() -> Double {
-        return self/60.0/60.0
+        return toMinutes()/60.0
     }
     
     func toDays() -> Double {
-        return self/60.0/60.0/24.0
+        return toHours()/24.0
     }
 
     /**
