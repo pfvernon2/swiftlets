@@ -8,6 +8,32 @@
 
 import Foundation
 
+/**
+ Enumeration of HTTP result values categorized by class of status code. 
+ This is useful in processing results of web service calls, for example.
+ 
+ ````
+ switch responseStatus {
+    case .success:
+        //happy path
+    
+    case .serverError(let serverStatus):
+        switch serverStatus {
+            case .internalServerError:
+                //blame them
+ 
+            case .notImplemented:
+                //blame me
+
+            default:
+                //blame everyone
+        }
+
+    default:
+        //what now?
+ }
+ ````
+ */
 public enum HTTPURLReponseStatus {
     public enum informationalStatus {
         case continuing
