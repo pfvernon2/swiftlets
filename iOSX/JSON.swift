@@ -48,6 +48,10 @@ final public class JSON {
     
     /// unwraps the object to JSON values
     public class func unwrap(_ obj:Any?) -> Any {
+        guard let obj = obj else {
+            return NSNull()
+        }
+        
         switch obj {
         case let json as JSON:
             return json.value
@@ -61,26 +65,19 @@ final public class JSON {
         case let dictionary as Dictionary<String, Any>:
             return dictionary.mapPairs { (key, value) in (key, unwrap(value)) }
             
-        case is Int, is UInt, is Double, is Bool, is String, is NSNull:
-            return obj!
+        case is Int, is UInt, is Double, is Bool, is String, is NSNull, is NSError:
+            return obj
             
         case let transform as JSONTransformable:
             return unwrap(transform.toJSONType())
             
-        case is NSError:
-            return obj!
-        
         default:
-            if obj == nil {
-                return NSNull()
-            } else {
-                assert(false, "not a valid type for JSON encoding")
-                return NSError(
-                    domain:"JSONErrorDomain",
-                    code:422,
-                    userInfo:[NSLocalizedDescriptionKey: "not a valid type for JSON encoding"]
-                )
-            }
+            assert(false, "not a valid type for JSON encoding")
+            return NSError(
+                domain:"JSONErrorDomain",
+                code:422,
+                userInfo:[NSLocalizedDescriptionKey: "not a valid type for JSON encoding"]
+            )
         }
     }
     
