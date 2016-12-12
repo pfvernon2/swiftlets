@@ -41,7 +41,7 @@ extension CGSize {
     }
 
     func minDimension() -> CGFloat {
-        return width > height ? height : width
+        return width < height ? width : height
     }
 }
 
