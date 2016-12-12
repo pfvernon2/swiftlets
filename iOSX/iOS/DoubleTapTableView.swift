@@ -23,7 +23,7 @@ class DoubleTapTableView: UITableView {
     }
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        for touch:UITouch in touches {
+        touches.forEach { (touch) in
             if touch.tapCount == 2 {
                 if let row:IndexPath = indexPathForRow(at: touch.location(in: self)) {
                     doubleTapDelegate?.tableView(tableView: self, didDoubleTapRowAtIndexPath: row as NSIndexPath)
