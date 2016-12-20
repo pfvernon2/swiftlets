@@ -170,6 +170,44 @@ class swiftletsTests: XCTestCase {
         }
     }
     
+    func testWriterReader() {
+        var state:Bool = false
+        let writerReader:DispatchWriterReader = DispatchWriterReader()
+        
+        let read1 = writerReader.read { () -> Bool in
+            print("Read 1")
+            return state
+        }
+        print(read1)
+        XCTAssert(!read1)
+
+        let read2 = writerReader.read { () -> Bool in
+            print("Read 2")
+            return state
+        }
+        XCTAssert(!read2)
+        print(read2)
+
+        testGroup.enter()
+        DispatchQueue.global().asyncAfter(secondsSinceNow: 0.5) {
+            let read3 = writerReader.read { () -> Bool in
+                print("Read 3")
+                return state
+            }
+            print(read3)
+            XCTAssert(read3)
+            self.testGroup.leave()
+        }
+        
+        print("About to write")
+        writerReader.write {
+            sleep(1)
+            print("Write 1")
+            state = true;
+        }
+    }
+    
+    
 //    func testPerformanceExample() {
 //        // This is an example of a performance test case.
 //        self.measure {
