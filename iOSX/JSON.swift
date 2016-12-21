@@ -13,6 +13,7 @@ import Foundation
 /**
  Protocol one can adopt to convert to and from JSON primative types: Number, String, NULL, Array, Dictionary
  
+ Example of protocol extension on Date to transform to/from ISO8601 date format:
  ```
  extension Date: JSONTransformable {
     public func toJSONType() -> JSON {

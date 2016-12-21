@@ -67,7 +67,7 @@ open class CoalescingTimer {
      
      - Parameter duration: The duration in seconds between start and when the closure is invoked.
      - Parameter repeats: Indicate if timer should repeat. Defaults to false
-     - Parameter tolerance: The percentage of time after the scheduled fire date that the timer may fire. Defaults to 0.1. Range 0.0...1.0. Using a tolerance when timing accuracy is not crucial but it allows the OS to better optimize for power and CPU usage.
+     - Parameter tolerance: The percentage of time after the scheduled fire date that the timer may fire. Defaults to 0.1. Range 0.0...1.0. Using a non-zero tolerance value when timing accuracy is not crucial allows the OS to better optimize for power and CPU usage.
      - Parameter handler: The closure to be invoked when the timer fires.
     */
     open func start(duration: TimeInterval, repeats: Bool = false, tolerance:Float = 0.1, closure: @escaping (CoalescingTimer)->()) {
