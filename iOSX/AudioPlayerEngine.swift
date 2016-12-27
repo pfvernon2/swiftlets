@@ -125,7 +125,7 @@ public class AudioPlayerEngine: NSObject {
     
     //MARK: - Public Methods
 
-    public func setTrack(url:NSURL) -> Bool {
+    @discardableResult public func setTrack(url:NSURL) -> Bool {
         let wasPlaying:Bool = isPlaying()
         if wasPlaying {
             _stop()

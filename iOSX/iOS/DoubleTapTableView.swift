@@ -9,7 +9,7 @@
 import UIKit
 
 protocol DoubleTapTableViewDelegate: UITableViewDelegate {
-    func tableView(tableView: UITableView, didDoubleTapRowAtIndexPath indexPath: NSIndexPath)
+    func tableView(tableView: UITableView, didDoubleTapRowAtIndexPath indexPath: IndexPath)
 }
 
 /**
@@ -26,7 +26,7 @@ class DoubleTapTableView: UITableView {
         touches.forEach { (touch) in
             if touch.tapCount == 2 {
                 if let row:IndexPath = indexPathForRow(at: touch.location(in: self)) {
-                    doubleTapDelegate?.tableView(tableView: self, didDoubleTapRowAtIndexPath: row as NSIndexPath)
+                    doubleTapDelegate?.tableView(tableView: self, didDoubleTapRowAtIndexPath: row)
                 }
             }
         }
