@@ -72,17 +72,23 @@ public class AudioPlayerEngine: NSObject {
         }
         
         set(seconds) {
-            if let currentAudioFile = self.audioFile {
-                let wasPlaying:Bool = self.isPlaying()
-                if wasPlaying {
-                    _stop()
-                }
-                
-                self.seekPosition = AVAudioFramePosition(seconds * currentAudioFile.fileFormat.sampleRate)
-                
-                if wasPlaying {
-                    _play()
-                }
+            guard let audioFile = self.audioFile else {
+                return
+            }
+            
+            let newPosition:AVAudioFramePosition = AVAudioFramePosition(seconds * audioFile.fileFormat.sampleRate)
+            
+            //if newPosition > audioFile.length then we are scheduling past end of file, allowing this for now as nothing bad happens
+
+            let wasPlaying:Bool = self.isPlaying()
+            if wasPlaying {
+                _stop()
+            }
+            
+            self.seekPosition = newPosition
+            
+            if wasPlaying {
+                _play()
             }
         }
     }
@@ -98,7 +104,9 @@ public class AudioPlayerEngine: NSObject {
         }
         
         set(position) {
-            let offsetSeconds:TimeInterval = self.trackLength * TimeInterval(position)
+            //avoid position going negative
+            let positionFloor = max(position, 0.0)
+            let offsetSeconds:TimeInterval = self.trackLength * TimeInterval(positionFloor)
             self.trackPosition = offsetSeconds
         }
     }
@@ -331,13 +339,17 @@ public class AudioPlayerEngine: NSObject {
     }
     
     private func readNextBuffer(buffer:AVAudioPCMBuffer) -> Bool {
+        guard let audioFile = self.audioFile, audioFile.framePosition < audioFile.length else {
+            return false
+        }
+        
         do {
-            try self.audioFile?.read(into: buffer)
+            try audioFile.read(into: buffer)
+            return buffer.frameLength > 0
         } catch let error as NSError {
             print("Exception in buffer read: \(error.localizedDescription)")
+            return false
         }
-
-        return buffer.frameLength > 0
     }
 
     //MARK: - Session notificaiton handling
