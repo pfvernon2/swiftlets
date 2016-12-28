@@ -10,7 +10,7 @@ import Foundation
 
 public extension DispatchQueue {
     private func dispatchTimeSinceNow(seconds: TimeInterval) -> DispatchTime {
-        let microseconds:Int = Int(seconds.toMicroseconds())
+        let microseconds:Int = Int(seconds * 1000000)
         let dispatchOffset:DispatchTime = .now() + .microseconds(microseconds)
         return dispatchOffset
     }
