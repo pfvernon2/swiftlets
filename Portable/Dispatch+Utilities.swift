@@ -24,6 +24,28 @@ public extension DispatchQueue {
     func asyncAfter(secondsSinceNow seconds: TimeInterval, execute: DispatchWorkItem) {
         asyncAfter(deadline: dispatchTimeSinceNow(seconds: seconds), execute: execute)
     }
+    
+    private static var _onceTracker = [String]()
+    
+    /**
+     Executes a block of code, associated with a unique token, only once.  The code is thread safe and will
+     only execute the code once even in the presence of multithreaded calls.
+     
+     - parameter token: A unique reverse DNS style name such as com.vectorform.<name> or a GUID
+     - parameter block: Block to execute once
+     */
+    public class func once(token: String, closure:()->()) {
+        defer { objc_sync_exit(self) }
+
+        objc_sync_enter(self)
+        
+        if _onceTracker.contains(token) {
+            return
+        }
+        
+        _onceTracker.append(token)
+        closure()
+    }
 }
 
 /**

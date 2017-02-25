@@ -8,26 +8,29 @@
 
 import UIKit
 
-// MARK: -
+// MARK: - pathComponents
 
 ///Protocol representing a path string with a uniform seperator as an array of indivdual string components.
 /// Use of the protocol normalizes paths to their canonical form, i.e. it removes extraneous path seperators and empty paths.
 public protocol pathComponents:CustomStringConvertible {
-    //The seperator to be used between elements in the path, for example "/"
+    ///The seperator to be used between elements in the path, for example "/"
     var seperator:Character { get set }
     
-    //The components of the path
+    ///The components of the path
     var components:[String] { get set }
     
-    //An indication of whether the path is fully qualified or not. e.g. it begins at root directory
+    ///An indication of whether the path is fully qualified or not. e.g. it begins at root directory
+    ///
+    /// - note: This value should defualt to 'true' in implementions where you prefer to return
+    /// a fully qualified path immediatley after initialization. See UnixPathComponents for example.
     var isFullyQualified:Bool { get set }
-
-    //An indication of whether the path is a leaf node or not. e.g. is it a file or a directory
+    
+    ///An indication of whether the path is a leaf node or not. e.g. is it a file or a directory
     var isLeaf:Bool { get set }
     
     ///Default initializer, you must implement this in your concrete instance
     init()
-
+    
     ///Initialize with path as string, implemented in default extension
     init(path:String)
     
@@ -54,13 +57,19 @@ public extension pathComponents {
         //isFullyQualified - follows parent object
         isLeaf = pathComponents.isLeaf
     }
-
+    
     var description:String {
-        var result:String = components.joined(separator: String(seperator))
+        var result:String = String()
+        
         if isFullyQualified {
-            result.insert(seperator, at: result.startIndex)
+            result.append(seperator)
         }
-        if !isLeaf && components.count > 0 {
+        
+        if !components.isEmpty {
+            result.append(components.joined(separator: String(seperator)))
+        }
+        
+        if !isLeaf && !components.isEmpty {
             result.append(seperator)
         }
         return result
@@ -72,21 +81,22 @@ public struct UnixPathComponents:pathComponents {
     public var seperator: Character = "/"
     public var components: [String] = []
     public var isLeaf: Bool = true
+    //default is true so that we return fully qualified path immediatly after initialization
     public var isFullyQualified: Bool = true
     
     public init() {
     }
 }
 
-typealias HTTPURLPathComponents = UnixPathComponents
-typealias FileURLPathComponents = UnixPathComponents
+public typealias HTTPURLPathComponents = UnixPathComponents
+public typealias FileURLPathComponents = UnixPathComponents
 
-// MARK: -
+// MARK: - URLComponents
 
 public extension URLComponents {
     //Enumeration for common URL schemes
     public enum urlSchemes: String {
-        case http, file
+        case http, https, file
     }
     
     ///Convenience initializer to build object from components rather than from string or URL
@@ -95,7 +105,7 @@ public extension URLComponents {
          port:Int? = nil,
          user:String? = nil,
          password:String? = nil,
-         pathComponents:UnixPathComponents? = nil) {
+         pathComponents:HTTPURLPathComponents? = nil) {
         self.init()
         self.scheme = scheme?.rawValue
         self.host = host
@@ -108,21 +118,27 @@ public extension URLComponents {
     }
     
     ///Access path as array of path components
-    public var pathComponents:UnixPathComponents {
+    public var pathComponents:HTTPURLPathComponents {
         get {
-            return UnixPathComponents(path: self.path)
+            return HTTPURLPathComponents(path: self.path)
         }
         
         set (pathComponents) {
             self.path = pathComponents.description
         }
     }
-        
+    
     ///Append multiple path components to the current path. Extraneous path seperators will be automatically removed.
-    mutating func append(pathComponents components:UnixPathComponents) {
-        var components = self.pathComponents
-        components.append(pathComponents: components)
-        self.pathComponents = components
+    mutating func append(path:String) {
+        let pathComponents:HTTPURLPathComponents = HTTPURLPathComponents(path:path)
+        append(pathComponents: pathComponents)
+    }
+    
+    ///Append multiple path components to the current path. Extraneous path seperators will be automatically removed.
+    mutating func append(pathComponents components:HTTPURLPathComponents) {
+        var currentPathComponents = self.pathComponents
+        currentPathComponents.append(pathComponents: components)
+        self.pathComponents = currentPathComponents
     }
     
     ///Append multiple query parameters to the current set of query parameters.
@@ -136,12 +152,12 @@ public extension URLComponents {
             queryItems = parameters
         }
     }
-
+    
     ///Create and return URL based on current components by appending supplied paths and parameters.
     /// This is useful for working with templated URLs where path and/or query may vary.
     ///
     ///- Note: This method DOES NOT mutate the URLComponent object.
-    func URLByAppending(pathComponents components:UnixPathComponents? = nil, parameters:[URLQueryItem]? = nil) -> URL? {
+    func URLByAppending(pathComponents components:HTTPURLPathComponents? = nil, parameters:[URLQueryItem]? = nil) -> URL? {
         var baseURLCopy = (self as NSURLComponents).copy() as! URLComponents
         
         //append sub-path if supplied
@@ -157,9 +173,32 @@ public extension URLComponents {
         //ensure base URL is valid (after path/params updated)
         return baseURLCopy.url
     }
+    
+    var queryItemDictionary:[String:String]? {
+        get {
+            guard let queryItems = queryItems else {
+                return nil
+            }
+            
+            let queryItemPairs:[(String,String)] = queryItems.map { (queryItem) -> (String,String) in
+                return (queryItem.name, queryItem.value ?? "")
+            }
+            return Dictionary(queryItemPairs)
+        }
+    }
 }
 
-// MARK: -
+// MARK: - NSCharacterSet
+
+public extension NSCharacterSet {
+    public static let urlQueryItemParamAndValueAllowed:CharacterSet = {
+        var allowedQueryParamAndKey = NSCharacterSet.urlQueryAllowed
+        allowedQueryParamAndKey.remove(charactersIn: ";/?:@&=+$, ")
+        return allowedQueryParamAndKey
+    }()
+}
+
+// MARK: - URLQueryItem
 
 public extension URLQueryItem {
     public init(name: String, intValue: Int) {
@@ -176,19 +215,25 @@ public extension URLQueryItem {
     
     ///Utility method to return the URL Query Item description with the name and value escaped for use in a URL query
     public func urlEscapedDescription() -> String? {
-        guard let encodedName = self.name.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
+        guard let encodedName = self.name.addingPercentEncoding(withAllowedCharacters: NSCharacterSet.urlQueryItemParamAndValueAllowed) else {
             return nil
         }
         
-        guard let encodedValue = self.value?.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
+        guard let encodedValue = self.value?.addingPercentEncoding(withAllowedCharacters: NSCharacterSet.urlQueryItemParamAndValueAllowed) else {
             return nil
         }
         
         return encodedName + "=" + encodedValue
     }
+    
+    static func urlEscapedDescription(queryItems:[URLQueryItem]) -> String? {
+        return queryItems.flatMap { (queryItem) -> String? in
+            return queryItem.urlEscapedDescription()
+            }.joined(separator: "&")
+    }
 }
 
-// MARK: -
+// MARK: - URLRequest
 
 fileprivate let rfc2822LineEnding:String = "\r\n"
 
@@ -204,21 +249,22 @@ public extension URLRequest {
      - Returns: True if form section was appended, false otherwise
      */
     @discardableResult mutating func appendJPEGImageFormSection(withBoundary boundary:String = UUID().uuidString,
-                                    image:UIImage,
-                                    fileName:String,
-                                    isFinal:Bool = false) -> Bool {
+                                                                image:UIImage,
+                                                                fileName:String,
+                                                                name:String? = nil,
+                                                                isFinal:Bool = false) -> Bool {
         guard let scaledImageData:Data = UIImageJPEGRepresentation(image, 1.0) else {
             return false
         }
-
+        
         return appendFormSection(withBoundary: boundary,
                                  mimeType: "image/jpeg",
-                                 name: "data",
+                                 name: name ?? "data",
                                  fileName: fileName,
                                  contentData: scaledImageData,
                                  isFinal: isFinal)
     }
-
+    
     /**
      Appends a form section to a URLRequest body.
      
@@ -228,20 +274,31 @@ public extension URLRequest {
      - Parameter fileName: The filename for the form section
      - Parameter contentData: The content data for the form section
      - Parameter isFinal: Boolean indicating if a MIME boundary termination should be included
-
+     
      - Returns: True if form section was appended, false otherwise
      */
     @discardableResult mutating func appendFormSection(withBoundary boundary:String = UUID().uuidString,
-                           mimeType:String,
-                           name:String,
-                           fileName:String,
-                           contentData:Data,
-                           isFinal:Bool = false) -> Bool {
-        var boundaryHeader:String = "--\(boundary)" + rfc2822LineEnding
-        boundaryHeader += "Content-Disposition: form-data; name=\"\(name)\"; filename=\"\(fileName)\""  + rfc2822LineEnding
-        boundaryHeader += "Content-Type: \(mimeType)" + rfc2822LineEnding
+                                                       mimeType:String? = nil,
+                                                       name:String,
+                                                       fileName:String? = nil,
+                                                       contentData:Data,
+                                                       isFinal:Bool = false) -> Bool {
+        var boundaryHeader:String = "--\(boundary)"
         boundaryHeader += rfc2822LineEnding
-
+        
+        boundaryHeader += "Content-Disposition: form-data; name=\"\(name)\""
+        if let fileName = fileName {
+            boundaryHeader += "; filename=\"\(fileName)\""
+        }
+        boundaryHeader += rfc2822LineEnding
+        
+        if let mimeType = mimeType {
+            boundaryHeader += "Content-Type: \(mimeType)"
+            boundaryHeader += rfc2822LineEnding
+        }
+        
+        boundaryHeader += rfc2822LineEnding
+        
         guard let boundaryHeaderData:Data = boundaryHeader.data(using: String.Encoding.utf8) else {
             return false
         }
@@ -255,7 +312,7 @@ public extension URLRequest {
                 return false
             }
             section.append(boundaryTerminationData)
-       }
+        }
         
         if httpBody == nil {
             httpBody = Data()
