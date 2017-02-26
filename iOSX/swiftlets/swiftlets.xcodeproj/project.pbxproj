@@ -142,6 +142,7 @@
 				01B4044C1DCBFADA00EA7400 /* JSON & REST */,
 				01382E891DC66D5B00B55A9C /* RemoteImageCache.swift */,
 				011914C21D74984D009B578A /* Dispatch+Utilities.swift */,
+				01947BE31E62197300C1FF1D /* Operation+Concurrency.swift */,
 				01C4FA5B1E0B217E00E96F4F /* UserDefaultsTextField.swift */,
 				0130BE241DBA9203008EEEE4 /* CSVHelper.swift */,
 				012047C01D0C854A00E79510 /* UIApplication+Utilities.swift */,
@@ -166,7 +167,6 @@
 				01E759521CDD373C00DA15F1 /* String+Utilities.swift */,
 				016965841E142D1E00038275 /* UIGraphics+Utilities.swift */,
 				01E769771CF22D1500866433 /* DateFormatter+Utilities.swift */,
-				01947BE31E62197300C1FF1D /* Operation+Concurrency.swift */,
 				01ADE31A1D34AD5E005424EF /* UIFont+Utilities.swift */,
 				01D1ED141D415FE600886D3D /* Platform.swift */,
 			);

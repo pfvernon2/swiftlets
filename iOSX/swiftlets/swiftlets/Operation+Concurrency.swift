@@ -8,39 +8,59 @@
 
 import Foundation
 
-@objc private enum OperationState: Int {
-    case ready
-    case executing
-    case finished
+//MARK: - Operation extension
+
+extension Operation {
+    func addDependencies(_ operations:[Operation]) {
+        operations.forEach { (operation) in
+            self.addDependency(operation)
+        }
+    }
+    
+    func removeDependencies(_ operations:[Operation]) {
+        operations.forEach { (operation) in
+            self.removeDependency(operation)
+        }
+    }
 }
 
-/// An abstract class that makes building simple asynchronous operations easy.
-/// Subclasses must implement execute() to perform any work and call
-/// finish() when they are done. All Operation class work will be handled
-/// automatically.
-open class Operation: Foundation.Operation {
+//MARK: -
+
+/**
+ Baseclass for implementing typical synchronous operation objects in Swift. This class,
+ and it's sibling AsynchronousOperation, deal with the unfortunate ugliness of the
+ KVO and state machine requirements of the Operation class.
+ 
+ To use:
+ - Implement execute() in your subclass to perform the work of your operation.
+ - finish() must be called upon completion, or after cancellation.
+ */
+open class SynchronousOperation: Operation {
+    // MARK: - Enumeration
+    
+    @objc private enum OperationState: Int {
+        case ready, executing, finished
+    }
     
     // MARK: - Properties
     
-    private let stateQueue = DispatchQueue(
-        label: "com.cyberdev.operation.state",
-        attributes: .concurrent)
+    private let stateQueue = DispatchQueue(label: "com.cyberdev.operation.state",
+                                           attributes: .concurrent)
     
-    private var rawState = OperationState.ready
-    
+    private var _state = OperationState.ready
     @objc private dynamic var state: OperationState {
         get {
-            return stateQueue.sync(execute: { rawState })
+            return stateQueue.sync { _state }
         }
         
         set {
             willChangeValue(forKey: "state")
-            stateQueue.sync(
-                flags: .barrier,
-                execute: { rawState = newValue })
+            stateQueue.sync(flags: .barrier) { _state = newValue }
             didChangeValue(forKey: "state")
         }
     }
+    
+    // MARK: Required Operation overrides
     
     public final override var isReady: Bool {
         return state == .ready && super.isReady
@@ -54,28 +74,29 @@ open class Operation: Foundation.Operation {
         return state == .finished
     }
     
+    // MARK: - KVO
     
-    // MARK: - NSObject
-    
-    @objc private dynamic class func keyPathsForValuesAffectingIsReady() -> Set<String> {
-        return ["state"]
+    override open class func keyPathsForValuesAffectingValue(forKey key: String) -> Set<String> {
+        var keyPaths = super.keyPathsForValuesAffectingValue(forKey: key)
+        
+        switch key {
+        case "isReady",
+             "isExecuting",
+             "isFinished":
+            keyPaths = ["state"]
+        default:
+            break
+        }
+        
+        return keyPaths
     }
     
-    @objc private dynamic class func keyPathsForValuesAffectingIsExecuting() -> Set<String> {
-        return ["state"]
-    }
-    
-    @objc private dynamic class func keyPathsForValuesAffectingIsFinished() -> Set<String> {
-        return ["state"]
-    }
-    
-    
-    // MARK: - Foundation.Operation
+    // MARK: - Operation overrides
     
     public override final func start() {
         super.start()
         
-        if isCancelled {
+        guard !isCancelled else {
             finish()
             return
         }
@@ -84,19 +105,26 @@ open class Operation: Foundation.Operation {
         execute()
     }
     
-    
-    // MARK: - Public
-    
-    /// Subclasses must implement this to perform their work and they must not
-    /// call `super`. The default implementation of this function throws an
-    /// exception.
+    /// Subclasses must override this method to perform their work.
     open func execute() {
-        fatalError("Subclasses must implement `execute`.")
+        //finish must always be called when returning from execute
+        defer {
+            finish()
+        }
+        
+        fatalError("Subclasses of SynchronousOperation must implement execute().")
     }
-    
-    /// Call this function after any work is done or after a call to `cancel()`
-    /// to move the operation into a completed state.
+
+    /// This method must be called when execute is exiting.
     public final func finish() {
         state = .finished
+    }
+}
+
+//MARK: -
+
+open class AsynchronousOperation: SynchronousOperation {
+    public final override var isAsynchronous: Bool {
+        return true
     }
 }
