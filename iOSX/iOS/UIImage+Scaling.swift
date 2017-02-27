@@ -9,29 +9,36 @@
 import UIKit
 
 extension UIImage {
-    func scale(toSize size:CGSize) -> UIImage? {
-        let colorSpace:CGColorSpace = CGColorSpaceCreateDeviceRGB()        
-        let context:CGContext = CGContext(data: nil, width: Int(size.width), height: Int(size.height), bitsPerComponent: 8, bytesPerRow: 0, space: colorSpace, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!
-        context.clear(CGRect(x: 0, y: 0, width: size.width, height: size.height))
-
-        UIGraphicsPushContext(context)
-        if self.imageOrientation == .right
-        {
-            context.rotate(by: CGFloat(-M_PI_2))
-            context.translateBy(x: -size.height, y: 0.0)
-            draw(in: CGRect(x: 0, y: 0, width: size.height, height: size.width))
+    func scale(toSize size:CGSize, flip:Bool = false) -> UIImage? {
+        let newRect:CGRect = CGRect(x:0, y:0, width:size.width, height:size.height).integral
+        
+        UIGraphicsBeginImageContextWithOptions(size, false, 0)
+        guard let context:CGContext = UIGraphicsGetCurrentContext() else {
+            return nil
         }
-        else {
-            draw(in: CGRect(x: 0, y: 0, width: size.width, height: size.height))
+        
+        // Set the quality level to use when rescaling
+        context.interpolationQuality = CGInterpolationQuality.high
+        
+        //flip if requested
+        if flip {
+            let flipVertical:CGAffineTransform = CGAffineTransform(a: 1, b: 0, c: 0, d: -1, tx: 0, ty: size.height)
+            context.concatenate(flipVertical)
         }
-        UIGraphicsPopContext()
-
-        var image:UIImage? = nil
-        if let scaledImage:CGImage = context.makeImage() {
-            image = UIImage(cgImage: scaledImage)
+        
+        // Draw into the context; this scales the image
+        draw(in: newRect)
+        
+        // Get the resized image from the context and a UIImage
+        guard let newImageRef:CGImage = context.makeImage() else {
+            return nil
         }
-
-        return image
+        
+        let newImage:UIImage = UIImage(cgImage: newImageRef)
+        
+        UIGraphicsEndImageContext()
+        
+        return newImage;
     }
     
     func scaleProportional(toSize size:CGSize) -> UIImage? {
