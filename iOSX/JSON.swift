@@ -16,17 +16,17 @@ import Foundation
  Example of protocol extension on Date to transform to/from ISO8601 date format:
  ```
  extension Date: JSONTransformable {
-    public func toJSONType() -> JSON {
-        return JSON(ISO8601DateFormatter().string(from: self))
-    }
- 
-    public static func fromJSONType(json:JSON) -> Date? {
-        guard let jsonString:String = json.asString else {
-            return nil
-        }
- 
-        return ISO8601DateFormatter().date(from: jsonString)
-    }
+     public func toJSONType() -> JSON {
+         return JSON(ISO8601DateFormatter().string(from: self))
+     }
+     
+     public static func fromJSONType(json:JSON) -> Date? {
+         guard let jsonString:String = json.asString else {
+             return nil
+     }
+     
+         return ISO8601DateFormatter().date(from: jsonString)
+     }
  }
  ```
  */
@@ -39,8 +39,8 @@ public protocol JSONTransformable {
  Representation of a JSON element which may have a nil (NULL) value. Nil values
  will be substitued with NSNull() objects automatically when added to a JSON object.
  
- This is useful primarily for creating JSON objects where the value may be nil. 
-*/
+ This is useful primarily for creating JSON objects where the value may be nil.
+ */
 public typealias JSONElement = [String:Any?]
 
 /// init
@@ -57,6 +57,9 @@ final public class JSON {
         case let json as JSON:
             return json.value
             
+        case let transform as JSONTransformable:
+            return unwrap(transform.toJSONType())
+            
         case let element as JSONElement:
             return element.mapPairs { (key, value) in (key, unwrap(value)) }
             
@@ -66,12 +69,21 @@ final public class JSON {
         case let dictionary as Dictionary<String, Any>:
             return dictionary.mapPairs { (key, value) in (key, unwrap(value)) }
             
-        case is Int, is UInt, is Double, is Bool, is String, is NSNull, is NSError:
+        case is Int, is Int8, is Int16, is Int32, is Int64:
+            fallthrough
+            
+        case is UInt, is UInt8, is UInt16, is UInt32, is UInt64:
+            fallthrough
+
+        case is Double, is Float, is Float80:
+            fallthrough
+            
+        case is Bool, is String:
+            fallthrough
+
+        case is NSNull, is NSError:
             return obj
-            
-        case let transform as JSONTransformable:
-            return unwrap(transform.toJSONType())
-            
+
         default:
             assert(false, "not a valid type for JSON encoding")
             return NSError(
@@ -466,7 +478,7 @@ extension JSON {
         }
     }
     
-    /// if self holds NSArray, gives a [JSON]
+    /// if self holds Array, gives a [JSON]
     /// with elements therein. nil otherwise
     public var asArray:[JSON]? {
         switch value {
@@ -481,8 +493,11 @@ extension JSON {
         }
     }
     
-    /// if self holds NSDictionary, gives a [String:JSON]
+    /// if self holds Dictionary, gives a [String:JSON]
     /// with elements therein. nil otherwise
+    /// - note: This returns a [String:JSON] dictionary for
+    /// workig with JSON elements if you need a [String:Any]
+    /// dictionary see .asElement
     public var asDictionary:[String:JSON]? {
         switch value {
         case let dictionary as NSDictionary:
@@ -497,8 +512,11 @@ extension JSON {
         }
     }
     
-    /// if self holds NSDictionary, gives a JSONElement
+    /// if self holds Dictionary, gives a JSONElement
     /// with elements therein. nil otherwise
+    /// - note: This returns a [String:Any] dictionary for
+    /// working with native json types if you need a [String:JSON]
+    /// dictionary see .asDictionary
     public var asElement:JSONElement? {
         switch value {
         case let dictionary as NSDictionary:
@@ -660,23 +678,36 @@ public func ==(lhs:JSON, rhs:JSON)->Bool {
 
 //MARK: - NSURLSession JSON Extensions
 
+public extension URLSessionConfiguration {
+    ///Sensible defaults for a REST style session
+    public class func RESTConfiguration() -> URLSessionConfiguration {
+        let config:URLSessionConfiguration = URLSessionConfiguration.default
+        config.httpAdditionalHeaders = ["User-Agent": "iOS; REST client"]
+        config.timeoutIntervalForRequest = 60.0
+        config.requestCachePolicy = .reloadIgnoringLocalCacheData
+        return config
+    }
+}
+
 public extension URLSession {
-    public typealias HTTPJSONSuccessClosure = (HTTPURLResponse, JSON) -> Void
-    public typealias HTTPJSONFailureClosure = (HTTPURLResponse? , Error?) -> Void
+    public typealias HTTPSuccessClosure = (HTTPURLResponse, JSON) -> Void
+    public typealias HTTPFailureClosure = (HTTPURLResponse? , Error?) -> Void
     
     public enum JSONSessionErrors: Error {
         case invalidQueryItem(String)
         case badHTTPResponse(Data)
     }
     
+    public enum HTTPHeaders:String {
+        case accept = "Accept"
+        case contentType = "Content-Type"
+    }
+    
     private enum HTTPMethods:String {
         case get = "GET"
         case post = "POST"
-    }
-    
-    private enum HTTPHeaders:String {
-        case accept = "Accept"
-        case contentType = "Content-Type"
+        case put = "PUT"
+        case delete = "DELETE"
     }
     
     private enum HTTPContentType:String {
@@ -687,103 +718,67 @@ public extension URLSession {
     //MARK: - Get
     
     /**
-     Perform GET request and expect JSON result in response.
+     Perform GET request
      
      - note: It is guaranteed that exactly one of the success or failure closures will be invoked after this method is called regardless of whether a valid NSURLSessionDataTask is returned.
      
      - Parameter url: The url of the request
+     - Parameter headers: Additional headers for the request, if necessary.
      - Parameter success: A closure to be called on success. The NSURLResponse and a JSON object will be included.
      - Parameter failure: A closure to be called on failure. The NSURLResponse and an error may be included.
      - returns: NSURLSessionDataTask already resumed
      */
-    @discardableResult func httpGet(with url:URL, success:@escaping HTTPJSONSuccessClosure, failure:@escaping HTTPJSONFailureClosure) -> URLSessionDataTask?
+    @discardableResult func httpGet(with url:URL, headers:[String:String]? = nil, success:@escaping HTTPSuccessClosure, failure:@escaping HTTPFailureClosure) -> URLSessionDataTask?
     {
         return httpDataTask(with: url,
                             method: .get,
+                            headers: headers,
                             success: success,
                             failure: failure)
     }
     
-    //MARK: - POST
+    //MARK: - Put
     
     /**
-     Perform POST request and expect JSON result in response.
-     
-     - note: It is guaranteed that exactly one of the success or failure closures will be invoked after this method is called regardless of whether a valid NSURLSessionDataTask is returned.
-     
-     - Parameter url: The url of the request
-     - Parameter success: A closure to be called on success. The NSURLResponse and a JSON object will be included.
-     - Parameter failure: A closure to be called on failure. The NSURLResponse and an error may be included.
-     - returns: NSURLSessionDataTask already resumed
-     */
-    @discardableResult func httpPost(with url:URL, success:@escaping HTTPJSONSuccessClosure, failure:@escaping HTTPJSONFailureClosure) -> URLSessionDataTask?
-    {
-        return httpDataTask(with: url,
-                            method: .post,
-                            contentType: .applicationJSON,
-                            success: success,
-                            failure: failure)
-    }
-    
-    /**
-     Perform POST request with a JSON payload in the body and expect JSON result in response.
+     Perform PUT request with a JSON payload
      
      - note: It is guaranteed that exactly one of the success or failure closures will be invoked after this method is called regardless of whether a valid NSURLSessionDataTask is returned.
      
      - Parameter url: The url of the request
      - Parameter bodyJSON: A JSON object to included as the body of the post
+     - Parameter headers: Additional headers for the request, if necessary.
      - Parameter success: A closure to be called on success. The NSURLResponse and a JSON object will be included.
      - Parameter failure: A closure to be called on failure. The NSURLResponse and an error may be included.
      - returns: NSURLSessionDataTask already resumed
      */
-    @discardableResult func httpPost(with url:URL, bodyJSON:JSON, success:@escaping HTTPJSONSuccessClosure, failure:@escaping HTTPJSONFailureClosure) -> URLSessionDataTask?
+    @discardableResult func httpPut(with url:URL, bodyJSON:JSON? = nil, headers:[String:String]? = nil, success:@escaping HTTPSuccessClosure, failure:@escaping HTTPFailureClosure) -> URLSessionDataTask?
     {
         return httpDataTask(with: url,
-                            method: .post,
+                            method: .put,
+                            headers: headers,
                             contentType: .applicationJSON,
-                            body: bodyJSON.toData(),
+                            body: bodyJSON?.toData(),
                             success: success,
                             failure: failure)
     }
     
     /**
-     Perform POST request with a URL parameter payload in the body and expect JSON result in response.
+     Perform PUT request with a URL parameter payload
      
      - note: It is guaranteed that exactly one of the success or failure closures will be invoked after this method is called regardless of whether a valid NSURLSessionDataTask is returned.
      
      - Parameter url: The url of the request
      - Parameter bodyParameters: An array of NSURLQueryItem objects to be escaped and included in the body of the post
+     - Parameter headers: Additional headers for the request, if necessary.
      - Parameter success: A closure to be called on success. The NSURLResponse and a JSON object will be included.
      - fParameter ailure: A closure to be called on failure. The NSURLResponse and an error may be included.
      - returns: NSURLSessionDataTask already resumed
      */
-    @discardableResult func httpPost(with url:URL, bodyParameters:[URLQueryItem], success:@escaping HTTPJSONSuccessClosure, failure:@escaping HTTPJSONFailureClosure) -> URLSessionDataTask?
+    @discardableResult func httpPut(with url:URL, bodyParameters:[URLQueryItem], headers:[String:String]? = nil, success:@escaping HTTPSuccessClosure, failure:@escaping HTTPFailureClosure) -> URLSessionDataTask?
     {
-        func escapedURLQueryItem(item:URLQueryItem) -> String? {
-            guard let encodedName = item.name.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
-                return nil
-            }
-            
-            guard let encodedValue = item.value?.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
-                return nil
-            }
-            
-            return encodedName + "=" + encodedValue
-        }
-        
-        
-        //Build body from (escaped) body parameters
-        var body:String = ""
-        bodyParameters.forEach { (queryItem) in
-            guard let escapedQueryItem = escapedURLQueryItem(item: queryItem) else {
-                failure(nil, JSONSessionErrors.invalidQueryItem(queryItem.description))
-                return
-            }
-            
-            if !body.isEmpty {
-                body.append("&")
-            }
-            body.append(escapedQueryItem)
+        guard let body:String = URLQueryItem.urlEscapedDescription(queryItems: bodyParameters) else {
+            failure(nil, JSONSessionErrors.invalidQueryItem(bodyParameters.description))
+            return nil
         }
         
         return httpDataTask(with: url,
@@ -794,17 +789,92 @@ public extension URLSession {
                             failure: failure)
     }
     
+    //MARK: - Post
+    
+    /**
+     Perform POST request with a JSON payload
+     
+     - note: It is guaranteed that exactly one of the success or failure closures will be invoked after this method is called regardless of whether a valid NSURLSessionDataTask is returned.
+     
+     - Parameter url: The url of the request
+     - Parameter bodyJSON: A JSON object to included as the body of the post
+     - Parameter headers: Additional headers for the request, if necessary.
+     - Parameter success: A closure to be called on success. The NSURLResponse and a JSON object will be included.
+     - Parameter failure: A closure to be called on failure. The NSURLResponse and an error may be included.
+     - returns: NSURLSessionDataTask already resumed
+     */
+    @discardableResult func httpPost(with url:URL, bodyJSON:JSON? = nil, headers:[String:String]? = nil, success:@escaping HTTPSuccessClosure, failure:@escaping HTTPFailureClosure) -> URLSessionDataTask?
+    {
+        return httpDataTask(with: url,
+                            method: .post,
+                            headers: headers,
+                            contentType: .applicationJSON,
+                            body: bodyJSON?.toData(),
+                            success: success,
+                            failure: failure)
+    }
+    
+    /**
+     Perform POST request with a URL parameter payload
+     
+     - note: It is guaranteed that exactly one of the success or failure closures will be invoked after this method is called regardless of whether a valid NSURLSessionDataTask is returned.
+     
+     - Parameter url: The url of the request
+     - Parameter bodyParameters: An array of NSURLQueryItem objects to be escaped and included in the body of the post
+     - Parameter headers: Additional headers for the request, if necessary.
+     - Parameter success: A closure to be called on success. The NSURLResponse and a JSON object will be included.
+     - fParameter ailure: A closure to be called on failure. The NSURLResponse and an error may be included.
+     - returns: NSURLSessionDataTask already resumed
+     */
+    @discardableResult func httpPost(with url:URL, bodyParameters:[URLQueryItem], headers:[String:String]? = nil, success:@escaping HTTPSuccessClosure, failure:@escaping HTTPFailureClosure) -> URLSessionDataTask?
+    {
+        guard let body:String = URLQueryItem.urlEscapedDescription(queryItems: bodyParameters) else {
+            failure(nil, JSONSessionErrors.invalidQueryItem(bodyParameters.description))
+            return nil
+        }
+        
+        return httpDataTask(with: url,
+                            method: .post,
+                            contentType: .formURLEncoded,
+                            body: body.data(using: .utf8),
+                            success: success,
+                            failure: failure)
+    }
+    
+    //MARK: - Delete
+    
+    /**
+     Perform DELETE request
+     
+     - note: It is guaranteed that exactly one of the success or failure closures will be invoked after this method is called regardless of whether a valid NSURLSessionDataTask is returned.
+     
+     - Parameter url: The url of the request
+     - Parameter headers: Additional headers for the request, if necessary.
+     - Parameter success: A closure to be called on success. The NSURLResponse and a JSON object will be included.
+     - fParameter ailure: A closure to be called on failure. The NSURLResponse and an error may be included.
+     - returns: NSURLSessionDataTask already resumed
+     */
+    @discardableResult func httpDelete(with url:URL, headers:[String:String]? = nil, success:@escaping HTTPSuccessClosure, failure:@escaping HTTPFailureClosure) -> URLSessionDataTask?
+    {
+        return httpDataTask(with: url,
+                            method: .delete,
+                            headers: headers,
+                            success: success,
+                            failure: failure)
+    }
+    
     //MARK: - Utility
     
     ///Utilty method to create an automatically resumed data task given the input configuration.
-    /// The body of the result is assumed to be JSON and is parsed and returned as such.
     @discardableResult private func httpDataTask(with url:URL,
                                                  method:HTTPMethods,
+                                                 headers:[String:String]? = nil,
                                                  contentType:HTTPContentType? = nil,
                                                  body:Data? = nil,
-                                                 success:@escaping HTTPJSONSuccessClosure,
-                                                 failure:@escaping HTTPJSONFailureClosure) -> URLSessionDataTask?
+                                                 success:@escaping HTTPSuccessClosure,
+                                                 failure:@escaping HTTPFailureClosure) -> URLSessionDataTask?
     {
+        //method to handle internal result of success
         func dataTaskSuccessHandler(request:URLRequest?, data:Data?, response:HTTPURLResponse, error:Error?) {
             #if DUMP_NETWORK_RESULTS
                 printResult(forRequest: request, data: data, response: response, error: error)
@@ -813,6 +883,7 @@ public extension URLSession {
             success(response, JSON(data: data ?? Data()))
         }
         
+        //method to handle interal result of failure
         func dataTaskFailureHandler(request:URLRequest?, data:Data?, response:HTTPURLResponse?, error:Error?) {
             #if DUMP_NETWORK_RESULTS || DEBUG
                 printResult(forRequest: request, data: data, response: response, error: error)
@@ -826,40 +897,45 @@ public extension URLSession {
         }
         
         //create request
-        let request:NSMutableURLRequest = NSMutableURLRequest(url: url)
-        
-        //configure content-type
-        if let contentType = contentType {
-            request.setValue(contentType.rawValue, forHTTPHeaderField: HTTPHeaders.contentType.rawValue)
-        }
-        
-        //configure request to expect JSON result
-        request.setValue(HTTPContentType.applicationJSON.rawValue, forHTTPHeaderField: HTTPHeaders.accept.rawValue)
+        var request:URLRequest = URLRequest(url: url)
         
         //configure method
         request.httpMethod = method.rawValue
         
-        //add body, if appropriate
-        if let body = body {
-            request.httpBody = body
+        //Add headers
+        //content-type
+        if let contentType = contentType {
+            request.setValue(contentType.rawValue, forHTTPHeaderField: HTTPHeaders.contentType.rawValue)
         }
         
+        //accept JSON in result
+        request.setValue(HTTPContentType.applicationJSON.rawValue, forHTTPHeaderField: HTTPHeaders.accept.rawValue)
+        
+        //additional (user defined) headers
+        headers?.forEach { (key: String, value: String) in
+            request.setValue(value, forHTTPHeaderField: key)
+        }
+        
+        //add body
+        request.httpBody = body
+        
         //create data task
-        let httpDataTask:URLSessionDataTask = dataTask(with: request as URLRequest) { (data, response, error) in
-            if let httpResponse:HTTPURLResponse = response as? HTTPURLResponse {
-                //because we are assuming RESTful style operation require a 2xx class response for success
-                switch httpResponse.statusCode {
-                case 200..<300:
-                    dataTaskSuccessHandler(request: request as URLRequest, data: data, response:httpResponse, error: error)
-                default:
-                    dataTaskFailureHandler(request: request as URLRequest, data: data, response:httpResponse, error: error)
-                }
-            } else {
+        let httpDataTask:URLSessionDataTask = dataTask(with: request) { (data, response, error) in
+            guard let httpResponse:HTTPURLResponse = response as? HTTPURLResponse else {
                 dataTaskFailureHandler(request: request as URLRequest, data: data, response:nil, error: error)
+                return
+            }
+            
+            //because we are assuming RESTful style operation require a 2xx class response for success
+            switch httpResponse.status {
+            case .success:
+                dataTaskSuccessHandler(request: request as URLRequest, data: data, response:httpResponse, error: error)
+                
+            default:
+                dataTaskFailureHandler(request: request as URLRequest, data: data, response:httpResponse, error: error)
             }
         }
         
-        //resume task
         httpDataTask.resume()
         
         return httpDataTask
@@ -867,7 +943,7 @@ public extension URLSession {
     
     ///Utility method to print response and error objects for debugging purposes
     fileprivate func printResult(forRequest request:URLRequest?, data:Data?, response:HTTPURLResponse?, error:Error?) {
-        var result:String = ">>>>>>>>>>\n\nhttpDataTask\n\n"
+        var result:String = ">>>>>>>>>>\n\n\(#file)\n\n"
         
         if let request = request {
             result += String("request: \(request)\n\n")

@@ -14,12 +14,12 @@ public extension DispatchQueue {
         let dispatchOffset:DispatchTime = .now() + .microseconds(microseconds)
         return dispatchOffset
     }
-
+    
     ///asyncAfter with TimeInterval semanics, i.e. microsecond precision out to 10,000 years.
     func asyncAfter(secondsSinceNow seconds: TimeInterval, execute work: @escaping @convention(block) () -> Swift.Void) {
         asyncAfter(deadline: dispatchTimeSinceNow(seconds: seconds), execute: work)
     }
-
+    
     ///asyncAfter with TimeInterval semanics, i.e. microsecond precision out to 10,000 years.
     func asyncAfter(secondsSinceNow seconds: TimeInterval, execute: DispatchWorkItem) {
         asyncAfter(deadline: dispatchTimeSinceNow(seconds: seconds), execute: execute)
@@ -36,7 +36,7 @@ public extension DispatchQueue {
      */
     public class func once(token: String, closure:()->()) {
         defer { objc_sync_exit(self) }
-
+        
         objc_sync_enter(self)
         
         if _onceTracker.contains(token) {
@@ -60,31 +60,31 @@ public extension DispatchQueue {
  */
 open class DispatchReaderWriter {
     private var concurrentQueue:DispatchQueue = DispatchQueue(label: "com.cyberdev.Dispatch.readerWriter", attributes: .concurrent)
-
+    
     public func read<T>(execute work: () throws -> T) rethrows -> T {
         return try self.concurrentQueue.sync(execute: work)
     }
-
+    
     public func write(execute work: @escaping @convention(block) () -> Swift.Void) {
         self.concurrentQueue.async(flags: .barrier, execute: work)
     }
 }
 
 /**
- Reader Writer queue with write priority semantics. Reads occur concurrently and writes serially.
+ This class is similar to a reader writer queue but with write priority semantics. Reads occur concurrently and writes serially.
  
- Execution is based on write priotity at execution time rather than queue insertion order. i.e. Pending reads 
+ Execution is based on write priotity at execution time rather than the first-in semantics of the reader writter queue. i.e. Pending reads
  that have not begun executing will be held off until all writes occur. This is useful in situations where race conditions
  at execution time must be minimized.
  
- - note: This object incurs more overhead than the DispatchReaderWriter class. Its usefulness is likely limited to
+ - note: This object incurs significantly more overhead than the DispatchReaderWriter class. Its usefulness is likely limited to
  cases where it is crucial to minimize race conditions when accessing the data.
  */
 open class DispatchWriterReader {
     private var writeQueue:DispatchQueue = DispatchQueue(label: "com.cyberdev.Dispatch.writerReader.write")
     private var readQueue:DispatchQueue = DispatchQueue(label: "com.cyberdev.Dispatch.writerReader.read", attributes: .concurrent)
     private var readGroup:DispatchGroup = DispatchGroup()
-
+    
     public func read<T>(execute work: () throws -> T) rethrows -> T {
         return try self.readQueue.sync {
             self.readGroup.enter()
@@ -107,16 +107,19 @@ open class DispatchWriterReader {
 ///Templated DispatchReaderWriter class. Useful for thread safe access to a single memeber variable in a class, for example.
 open class readerWriterType<T> {
     private var queue:DispatchReaderWriter = DispatchReaderWriter()
-    private var _value:T? = nil
-    public var value:T? {
+    private var _value:T
+    
+    init(value:T) {
+        _value = value
+    }
+    
+    public var value:T {
         get {
-            var result:T?
-            self.queue.read {
-                result = self._value
+            return self.queue.read { () -> T in
+                return self._value
             }
-            return result
         }
-
+        
         set (newElement) {
             self.queue.write {
                 self._value = newElement
@@ -128,14 +131,17 @@ open class readerWriterType<T> {
 ///Templated DispatchWriterReader class. Useful for thread safe access to a single memeber variable in a class, for example.
 open class writerReaderType<T> {
     private var queue:DispatchWriterReader = DispatchWriterReader()
-    private var _value:T? = nil
-    public var value:T? {
+    private var _value:T
+
+    init(value:T) {
+        _value = value
+    }
+
+    public var value:T {
         get {
-            var result:T?
-            self.queue.read {
-                result = self._value
+            return self.queue.read { () -> T in
+                return self._value
             }
-            return result
         }
         
         set (newElement) {

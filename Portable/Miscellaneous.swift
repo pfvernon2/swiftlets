@@ -17,19 +17,19 @@ extension CGRect {
     static func rectCenteredOn(center:CGPoint, radius:CGFloat) -> CGRect {
         return CGRect(x: floor(center.x - radius), y: floor(center.y - radius), width: floor(radius*2.0), height: floor(radius*2.0))
     }
-
+    
     var top:CGFloat {
         return self.origin.y - self.size.height
     }
-
+    
     var bottom:CGFloat {
         return self.origin.y
     }
-
+    
     var left:CGFloat {
         return self.origin.x
     }
-
+    
     var right:CGFloat {
         return self.origin.x + self.size.width
     }
@@ -39,7 +39,7 @@ extension CGSize {
     func maxDimension() -> CGFloat {
         return width > height ? width : height
     }
-
+    
     func minDimension() -> CGFloat {
         return width < height ? width : height
     }
@@ -49,19 +49,19 @@ extension TimeInterval {
     func toPicoseconds() -> Double {
         return toNanoseconds() * 1000.0
     }
-
+    
     func toNanoseconds() -> Double {
         return toMicroseconds() * 1000.0
     }
-
+    
     func toMicroseconds() -> Double {
         return toMilliseconds() * 1000.0
     }
-
+    
     func toMilliseconds() -> Double {
         return self * 1000.0
     }
-
+    
     func toMinutes() -> Double {
         return self/60.0
     }
@@ -73,12 +73,12 @@ extension TimeInterval {
     func toDays() -> Double {
         return toHours()/24.0
     }
-
+    
     /**
      Returns a localized human readable description of the time interval.
-
+     
      - note: The result is limited to Days, Hours, and Minutes and includes a localized indication of approximation.
-
+     
      Examples:
      * About 14 minutes
      * About 1 hour, 7 minutes
@@ -86,7 +86,7 @@ extension TimeInterval {
     func approximateDurationLocalizedDescription() -> String {
         let start = Date()
         let end = Date(timeInterval: self, since: start)
-
+        
         let formatter = DateComponentsFormatter()
         formatter.unitsStyle = .full
         formatter.includesApproximationPhrase = true
@@ -114,7 +114,7 @@ extension CGAffineTransform {
     func rotationInRadians() -> Double {
         return Double(atan2f(Float(self.b), Float(self.a)))
     }
-
+    
     ///returns the current rotation of the transform in degrees 0.0 - 360.0
     func rotationInDegrees() -> Double {
         var result = Double(rotationInRadians()) * (180.0/M_PI)
@@ -166,5 +166,63 @@ extension CountableCases where Self : RawRepresentable, Self.RawValue == Int {
         var count = 0
         while let _ = Self(rawValue: count) { count += 1 }
         return count
+    }
+}
+
+extension UIApplication {
+    var documentsDirectoryPath:String {
+        guard let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.path else {
+            return ""
+        }
+        return documentsPath
+    }
+}
+
+extension FileManager {
+    func fileExistsInDocuments(atPath path:String) -> Bool {
+        guard let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.path else {
+            return false
+        }
+        
+        var pathURL:URL = URL(fileURLWithPath: documentsPath)
+        pathURL.appendPathComponent(path)
+        return fileExists(atPath: pathURL.path)
+    }
+    
+    func removeItemInDocuments(atPath path:String) throws {
+        guard let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.path else {
+            return
+        }
+        
+        var pathURL:URL = URL(fileURLWithPath: documentsPath)
+        pathURL.appendPathComponent(path)
+        try removeItem(at: pathURL)
+    }
+}
+
+extension NotificationCenter {
+    open func post(name aName: NSNotification.Name) {
+        post(name: aName, object: nil)
+    }
+    
+    open func post(name aName: NSNotification.Name, userInfo aUserInfo: [AnyHashable : Any]?) {
+        post(name: aName, object: nil, userInfo: aUserInfo)
+    }
+}
+
+///Trivial UITableViewCell subclass that configures itself as hidden on creation
+/// This is *very* useful for gracefully handling the return of an 'empty' cell from cellForRowAtIndexPath calls
+/// Don't forget to register the class with your table first
+public class HiddenTableViewCell: UITableViewCell {
+    static let kReuseIdentifier:String = "com.cyberdev.UITableViewCell.HiddenTableViewCell"
+    
+    public required init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+        self.isHidden = true
+    }
+    
+    override init(style: UITableViewCellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
+        self.isHidden = true
     }
 }

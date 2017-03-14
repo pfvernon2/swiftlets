@@ -59,7 +59,7 @@ open class CoalescingTimer {
     }
     
     deinit {
-        stop()
+        self._stop()
     }
     
     /**
@@ -120,7 +120,7 @@ open class CoalescingTimer {
      If the timer is non-repeating it is automatically invalidated after fiing.
      */
     open func fire() {
-        DispatchQueue.main.async { () -> Void in
+        DispatchQueue.main.async {() -> Void in
             if let timer = self.timer, timer.isValid {
                 timer.fire()
             }

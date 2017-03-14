@@ -34,6 +34,9 @@ public protocol pathComponents:CustomStringConvertible {
     ///Initialize with path as string, implemented in default extension
     init(path:String)
     
+    ///Initialize with multiple paths as strings, implemented in default extension
+    init(paths:[String])
+
     ///Append a path to the current path
     mutating func append(pathComponents:pathComponents)
     
@@ -45,11 +48,24 @@ public protocol pathComponents:CustomStringConvertible {
 public extension pathComponents {
     public init(path:String) {
         self.init()
-        components = path.components(separatedBy: String(seperator)).filter { (pathComponent) -> Bool in
-            return !pathComponent.isEmpty
+        components = []
+        append(paths:[path])
+    }
+    
+    public init(paths:[String]) {
+        self.init()
+        components = []
+        append(paths:paths)
+    }
+    
+    mutating func append(paths:[String]) {
+        paths.forEach { (path) in
+            components += path.components(separatedBy: String(seperator)).filter { (pathComponent) -> Bool in
+                return !pathComponent.isEmpty
+            }
         }
-        isFullyQualified = path.hasPrefix(String(seperator))
-        isLeaf = !path.hasSuffix(String(seperator))
+        isFullyQualified = paths.first?.hasPrefix(String(seperator)) ?? false
+        isLeaf = !(paths.last?.hasSuffix(String(seperator)) ?? false)
     }
     
     mutating func append(pathComponents:pathComponents) {
@@ -283,9 +299,15 @@ public extension URLRequest {
                                                        fileName:String? = nil,
                                                        contentData:Data,
                                                        isFinal:Bool = false) -> Bool {
+        //Ensure Content-Type header on the request is set
+        self.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        
+        //Create section boundary and section header
+        //boundary
         var boundaryHeader:String = "--\(boundary)"
         boundaryHeader += rfc2822LineEnding
         
+        //section headers
         boundaryHeader += "Content-Disposition: form-data; name=\"\(name)\""
         if let fileName = fileName {
             boundaryHeader += "; filename=\"\(fileName)\""
@@ -297,6 +319,7 @@ public extension URLRequest {
             boundaryHeader += rfc2822LineEnding
         }
         
+        //add terminating line ending for header section
         boundaryHeader += rfc2822LineEnding
         
         guard let boundaryHeaderData:Data = boundaryHeader.data(using: String.Encoding.utf8) else {
@@ -306,13 +329,17 @@ public extension URLRequest {
         var section:Data = Data()
         section.append(boundaryHeaderData)
         section.append(contentData)
+        
+        //add section termination
+        var boundaryTermination = rfc2822LineEnding
         if isFinal {
-            let boundaryTermination = rfc2822LineEnding + "--\(boundary)--" + rfc2822LineEnding
-            guard let boundaryTerminationData:Data = boundaryTermination.data(using: String.Encoding.utf8) else {
-                return false
-            }
-            section.append(boundaryTerminationData)
+            boundaryTermination += "--\(boundary)--" + rfc2822LineEnding
         }
+
+        guard let boundaryTerminationData:Data = boundaryTermination.data(using: String.Encoding.utf8) else {
+            return false
+        }
+        section.append(boundaryTerminationData)
         
         if httpBody == nil {
             httpBody = Data()

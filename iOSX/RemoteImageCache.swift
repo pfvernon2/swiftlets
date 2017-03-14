@@ -21,7 +21,7 @@ fileprivate let defaultMemoryCacheSize:Int = 100 * 1024 * 1024 //100 MiB
  - Note: This object is thread safe but you may encounter race conditions when updating the caches across multiple threads.
  
  - Note: Each instance of this class manages its own in-memory cache. However, to maintain seperate on-disk caches you must give them unique cache names.
-*/
+ */
 open class RemoteImageCache {
     public var session:URLSession
     fileprivate var memoryCache = NSCache<NSString, UIImage>()
@@ -35,7 +35,19 @@ open class RemoteImageCache {
         memoryCache.totalCostLimit = memoryCapacity
     }
     
-    ///Retrieve image from local cache or from URL. 
+    ///Clear the in-memory cache while maintaining the on-disk cache.
+    /// This is handy for freeing memory when app notified of memory pressure
+    func clearInMemoryCache() {
+        memoryCache.removeAllObjects()
+    }
+    
+    ///Flush both on-disk and in-memory caches
+    func flushCache() {
+        self.session.configuration.urlCache?.removeAllCachedResponses()
+        memoryCache.removeAllObjects()
+    }
+    
+    ///Retrieve image from local cache or from URL.
     /// - Parameter fromURL: URL of the image resource.
     /// - Parameter closure: closure called on success or failure.
     /// - Returns: UIImage or nil if an error occurs.
