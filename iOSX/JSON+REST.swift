@@ -75,7 +75,7 @@ final public class JSON {
         case is UInt, is UInt8, is UInt16, is UInt32, is UInt64:
             fallthrough
 
-        case is Double, is Float, is Float80:
+        case is Double, is Float:
             fallthrough
             
         case is Bool, is String:
@@ -676,7 +676,7 @@ public func ==(lhs:JSON, rhs:JSON)->Bool {
     fatalError("JSON == JSON failed!")
 }
 
-//MARK: - NSURLSession JSON Extensions
+//MARK: - NSURLSession Extensions
 
 public extension URLSessionConfiguration {
     ///Sensible defaults for a REST style session
@@ -688,6 +688,8 @@ public extension URLSessionConfiguration {
         return config
     }
 }
+
+//MARK: - URLSession Extensions
 
 public extension URLSession {
     public typealias HTTPSuccessClosure = (HTTPURLResponse, JSON) -> Void

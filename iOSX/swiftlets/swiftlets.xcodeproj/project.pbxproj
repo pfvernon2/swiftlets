@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0111A0281D2180CD00A9B35E /* HTTPURLResponse+Utility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0111A0271D2180CD00A9B35E /* HTTPURLResponse+Utility.swift */; };
-		0111A02E1D21CB6F00A9B35E /* JSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0111A02D1D21CB6F00A9B35E /* JSON.swift */; };
+		0111A02E1D21CB6F00A9B35E /* JSON+REST.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0111A02D1D21CB6F00A9B35E /* JSON+REST.swift */; };
 		0111A0301D21CBC700A9B35E /* Dictionary+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0111A02F1D21CBC700A9B35E /* Dictionary+Utilities.swift */; };
 		011330811D05CC27002DA0F0 /* String+Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011330801D05CC27002DA0F0 /* String+Localization.swift */; };
 		011914C31D74984D009B578A /* Dispatch+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011914C21D74984D009B578A /* Dispatch+Utilities.swift */; };
@@ -34,6 +34,8 @@
 		01C4FA5C1E0B217E00E96F4F /* UserDefaultsTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01C4FA5B1E0B217E00E96F4F /* UserDefaultsTextField.swift */; };
 		01CD89E21CDD0B24000790C2 /* UIAlertController+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01CD89E11CDD0B24000790C2 /* UIAlertController+Utilities.swift */; };
 		01D1ED151D415FE600886D3D /* Platform.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01D1ED141D415FE600886D3D /* Platform.swift */; };
+		01DB660C1E7AF25600020AB5 /* URLRequest+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01DB660B1E7AF25600020AB5 /* URLRequest+Utilities.swift */; };
+		01DB660D1E7AF25600020AB5 /* URLRequest+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01DB660B1E7AF25600020AB5 /* URLRequest+Utilities.swift */; };
 		01E6783F1CD5145E00ABE1CB /* Data+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E6783E1CD5145E00ABE1CB /* Data+Utilities.swift */; };
 		01E6784E1CD5315D00ABE1CB /* MKMapKit+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E6784C1CD5315D00ABE1CB /* MKMapKit+Utilities.swift */; };
 		01E6784F1CD5315D00ABE1CB /* MKMapView+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E6784D1CD5315D00ABE1CB /* MKMapView+Utilities.swift */; };
@@ -57,7 +59,7 @@
 
 /* Begin PBXFileReference section */
 		0111A0271D2180CD00A9B35E /* HTTPURLResponse+Utility.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "HTTPURLResponse+Utility.swift"; path = "../../HTTPURLResponse+Utility.swift"; sourceTree = "<group>"; };
-		0111A02D1D21CB6F00A9B35E /* JSON.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = JSON.swift; path = ../../JSON.swift; sourceTree = "<group>"; };
+		0111A02D1D21CB6F00A9B35E /* JSON+REST.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "JSON+REST.swift"; path = "../../JSON+REST.swift"; sourceTree = "<group>"; };
 		0111A02F1D21CBC700A9B35E /* Dictionary+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Dictionary+Utilities.swift"; path = "../../../Portable/Dictionary+Utilities.swift"; sourceTree = "<group>"; };
 		011330801D05CC27002DA0F0 /* String+Localization.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "String+Localization.swift"; path = "../../../Portable/String+Localization.swift"; sourceTree = "<group>"; };
 		011914C21D74984D009B578A /* Dispatch+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Dispatch+Utilities.swift"; path = "../../../Portable/Dispatch+Utilities.swift"; sourceTree = "<group>"; };
@@ -86,6 +88,7 @@
 		01C4FA5B1E0B217E00E96F4F /* UserDefaultsTextField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = UserDefaultsTextField.swift; path = ../../iOS/UserDefaultsTextField.swift; sourceTree = "<group>"; };
 		01CD89E11CDD0B24000790C2 /* UIAlertController+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIAlertController+Utilities.swift"; path = "../../iOS/UIAlertController+Utilities.swift"; sourceTree = "<group>"; };
 		01D1ED141D415FE600886D3D /* Platform.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Platform.swift; path = ../../Platform.swift; sourceTree = "<group>"; };
+		01DB660B1E7AF25600020AB5 /* URLRequest+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "URLRequest+Utilities.swift"; path = "../../URLRequest+Utilities.swift"; sourceTree = "<group>"; };
 		01E6783E1CD5145E00ABE1CB /* Data+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Data+Utilities.swift"; path = "../../Data+Utilities.swift"; sourceTree = "<group>"; };
 		01E6784C1CD5315D00ABE1CB /* MKMapKit+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "MKMapKit+Utilities.swift"; path = "../../MKMapKit+Utilities.swift"; sourceTree = "<group>"; };
 		01E6784D1CD5315D00ABE1CB /* MKMapView+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "MKMapView+Utilities.swift"; path = "../../MKMapView+Utilities.swift"; sourceTree = "<group>"; };
@@ -139,7 +142,7 @@
 			children = (
 				01533ACD1C9DDAE700C6E69D /* Info.plist */,
 				01533ACB1C9DDAE700C6E69D /* swiftlets.h */,
-				01B4044C1DCBFADA00EA7400 /* JSON & REST */,
+				01B4044C1DCBFADA00EA7400 /* REST */,
 				01382E891DC66D5B00B55A9C /* RemoteImageCache.swift */,
 				011914C21D74984D009B578A /* Dispatch+Utilities.swift */,
 				01947BE31E62197300C1FF1D /* Operation+Concurrency.swift */,
@@ -182,15 +185,16 @@
 			path = swiftletsTests;
 			sourceTree = "<group>";
 		};
-		01B4044C1DCBFADA00EA7400 /* JSON & REST */ = {
+		01B4044C1DCBFADA00EA7400 /* REST */ = {
 			isa = PBXGroup;
 			children = (
-				0111A02D1D21CB6F00A9B35E /* JSON.swift */,
+				0111A02D1D21CB6F00A9B35E /* JSON+REST.swift */,
 				015BF0281DC137F700312A7E /* Date+JSONTransformable.swift */,
 				016310861D03660500862035 /* URLComponent+Utilities.swift */,
+				01DB660B1E7AF25600020AB5 /* URLRequest+Utilities.swift */,
 				0111A0271D2180CD00A9B35E /* HTTPURLResponse+Utility.swift */,
 			);
-			name = "JSON & REST";
+			name = REST;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -325,8 +329,9 @@
 				01E6784F1CD5315D00ABE1CB /* MKMapView+Utilities.swift in Sources */,
 				01C4FA5C1E0B217E00E96F4F /* UserDefaultsTextField.swift in Sources */,
 				016310871D03660500862035 /* URLComponent+Utilities.swift in Sources */,
-				0111A02E1D21CB6F00A9B35E /* JSON.swift in Sources */,
+				0111A02E1D21CB6F00A9B35E /* JSON+REST.swift in Sources */,
 				01533B091C9DDF2000C6E69D /* UIImage+maskColor.swift in Sources */,
+				01DB660C1E7AF25600020AB5 /* URLRequest+Utilities.swift in Sources */,
 				01E769711CEF85B600866433 /* UIViewController+Utilities.swift in Sources */,
 				01382E8A1DC66D5B00B55A9C /* RemoteImageCache.swift in Sources */,
 				012047C11D0C854A00E79510 /* UIApplication+Utilities.swift in Sources */,
@@ -343,6 +348,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				01DB660D1E7AF25600020AB5 /* URLRequest+Utilities.swift in Sources */,
 				01533AD81C9DDAE700C6E69D /* swiftletsTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

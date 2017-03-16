@@ -169,18 +169,13 @@ extension CountableCases where Self : RawRepresentable, Self.RawValue == Int {
     }
 }
 
-extension UIApplication {
-    var documentsDirectoryPath:String {
-        guard let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.path else {
-            return ""
-        }
-        return documentsPath
-    }
-}
-
 extension FileManager {
+    var documentsDirectoryPath:String? {
+        return FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.path
+    }
+
     func fileExistsInDocuments(atPath path:String) -> Bool {
-        guard let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.path else {
+        guard let documentsPath = self.documentsDirectoryPath else {
             return false
         }
         
@@ -190,7 +185,7 @@ extension FileManager {
     }
     
     func removeItemInDocuments(atPath path:String) throws {
-        guard let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.path else {
+        guard let documentsPath = self.documentsDirectoryPath else {
             return
         }
         
@@ -212,9 +207,9 @@ extension NotificationCenter {
 
 ///Trivial UITableViewCell subclass that configures itself as hidden on creation
 /// This is *very* useful for gracefully handling the return of an 'empty' cell from cellForRowAtIndexPath calls
-/// Don't forget to register the class with your table first
+/// Don't forget to register the class with your table first!
 public class HiddenTableViewCell: UITableViewCell {
-    static let kReuseIdentifier:String = "com.cyberdev.UITableViewCell.HiddenTableViewCell"
+    static let reuseIdentifier:String = "com.cyberdev.UITableViewCell.HiddenTableViewCell"
     
     public required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)

@@ -83,7 +83,7 @@ extension DateFormatter {
     /**
      Return a localized string representation of a date and time where dates are expressed as relative to the curent date.
      
-     The date is represnted as either a language specific representation of a relative date such as "Today" or "Tomorrow", or a localized version of the day of the
+     The date is represented as either a language specific representation of a relative date such as "Today" or "Tomorrow", or a localized version of the day of the
      week for dates within the last week. For dates outside the last week the dateStyle format is used. The default is .medium: e.g.: Jan 1, 2000
      
      Time is represented in the requested format. Default is .short e.g.: 0:00 PM, or 00:00 if 24 hour time is configured on device

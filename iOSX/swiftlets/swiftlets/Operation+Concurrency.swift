@@ -121,8 +121,21 @@ open class SynchronousOperation: Operation {
     }
 }
 
-//MARK: -
+//MARK: - AsynchronousOperation
 
+/**
+ Baseclass for implementing typical asynchronous operation objects in Swift. This class,
+ and it's sibling SynchronousOperation, deal with the unfortunate ugliness of the
+ KVO and state machine requirements of the Operation class.
+ 
+ - note: The 'isAsynchronous' flag being managed here is used only in cases where
+ the Operation is not being passed to an OperationQueue. There is no need to prefer
+ this class over SynchronousOperation when an OperationQueue is used.
+ 
+ To use:
+ - Implement execute() in your subclass to perform the work of your operation.
+ - finish() must be called upon completion, or after cancellation.
+ */
 open class AsynchronousOperation: SynchronousOperation {
     public final override var isAsynchronous: Bool {
         return true
