@@ -28,22 +28,23 @@ public extension DispatchQueue {
     private static var _onceTracker = [String]()
     
     /**
-     Executes a block of code, associated with a unique token, only once.  The code is thread safe and will
-     only execute the code once even in the presence of multithreaded calls.
+     Executes a block of code, associated with a unique identifier, only once. This method is thread safe and will
+     only execute the code once even when called concurrently.
      
-     - parameter token: A unique identifier such as a reverse DNS style name (com.domain.appIdentifier), or a GUID
-     - parameter block: Block to execute once
+     - parameter identifier: A unique identifier such as a reverse DNS style name (com.domain.appIdentifier), or a GUID
+     - parameter closure: Block of code to execute only once
      */
-    public class func once(token: String, closure:()->()) {
+    public class func once(identifier: String, closure:()->()) {
         defer { objc_sync_exit(self) }
         
         objc_sync_enter(self)
         
-        if _onceTracker.contains(token) {
+        guard !_onceTracker.contains(identifier) else {
             return
         }
         
-        _onceTracker.append(token)
+        _onceTracker.append(identifier)
+        
         closure()
     }
 }
@@ -75,7 +76,8 @@ open class DispatchReaderWriter {
  
  Execution is based on write priotity at execution time rather than the first-in semantics of the reader writter queue. i.e. Pending reads
  that have not begun executing will be held off until all writes occur. This is useful in situations where race conditions
- at execution time must be minimized.
+ at execution time must be minimized. While this may be useful, or even critical, for some operations please be aware that it can result
+ in long delays, or even starvation, on read.
  
  - note: This object incurs significantly more overhead than the DispatchReaderWriter class. Its usefulness is likely limited to
  cases where it is crucial to minimize race conditions when accessing the data.
@@ -104,7 +106,7 @@ open class DispatchWriterReader {
     }
 }
 
-///Templated DispatchReaderWriter class. Useful for thread safe access to a single memeber variable in a class, for example.
+///Generic DispatchReaderWriter class. Useful for thread safe access to a single memeber variable in a class, for example.
 open class readerWriterType<T> {
     private var queue:DispatchReaderWriter = DispatchReaderWriter()
     private var _value:T
@@ -128,7 +130,7 @@ open class readerWriterType<T> {
     }
 }
 
-///Templated DispatchWriterReader class. Useful for thread safe access to a single memeber variable in a class, for example.
+///Generic DispatchWriterReader class. Useful for thread safe access to a single memeber variable in a class, for example.
 open class writerReaderType<T> {
     private var queue:DispatchWriterReader = DispatchWriterReader()
     private var _value:T
@@ -149,5 +151,56 @@ open class writerReaderType<T> {
                 self._value = newElement
             }
         }
+    }
+}
+
+/**
+ Class representing the concept of a guard in GCD. This would typically be used where
+ one must limit the number of threads accessing a resource or otherwise prevent reentrancy.
+ 
+ This class is, in essence, a semaphore with "no wait" semantics. Rather waiting for
+ the semaphore to be signaled this class returns immediately with an indication of whether
+ the semaphore was successfully decremented. This is useful in cases where you do not care
+ to reenter an operation that is already in flight, for example.
+ 
+ ```
+ let uiGuard:DispatchGuard = DispatchGuard()
+ 
+ func updateUI() {
+    guard uiGuard.enter() else {
+        return
+    }
+ 
+    defer {
+        uiGuard.exit()
+    }
+ 
+    //safely update your user interface here
+ }
+ 
+ ```
+ */
+open class DispatchGuard {
+    private var semaphore:DispatchSemaphore
+   
+    //Create a DispatchGuard with the number of threads you want to allow simultaneous access.
+    init(value:Int = 1) {
+        semaphore = DispatchSemaphore(value: value)
+    }
+    
+    /**
+     Attempt to enter the guard.
+     
+     - Returns: True if entry allowed, false if not
+     
+     - Note: If this methods returns true you must call exit() to free the guard statement
+     */
+    func enter() -> Bool {
+        return semaphore.wait(timeout: .now()) == .success
+    }
+    
+    ///Exit the guard statement. This call must be balanced with successful calls to enter.
+    func exit() {
+        semaphore.signal()
     }
 }

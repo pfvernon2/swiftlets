@@ -31,11 +31,11 @@ func metersToApproximateDegreesLatLong(_ meters:CLLocationDistance) -> Double {
 }
 
 fileprivate func radiansToDegrees(_ radians: Double) -> Double {
-    return radians * 180.0 / M_PI
+    return radians * 180.0 / .pi
 }
 
 fileprivate func degreesToRadians(_ degrees: Double) -> Double {
-    return degrees * M_PI / 180
+    return degrees * .pi / 180.0
 }
 
 let kCLLocationDirectionInvalid:CLLocationDirection = -1.0

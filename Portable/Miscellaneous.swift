@@ -46,32 +46,67 @@ extension CGSize {
 }
 
 extension TimeInterval {
-    func toPicoseconds() -> Double {
-        return toNanoseconds() * 1000.0
+    var picoseconds: Double {
+        get {
+            return nanoseconds * 1000.0
+        }
+        set (newValue) {
+           self.nanoseconds = newValue / 1000.0
+        }
     }
     
-    func toNanoseconds() -> Double {
-        return toMicroseconds() * 1000.0
+    var nanoseconds: Double {
+        get {
+            return microseconds * 1000.0
+        }
+        set (newValue) {
+            self.microseconds = newValue / 1000.0
+        }
     }
     
-    func toMicroseconds() -> Double {
-        return toMilliseconds() * 1000.0
+    var microseconds: Double {
+        get {
+            return milliseconds * 1000.0
+        }
+        set (newValue) {
+            self.milliseconds = newValue / 1000.0
+        }
     }
     
-    func toMilliseconds() -> Double {
-        return self * 1000.0
+    var milliseconds: Double {
+        get {
+            return self * 1000.0
+        }
+        set (newValue) {
+            self = newValue / 1000.0
+        }
     }
     
-    func toMinutes() -> Double {
-        return self/60.0
+    var minutes: Double {
+        get {
+            return self/60.0
+        }
+        set (newValue) {
+            self = newValue * 60.0
+        }
     }
     
-    func toHours() -> Double {
-        return toMinutes()/60.0
+    var hours: Double {
+        get {
+            return minutes/60.0
+        }
+        set (newValue) {
+            self.minutes = newValue * 60.0
+        }
     }
     
-    func toDays() -> Double {
-        return toHours()/24.0
+    var days: Double {
+        get {
+            return hours/24.0
+        }
+        set (newValue) {
+            self.hours = newValue * 24.0
+        }
     }
     
     /**
@@ -117,7 +152,7 @@ extension CGAffineTransform {
     
     ///returns the current rotation of the transform in degrees 0.0 - 360.0
     func rotationInDegrees() -> Double {
-        var result = Double(rotationInRadians()) * (180.0/M_PI)
+        var result = Double(rotationInRadians()) * (180.0/Double.pi)
         if result < 0.0 {
             result = 360.0 - result
         }
@@ -221,3 +256,15 @@ public class HiddenTableViewCell: UITableViewCell {
         self.isHidden = true
     }
 }
+
+extension Double {
+    public static var π: Double {
+        return .pi
+    }
+    
+    public static var τ: Double {
+        return .pi * 2.0
+    }
+}
+
+

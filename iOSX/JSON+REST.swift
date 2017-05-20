@@ -952,7 +952,7 @@ public extension URLSession {
         }
         
         if let data = data {
-            result += String("data: \(String(data:data, encoding:.utf8))\n\n")
+            result += String("data: \(String(describing: String(data:data, encoding:.utf8)))\n\n")
         }
         
         if let response = response {
