@@ -9,20 +9,20 @@
 import Foundation
 
 public extension DispatchQueue {
-    private func dispatchTimeSinceNow(seconds: TimeInterval) -> DispatchTime {
-        let microseconds:Int = Int(seconds * 1000000)
+    private func dispatchTimeFromNow(seconds: TimeInterval) -> DispatchTime {
+        let microseconds:Int = Int(seconds * 1000000.0)
         let dispatchOffset:DispatchTime = .now() + .microseconds(microseconds)
         return dispatchOffset
     }
     
     ///asyncAfter with TimeInterval semanics, i.e. microsecond precision out to 10,000 years.
-    func asyncAfter(secondsSinceNow seconds: TimeInterval, execute work: @escaping @convention(block) () -> Swift.Void) {
-        asyncAfter(deadline: dispatchTimeSinceNow(seconds: seconds), execute: work)
+    func asyncAfter(secondsFromNow seconds: TimeInterval, execute work: @escaping @convention(block) () -> Swift.Void) {
+        asyncAfter(deadline: dispatchTimeFromNow(seconds: seconds), execute: work)
     }
     
     ///asyncAfter with TimeInterval semanics, i.e. microsecond precision out to 10,000 years.
-    func asyncAfter(secondsSinceNow seconds: TimeInterval, execute: DispatchWorkItem) {
-        asyncAfter(deadline: dispatchTimeSinceNow(seconds: seconds), execute: execute)
+    func asyncAfter(secondsFromNow seconds: TimeInterval, execute: DispatchWorkItem) {
+        asyncAfter(deadline: dispatchTimeFromNow(seconds: seconds), execute: execute)
     }
     
     private static var _onceTracker = [String]()
@@ -34,11 +34,13 @@ public extension DispatchQueue {
      - parameter identifier: A unique identifier such as a reverse DNS style name (com.domain.appIdentifier), or a GUID
      - parameter closure: Block of code to execute only once
      */
-    public class func once(identifier: String, closure:()->()) {
-        defer { objc_sync_exit(self) }
-        
+    public class func executeOnce(identifier: String, closure:()->Swift.Void) {
         objc_sync_enter(self)
         
+        defer {
+            objc_sync_exit(self)
+        }
+
         guard !_onceTracker.contains(identifier) else {
             return
         }
@@ -202,5 +204,38 @@ open class DispatchGuard {
     ///Exit the guard statement. This call must be balanced with successful calls to enter.
     func exit() {
         semaphore.signal()
+    }
+}
+
+/**
+ Class to wrap common use case of a DispatchGuard into a RAII style pattern.
+ 
+ ```
+ let uiGuard:DispatchGuard = DispatchGuard()
+ 
+ func updateUI() {
+     let custodian = DispatchGuardCustodian(uiGuard)
+     guard custodian.acquired else {
+         return
+     }
+ 
+     //safely update your user interface here
+ }
+ 
+ ```
+ */
+open class DispatchGuardCustodian {
+    fileprivate var dispatchGuard:DispatchGuard
+    fileprivate(set) public var acquired:Bool
+    
+    init(_ dispatchGuard:DispatchGuard) {
+        self.dispatchGuard = dispatchGuard
+        self.acquired = self.dispatchGuard.enter()
+    }
+    
+    deinit {
+        if self.acquired {
+            self.dispatchGuard.exit()
+        }
     }
 }

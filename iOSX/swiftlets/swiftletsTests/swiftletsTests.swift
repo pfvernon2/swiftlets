@@ -189,7 +189,7 @@ class swiftletsTests: XCTestCase {
         print(read2)
 
         testGroup.enter()
-        DispatchQueue.global().asyncAfter(secondsSinceNow: 0.5) {
+        DispatchQueue.global().asyncAfter(secondsFromNow: 0.5) {
             let read3 = writerReader.read { () -> Bool in
                 print("Read 3")
                 return state
@@ -207,6 +207,23 @@ class swiftletsTests: XCTestCase {
         }
     }
     
+    func testDispatchGuard() {
+        let guardian:DispatchGuard = DispatchGuard(value: 2)
+        
+        XCTAssert(guardian.enter())
+        XCTAssert(guardian.enter())
+        XCTAssertFalse(guardian.enter())
+
+        guardian.exit()
+        
+        let custodian:DispatchGuardCustodian = DispatchGuardCustodian(guardian)
+        XCTAssert(custodian.acquired)
+
+        let custodian2:DispatchGuardCustodian = DispatchGuardCustodian(guardian)
+        XCTAssertFalse(custodian2.acquired)
+        
+        guardian.exit()
+    }
     
 //    func testPerformanceExample() {
 //        // This is an example of a performance test case.
