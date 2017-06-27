@@ -25,7 +25,6 @@
 		01533B0A1C9DDF2000C6E69D /* UIImage+Scaling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01533B031C9DDF2000C6E69D /* UIImage+Scaling.swift */; };
 		01533B0B1C9DDF2000C6E69D /* RoundedCornerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01533B041C9DDF2000C6E69D /* RoundedCornerView.swift */; };
 		015710CF1D049C1F0057C1FB /* Array+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 015710CE1D049C1F0057C1FB /* Array+Utilities.swift */; };
-		015BF0291DC137F700312A7E /* Date+JSONTransformable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 015BF0281DC137F700312A7E /* Date+JSONTransformable.swift */; };
 		016310871D03660500862035 /* URLComponent+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 016310861D03660500862035 /* URLComponent+Utilities.swift */; };
 		016965851E142D1E00038275 /* UIGraphics+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 016965841E142D1E00038275 /* UIGraphics+Utilities.swift */; };
 		01947BE41E62197300C1FF1D /* Operation+Concurrency.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01947BE31E62197300C1FF1D /* Operation+Concurrency.swift */; };
@@ -79,7 +78,6 @@
 		01533B031C9DDF2000C6E69D /* UIImage+Scaling.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIImage+Scaling.swift"; path = "../../iOS/UIImage+Scaling.swift"; sourceTree = "<group>"; };
 		01533B041C9DDF2000C6E69D /* RoundedCornerView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = RoundedCornerView.swift; path = ../../iOS/RoundedCornerView.swift; sourceTree = "<group>"; };
 		015710CE1D049C1F0057C1FB /* Array+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Array+Utilities.swift"; path = "../../../Portable/Array+Utilities.swift"; sourceTree = "<group>"; };
-		015BF0281DC137F700312A7E /* Date+JSONTransformable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Date+JSONTransformable.swift"; path = "../../Date+JSONTransformable.swift"; sourceTree = "<group>"; };
 		016310861D03660500862035 /* URLComponent+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "URLComponent+Utilities.swift"; path = "../../URLComponent+Utilities.swift"; sourceTree = "<group>"; };
 		016965841E142D1E00038275 /* UIGraphics+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIGraphics+Utilities.swift"; path = "../../iOS/UIGraphics+Utilities.swift"; sourceTree = "<group>"; };
 		01947BE31E62197300C1FF1D /* Operation+Concurrency.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Operation+Concurrency.swift"; sourceTree = "<group>"; };
@@ -189,7 +187,6 @@
 			isa = PBXGroup;
 			children = (
 				0111A02D1D21CB6F00A9B35E /* JSON+REST.swift */,
-				015BF0281DC137F700312A7E /* Date+JSONTransformable.swift */,
 				016310861D03660500862035 /* URLComponent+Utilities.swift */,
 				01DB660B1E7AF25600020AB5 /* URLRequest+Utilities.swift */,
 				0111A0271D2180CD00A9B35E /* HTTPURLResponse+Utility.swift */,
@@ -254,16 +251,16 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0720;
-				LastUpgradeCheck = 0800;
+				LastUpgradeCheck = 0900;
 				ORGANIZATIONNAME = "Frank Vernon";
 				TargetAttributes = {
 					01533AC71C9DDAE700C6E69D = {
 						CreatedOnToolsVersion = 7.2.1;
-						LastSwiftMigration = 0800;
+						LastSwiftMigration = 0900;
 					};
 					01533AD11C9DDAE700C6E69D = {
 						CreatedOnToolsVersion = 7.2.1;
-						LastSwiftMigration = 0800;
+						LastSwiftMigration = 0900;
 					};
 				};
 			};
@@ -336,7 +333,6 @@
 				01382E8A1DC66D5B00B55A9C /* RemoteImageCache.swift in Sources */,
 				012047C11D0C854A00E79510 /* UIApplication+Utilities.swift in Sources */,
 				01E6784E1CD5315D00ABE1CB /* MKMapKit+Utilities.swift in Sources */,
-				015BF0291DC137F700312A7E /* Date+JSONTransformable.swift in Sources */,
 				01533B0B1C9DDF2000C6E69D /* RoundedCornerView.swift in Sources */,
 				01E769781CF22D1500866433 /* DateFormatter+Utilities.swift in Sources */,
 				0130BE251DBA9203008EEEE4 /* CSVHelper.swift in Sources */,
@@ -372,14 +368,20 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -408,6 +410,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
@@ -422,14 +425,20 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -451,6 +460,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -475,7 +485,8 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = Off;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Debug;
 		};
@@ -495,7 +506,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.cyberdev.swiftlets;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = Off;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Release;
 		};
@@ -507,7 +519,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.cyberdev.swiftletsTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = On;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Debug;
 		};
@@ -519,7 +532,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.cyberdev.swiftletsTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = On;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Release;
 		};

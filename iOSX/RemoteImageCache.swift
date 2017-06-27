@@ -8,8 +8,8 @@
 
 import Foundation
 
-fileprivate let defaultDiskCacheSize:Int = 200 * 1024 * 1024 //200 MiB
-fileprivate let defaultMemoryCacheSize:Int = 100 * 1024 * 1024 //100 MiB
+let kImageCacheOnDiskSize:Int = 200 * 1024 * 1024 //200 MiB
+let kImageCacheInMemorySize:Int = 100 * 1024 * 1024 //100 MiB
 
 /**
  Class that manages both an on-disk and in-memory cache of images retrieved from URLs. Caches are limited in size and can be configured.
@@ -26,7 +26,7 @@ open class RemoteImageCache {
     public var session:URLSession
     fileprivate var memoryCache = NSCache<NSString, UIImage>()
     
-    init(memoryCapacity:Int = defaultMemoryCacheSize, diskCapacity:Int = defaultDiskCacheSize, cacheName:String?) {
+    init(memoryCapacity:Int = kImageCacheInMemorySize, diskCapacity:Int = kImageCacheOnDiskSize, cacheName:String?) {
         let sessionCache:URLCache = URLCache(memoryCapacity: 0, diskCapacity: diskCapacity, diskPath:cacheName)
         let sessionConfiguration:URLSessionConfiguration = URLSessionConfiguration.default
         sessionConfiguration.urlCache = sessionCache

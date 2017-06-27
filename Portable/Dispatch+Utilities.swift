@@ -160,7 +160,7 @@ open class writerReaderType<T> {
  Class representing the concept of a guard in GCD. This would typically be used where
  one must limit the number of threads accessing a resource or otherwise prevent reentrancy.
  
- This class is, in essence, a semaphore with "no wait" semantics. Rather waiting for
+ This class is, in essence, a semaphore with "no wait" semantics. Rather than waiting for
  the semaphore to be signaled this class returns immediately with an indication of whether
  the semaphore was successfully decremented. This is useful in cases where you do not care
  to reenter an operation that is already in flight, for example.

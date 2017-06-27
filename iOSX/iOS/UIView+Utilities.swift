@@ -167,10 +167,15 @@ extension UIView {
     
     func copyConstraintsToView(_ destinationView:UIView) {
         for constraint:NSLayoutConstraint in self.superview!.constraints {
-            if constraint.firstItem.isEqual(self) {
-                self.superview?.addConstraint(NSLayoutConstraint(item: destinationView, attribute: constraint.firstAttribute, relatedBy: constraint.relation, toItem: constraint.secondItem, attribute: constraint.secondAttribute, multiplier: constraint.multiplier, constant: constraint.constant))
-            } else if constraint.secondItem != nil && constraint.secondItem!.isEqual(self) {
-                self.superview?.addConstraint(NSLayoutConstraint(item: constraint.firstItem, attribute: constraint.firstAttribute, relatedBy: constraint.relation, toItem: destinationView, attribute: constraint.secondAttribute, multiplier: constraint.multiplier, constant: constraint.constant))
+            guard let firstConstraint = constraint.firstItem, let secondConstraint = constraint.secondItem else {
+                return
+            }
+            
+            
+            if firstConstraint.isEqual(self) {
+                self.superview?.addConstraint(NSLayoutConstraint(item: destinationView, attribute: constraint.firstAttribute, relatedBy: constraint.relation, toItem: secondConstraint, attribute: constraint.secondAttribute, multiplier: constraint.multiplier, constant: constraint.constant))
+            } else if secondConstraint.isEqual(self) {
+                self.superview?.addConstraint(NSLayoutConstraint(item: firstConstraint, attribute: constraint.firstAttribute, relatedBy: constraint.relation, toItem: destinationView, attribute: constraint.secondAttribute, multiplier: constraint.multiplier, constant: constraint.constant))
             }
         }
     }

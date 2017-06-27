@@ -14,23 +14,20 @@ public extension String {
     }
     
     mutating public func truncateMiddle(_ maxCharacterCount:Int, replacement:String = NSLocalizedString("…", comment: "String.truncateMiddle replacement value")) {
-        let length = self.characters.count
-        if length > maxCharacterCount {
-            replaceSubrange(index(startIndex, offsetBy: maxCharacterCount/2)..<index(startIndex, offsetBy: length-maxCharacterCount/2), with: replacement)
+        if count > maxCharacterCount {
+            replaceSubrange(index(startIndex, offsetBy: maxCharacterCount/2)..<index(startIndex, offsetBy: count-maxCharacterCount/2), with: replacement)
         }
     }
     
     mutating public func truncateTail(_ maxCharacterCount:Int, replacement:String = NSLocalizedString("…", comment: "String.truncateTail replacement value")) {
-        let length = self.characters.count
-        if length > maxCharacterCount {
-            replaceSubrange(index(startIndex, offsetBy: maxCharacterCount)..<endIndex, with: replacement)
+        if count > maxCharacterCount {
+            replaceSubrange(index(startIndex, offsetBy: maxCharacterCount)..., with: replacement)
         }
     }
     
     mutating public func truncateHead(_ maxCharacterCount:Int, replacement:String = NSLocalizedString("…", comment: "String.truncateHead replacement value")) {
-        let length = self.characters.count
-        if length > maxCharacterCount {
-            replaceSubrange(startIndex..<index(startIndex, offsetBy: length - maxCharacterCount), with: replacement)
+        if count > maxCharacterCount {
+            replaceSubrange(..<index(startIndex, offsetBy: count - maxCharacterCount), with: replacement)
         }
     }
     
@@ -74,13 +71,13 @@ public extension String {
     
     mutating public func trimSuffix(_ suffix: String) {
         if hasSuffix(suffix) {
-            removeSubrange(index(endIndex, offsetBy: -(suffix.length())) ..< endIndex)
+            removeSubrange(index(endIndex, offsetBy: -(suffix.length()))...)
         }
     }
     
     mutating public func trimPrefix(_ prefix: String) {
         if hasPrefix(prefix) {
-            removeSubrange(startIndex ..< index(startIndex, offsetBy: prefix.length()))
+            removeSubrange(..<index(startIndex, offsetBy: prefix.length()))
         }
     }
     
@@ -98,18 +95,18 @@ public extension String {
 
     func isAllDigits() -> Bool {
         let nonNumbers = CharacterSet.decimalDigits.inverted
-        if let _:Range = rangeOfCharacter(from: nonNumbers) {
-            return false
-        } else {
+        guard let _:Range = rangeOfCharacter(from: nonNumbers) else {
             return true
         }
+        
+        return false
     }
 
     func isLikeZipCode() -> Bool {
         return self.characters.count == 5 && self.isAllDigits()
     }
 
-    func isEmailAddress() -> Bool {
+    func isLikeEmailAddress() -> Bool {
         //Per Apple recommendation WWDC16 - https://developer.apple.com/videos/play/wwdc2016/714/
         return self.contains("@")
     }
@@ -118,5 +115,16 @@ public extension String {
         return !isEmpty
     }
 
+    func convertNSRange(range:NSRange) -> Range<String.Index>? {
+        guard range.location != NSNotFound,
+        let utfStart = utf16.index(utf16.startIndex, offsetBy: range.location, limitedBy: utf16.endIndex),
+        let utfEnd = utf16.index(utfStart, offsetBy:range.length, limitedBy: utf16.endIndex),
+        let start = String.Index(utfStart, within: self),
+        let end = String.Index(utfEnd, within: self) else {
+            return nil
+        }
+        
+        return start ..< end
+    }
 }
 

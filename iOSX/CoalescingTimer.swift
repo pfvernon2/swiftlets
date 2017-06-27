@@ -70,17 +70,19 @@ open class CoalescingTimer {
      - Parameter tolerance: The percentage of time after the scheduled fire date that the timer may fire. Defaults to 0.1. Range 0.0...1.0. Using a non-zero tolerance value when timing accuracy is not crucial allows the OS to better optimize for power and CPU usage.
      - Parameter handler: The closure to be invoked when the timer fires.
     */
-    open func start(duration: TimeInterval, repeats: Bool = false, tolerance:Float = 0.1, closure: @escaping (CoalescingTimer)->()) {
+    open func start(duration: TimeInterval, repeats: Bool = false, tolerance:Float = 0.1, queue:DispatchQueue = DispatchQueue.main, closure: @escaping (CoalescingTimer)->()) {
         DispatchQueue.main.async { () -> Void in
             self._stop()
             self.closure = closure
             self.duration = duration
             self.repeats = repeats
-            self.timer = Timer.scheduledTimer(timeInterval: duration,
-                target: self,
-                selector: #selector(CoalescingTimer.processHandler(timer:)),
-                userInfo: nil,
-                repeats: repeats)
+            
+            self.timer = Timer.scheduledTimer(withTimeInterval: duration, repeats: repeats) { (timer) in
+                queue.async {
+                    self.closure(self)
+                }
+            }
+            
             self.timer?.tolerance = duration * TimeInterval(tolerance)
         }
     }
@@ -133,11 +135,5 @@ open class CoalescingTimer {
             return
         }
         timer.invalidate()
-    }
-    
-    @objc fileprivate func processHandler(timer: Timer) {
-        DispatchQueue.main.async { () -> Void in
-            self.closure(self)
-        }
     }
 }

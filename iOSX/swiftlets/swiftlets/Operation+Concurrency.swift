@@ -38,7 +38,7 @@ extension Operation {
 open class SynchronousOperation: Operation {
     // MARK: - Enumeration
     
-    @objc private enum OperationState: Int {
+    private enum OperationState: Int {
         case ready, executing, finished
     }
     
@@ -48,7 +48,7 @@ open class SynchronousOperation: Operation {
                                            attributes: .concurrent)
     
     private var _state = OperationState.ready
-    @objc private dynamic var state: OperationState {
+    private var state: OperationState {
         get {
             return stateQueue.sync { _state }
         }

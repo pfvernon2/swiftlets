@@ -11,12 +11,12 @@ import Foundation
 extension Dictionary {
     init(_ pairs: [Element]) {
         self.init()
-        pairs.forEach { (key,value) in
-            self[key] = value
+        pairs.forEach {
+            self[$0.0] = $0.1
         }
     }
     
-    func mapPairs<OutKey: Hashable, OutValue>( transform: (Element) throws -> (OutKey, OutValue)) rethrows -> [OutKey: OutValue] {
+    func mapPairs<OutKey, OutValue>( transform: (Element) throws -> (OutKey, OutValue)) rethrows -> [OutKey: OutValue] {
         return Dictionary<OutKey, OutValue>(try map(transform))
     }
     
@@ -26,7 +26,7 @@ extension Dictionary {
 
     mutating func union(_ dictionary: Dictionary) {
         dictionary.forEach {
-            self.updateValue($1, forKey: $0)
+            self.updateValue($0.1, forKey: $0.0)
         }
     }
 
