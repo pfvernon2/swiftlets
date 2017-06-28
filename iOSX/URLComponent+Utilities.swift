@@ -239,12 +239,13 @@ public extension URLQueryItem {
             return nil
         }
         
-        return encodedName + "=" + encodedValue
+        return "\(encodedName) = \(encodedValue)"
     }
     
     static func urlEscapedDescription(queryItems:[URLQueryItem]) -> String? {
         return queryItems.flatMap { (queryItem) -> String? in
             return queryItem.urlEscapedDescription()
-            }.joined(separator: "&")
+        }.joined(separator: "&")
     }
 }
+

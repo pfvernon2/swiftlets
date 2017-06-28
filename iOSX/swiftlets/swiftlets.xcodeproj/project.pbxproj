@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0111A0281D2180CD00A9B35E /* HTTPURLResponse+Utility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0111A0271D2180CD00A9B35E /* HTTPURLResponse+Utility.swift */; };
 		0111A02E1D21CB6F00A9B35E /* JSON+REST.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0111A02D1D21CB6F00A9B35E /* JSON+REST.swift */; };
 		0111A0301D21CBC700A9B35E /* Dictionary+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0111A02F1D21CBC700A9B35E /* Dictionary+Utilities.swift */; };
 		011330811D05CC27002DA0F0 /* String+Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011330801D05CC27002DA0F0 /* String+Localization.swift */; };
@@ -25,16 +24,16 @@
 		01533B0A1C9DDF2000C6E69D /* UIImage+Scaling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01533B031C9DDF2000C6E69D /* UIImage+Scaling.swift */; };
 		01533B0B1C9DDF2000C6E69D /* RoundedCornerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01533B041C9DDF2000C6E69D /* RoundedCornerView.swift */; };
 		015710CF1D049C1F0057C1FB /* Array+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 015710CE1D049C1F0057C1FB /* Array+Utilities.swift */; };
-		016310871D03660500862035 /* URLComponent+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 016310861D03660500862035 /* URLComponent+Utilities.swift */; };
 		016965851E142D1E00038275 /* UIGraphics+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 016965841E142D1E00038275 /* UIGraphics+Utilities.swift */; };
+		018B5A031F034539009F40FB /* URLRequest+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01DB660B1E7AF25600020AB5 /* URLRequest+Utilities.swift */; };
+		018B5A041F03453C009F40FB /* HTTPURLResponse+Utility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0111A0271D2180CD00A9B35E /* HTTPURLResponse+Utility.swift */; };
+		018B5A051F03476E009F40FB /* URLComponent+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 016310861D03660500862035 /* URLComponent+Utilities.swift */; };
 		01947BE41E62197300C1FF1D /* Operation+Concurrency.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01947BE31E62197300C1FF1D /* Operation+Concurrency.swift */; };
 		01A3E9191CFE6FE300BE5AAA /* Miscellaneous.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A3E9181CFE6FE300BE5AAA /* Miscellaneous.swift */; };
 		01ADE31B1D34AD5E005424EF /* UIFont+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01ADE31A1D34AD5E005424EF /* UIFont+Utilities.swift */; };
 		01C4FA5C1E0B217E00E96F4F /* UserDefaultsTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01C4FA5B1E0B217E00E96F4F /* UserDefaultsTextField.swift */; };
 		01CD89E21CDD0B24000790C2 /* UIAlertController+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01CD89E11CDD0B24000790C2 /* UIAlertController+Utilities.swift */; };
 		01D1ED151D415FE600886D3D /* Platform.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01D1ED141D415FE600886D3D /* Platform.swift */; };
-		01DB660C1E7AF25600020AB5 /* URLRequest+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01DB660B1E7AF25600020AB5 /* URLRequest+Utilities.swift */; };
-		01DB660D1E7AF25600020AB5 /* URLRequest+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01DB660B1E7AF25600020AB5 /* URLRequest+Utilities.swift */; };
 		01E6783F1CD5145E00ABE1CB /* Data+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E6783E1CD5145E00ABE1CB /* Data+Utilities.swift */; };
 		01E6784E1CD5315D00ABE1CB /* MKMapKit+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E6784C1CD5315D00ABE1CB /* MKMapKit+Utilities.swift */; };
 		01E6784F1CD5315D00ABE1CB /* MKMapView+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E6784D1CD5315D00ABE1CB /* MKMapView+Utilities.swift */; };
@@ -312,6 +311,7 @@
 				01CD89E21CDD0B24000790C2 /* UIAlertController+Utilities.swift in Sources */,
 				01533B081C9DDF2000C6E69D /* DoubleTapTableView.swift in Sources */,
 				01E678511CD5317400ABE1CB /* Formatting.swift in Sources */,
+				018B5A041F03453C009F40FB /* HTTPURLResponse+Utility.swift in Sources */,
 				01E678551CD531AA00ABE1CB /* UIView+Utilities.swift in Sources */,
 				0111A0301D21CBC700A9B35E /* Dictionary+Utilities.swift in Sources */,
 				01A3E9191CFE6FE300BE5AAA /* Miscellaneous.swift in Sources */,
@@ -320,16 +320,15 @@
 				011914C31D74984D009B578A /* Dispatch+Utilities.swift in Sources */,
 				015710CF1D049C1F0057C1FB /* Array+Utilities.swift in Sources */,
 				01533B0A1C9DDF2000C6E69D /* UIImage+Scaling.swift in Sources */,
+				018B5A051F03476E009F40FB /* URLComponent+Utilities.swift in Sources */,
 				01D1ED151D415FE600886D3D /* Platform.swift in Sources */,
 				011330811D05CC27002DA0F0 /* String+Localization.swift in Sources */,
-				0111A0281D2180CD00A9B35E /* HTTPURLResponse+Utility.swift in Sources */,
 				01E6784F1CD5315D00ABE1CB /* MKMapView+Utilities.swift in Sources */,
 				01C4FA5C1E0B217E00E96F4F /* UserDefaultsTextField.swift in Sources */,
-				016310871D03660500862035 /* URLComponent+Utilities.swift in Sources */,
 				0111A02E1D21CB6F00A9B35E /* JSON+REST.swift in Sources */,
 				01533B091C9DDF2000C6E69D /* UIImage+maskColor.swift in Sources */,
-				01DB660C1E7AF25600020AB5 /* URLRequest+Utilities.swift in Sources */,
 				01E769711CEF85B600866433 /* UIViewController+Utilities.swift in Sources */,
+				018B5A031F034539009F40FB /* URLRequest+Utilities.swift in Sources */,
 				01382E8A1DC66D5B00B55A9C /* RemoteImageCache.swift in Sources */,
 				012047C11D0C854A00E79510 /* UIApplication+Utilities.swift in Sources */,
 				01E6784E1CD5315D00ABE1CB /* MKMapKit+Utilities.swift in Sources */,
@@ -344,7 +343,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				01DB660D1E7AF25600020AB5 /* URLRequest+Utilities.swift in Sources */,
 				01533AD81C9DDAE700C6E69D /* swiftletsTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

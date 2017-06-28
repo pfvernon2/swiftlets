@@ -10,16 +10,19 @@ import Foundation
 //MARK: - JSON Protocol
 
 public protocol JSON:Codable {
+    ///Returns default JSONEncoder. Override for custom configurations
     func jsonEncoder() -> JSONEncoder
     func toJSON() -> Data?
     func toJSONString(prettyPrint:Bool) -> String?
     
+    ///Returns default JSONDecoder. Override for custom configurations
     static func jsonDecoder() -> JSONDecoder
     static func fromJSON<T:Decodable>(_ data:Data) -> T?
     static func fromJSONString<T:Decodable>(_ string:String) -> T?
 }
 
 extension JSON {
+    ///Returns default JSONEncoder. Override for custom configurations
     func jsonEncoder() -> JSONEncoder {
         return JSONEncoder()
     }
@@ -42,6 +45,7 @@ extension JSON {
         return String(data: jsonData, encoding: .utf8)
     }
     
+    ///Returns default JSONDecoder. Override for custom configurations
     static func jsonDecoder() -> JSONDecoder {
         return JSONDecoder()
     }
@@ -176,7 +180,7 @@ public extension URLSession {
      */
     @discardableResult func httpPut<T:JSON>(with url:URL, bodyParameters:[URLQueryItem], headers:[String:String]? = nil, success:@escaping (HTTPURLResponse, T?) -> Swift.Void, failure:@escaping (HTTPURLResponse? , Error?) -> Swift.Void) -> URLSessionDataTask?
     {
-        guard let body:String = URLQueryItem.urlEscapedDescription(queryItems: bodyParameters) else {
+        guard let body:String = URLQueryItem.REST_urlEscapedDescription(queryItems: bodyParameters) else {
             failure(nil, JSONSessionErrors.invalidQueryItem(bodyParameters.description))
             return nil
         }
@@ -230,7 +234,7 @@ public extension URLSession {
      */
     @discardableResult func httpPost<T:JSON>(with url:URL, bodyParameters:[URLQueryItem], headers:[String:String]? = nil, success:@escaping (HTTPURLResponse, T?) -> Swift.Void, failure:@escaping (HTTPURLResponse? , Error?) -> Swift.Void) -> URLSessionDataTask?
     {
-        guard let body:String = URLQueryItem.urlEscapedDescription(queryItems: bodyParameters) else {
+        guard let body:String = URLQueryItem.REST_urlEscapedDescription(queryItems: bodyParameters) else {
             failure(nil, JSONSessionErrors.invalidQueryItem(bodyParameters.description))
             return nil
         }
@@ -330,8 +334,8 @@ public extension URLSession {
             }
             
             //because we are assuming RESTful style operation require a 2xx class response for success
-            switch httpResponse.status {
-            case .success:
+            switch httpResponse.statusCode {
+            case 200..<300:
                 dataTaskSuccessHandler(request: request as URLRequest, data: data, response:httpResponse, error: error)
                 
             default:
@@ -369,3 +373,36 @@ public extension URLSession {
         print(result)
     }
 }
+
+//MARK: - fileprivate extensions
+// Duplicated from URLComponenets+Utilites for the sake of portability
+
+fileprivate extension NSCharacterSet {
+    static let REST_urlQueryItemParamAndValueAllowed:CharacterSet = {
+        var allowedQueryParamAndKey = NSCharacterSet.urlQueryAllowed
+        allowedQueryParamAndKey.remove(charactersIn: ";/?:@&=+$, ")
+        return allowedQueryParamAndKey
+    }()
+}
+
+fileprivate extension URLQueryItem {
+    ///Utility method to return the URL Query Item description with the name and value escaped for use in a URL query
+    func REST_urlEscapedDescription() -> String? {
+        guard let encodedName = self.name.addingPercentEncoding(withAllowedCharacters: NSCharacterSet.REST_urlQueryItemParamAndValueAllowed) else {
+            return nil
+        }
+        
+        guard let encodedValue = self.value?.addingPercentEncoding(withAllowedCharacters: NSCharacterSet.REST_urlQueryItemParamAndValueAllowed) else {
+            return nil
+        }
+        
+        return "\(encodedName) = \(encodedValue)"
+    }
+    
+    static func REST_urlEscapedDescription(queryItems:[URLQueryItem]) -> String? {
+        return queryItems.flatMap { (queryItem) -> String? in
+            return queryItem.REST_urlEscapedDescription()
+            }.joined(separator: "&")
+    }
+}
+
