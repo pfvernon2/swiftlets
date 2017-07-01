@@ -8,54 +8,49 @@
 
 import Foundation
 
-extension Array {
-    
-    /**
-     Move an element of an array to another index position.
-     
-     - parameters:
-         - fromIndex: The index of an element in the array.
-         - toIndex: The index of a position in the array to which to move the element
-     */
-
-    public mutating func moveElement(fromIndex:Int, toIndex:Int) {
-        self.insert(self.remove(at: fromIndex), at: toIndex)
-    }
-    
-    /**
-     Return a copy of an array with an element moved to another index position.
-     
-     - parameters:
-         - fromIndex: The index of an element in the array.
-         - toIndex: The index of a position in the array to which to move the element
-     */
-
-    public func arrayWithElementMoved(fromIndex fromIdex:Int, toIndex:Int) -> Array {
-        var result = self
-        result.moveElement(fromIndex: fromIdex, toIndex: toIndex)
-        return result
-    }
-
-    ///Simplified queue semantics
-    public mutating func push(_ newElement: Element) {
-        return append(newElement)
-    }
-
-    ///Simplified queue semantics
-    public mutating func pop() -> Element? {
-        if !isEmpty {
-            return removeFirst()
-        } else {
+extension Array where Element: Equatable {
+    @discardableResult mutating func remove(firstLike item: Element) -> Element? {
+        guard let matching:Int = index(where: { $0 == item }) else {
             return nil
         }
+        
+        return self.remove(at: matching)
     }
-}
-
-extension Array where Element: Equatable {
-    mutating func remove(_ object: Element) {
-        if let index = index(where: { $0 == object }) {
-            self.remove(at: index)
+    
+    @discardableResult mutating func remove(firstNotLike item: Element) -> Element? {
+        guard let matching:Int = index(where: { $0 != item }) else {
+            return nil
         }
+        
+        return self.remove(at: matching)
+    }
+
+    @discardableResult mutating func remove(allLike item: Element) -> Int {
+        let matching:[Int] = indexes(ofItemsLike: item)
+        
+        matching.reversed().forEach { (index) in
+            remove(at: index)
+        }
+        
+        return matching.count
+    }
+    
+    @discardableResult mutating func remove(allNotLike item: Element) -> Int {
+        let matching:[Int] = indexes(ofItemsNotLike: item)
+        
+        matching.reversed().forEach { (index) in
+            remove(at: index)
+        }
+        
+        return matching.count
+    }
+    
+    func indexes(ofItemsLike item: Element) -> [Int]  {
+        return self.enumerated().flatMap { $0.element == item ? $0.offset : nil }
+    }
+    
+    func indexes(ofItemsNotLike item: Element) -> [Int]  {
+        return self.enumerated().flatMap { $0.element != item ? $0.offset : nil }
     }
 }
 
