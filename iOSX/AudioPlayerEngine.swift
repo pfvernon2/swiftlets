@@ -9,23 +9,25 @@
 import UIKit
 import AVFoundation
 
+//MARK: - Constants
+
+//buffer configuration
+fileprivate let kMaxBuffersInFlight:Int = 4
+fileprivate let kBufferFrameCount:UInt32 = 64 * 1024
+
+//interal indication track should begin at head
+fileprivate let kTrackHeadFramePosition:AVAudioFramePosition = -1
+
 ///Watcher protocol for the AudioPlayerEngine class. All methods guaranteed to be called on main thread.
 public protocol AudioPlayerEngineWatcher:class {
     func playbackStarted()
+    func playbackPaused()
     func playbackStopped(trackCompleted:Bool)
 }
 
 ///Simple class to playback audio files.
-/// Supports seeking within track and notifies delegates of play/stop state changes
-public class AudioPlayerEngine: NSObject {
-    //MARK: - Constants
-    
-    //buffer configuration
-    private let kMaxBuffersInFlight:Int = 4
-    private let kBufferFrameCount:UInt32 = 64 * 1024
-    
-    //interal indication track should begin at head
-    private let kTrackHeadFramePosition:AVAudioFramePosition = -1
+/// Supports seeking within track and notifies delegate of play/pause/stop state changes
+public class AudioPlayerEngine {
     
     //MARK: - Member variables - private
     
@@ -34,11 +36,15 @@ public class AudioPlayerEngine: NSObject {
     internal var player:AVAudioPlayerNode = AVAudioPlayerNode()
     internal var audioFile:AVAudioFile?
 
-    //seek position for next start
-    private var seekPosition:AVAudioFramePosition
+    //seek position for start
+    private var seekPosition:AVAudioFramePosition = kTrackHeadFramePosition
     
     //indication of external interruption of playback
     private var interrupted:Bool = false
+    
+    //state tracking for AVAudioPlayerNode pause
+    private var paused:Bool = false
+    private var pausedPosition:TimeInterval = 0.0
     
     //Buffer queue management and thread safety
     private let bufferQueue:DispatchQueue = DispatchQueue(label: "com.cyberdev.AudioPlayerEngine.buffers")
@@ -50,22 +56,25 @@ public class AudioPlayerEngine: NSObject {
     //delegate for start/stop notifications
     weak public var delegate:AudioPlayerEngineWatcher?
 
-    private var _trackLength:TimeInterval = 0.0
-    public var trackLength:TimeInterval {
-        get {
-            return _trackLength
-        }
-    }
+    private(set) public var trackLength:TimeInterval = 0.0
 
     //playback position in seconds
     public var trackPosition:TimeInterval {
         get {
-            if self.isPlaying(), let playerTime:AVAudioTime = currentPlayerTime() {
+            //playing
+            if let playerTime:AVAudioTime = currentPlayerTime() {
                 return TimeInterval(playerTime.sampleTime) / playerTime.sampleRate
-            } else if let currentAudioFile = self.audioFile {
+            }
+            //paused
+            else if isPaused() {
+                return self.pausedPosition
+            }
+            //stopped
+            else if let currentAudioFile = self.audioFile {
                 return TimeInterval(self.seekPosition/AVAudioFramePosition(currentAudioFile.fileFormat.sampleRate))
             }
             
+            //not configured
             return 0.0
         }
         
@@ -79,10 +88,10 @@ public class AudioPlayerEngine: NSObject {
             //if newPosition > audioFile.length then we are scheduling past end of file, allowing this for now as nothing bad happens
 
             let wasPlaying:Bool = self.isPlaying()
-            if wasPlaying {
+            if wasPlaying || isPaused() {
                 _stop()
             }
-            
+
             self.seekPosition = newPosition
             
             if wasPlaying {
@@ -94,11 +103,11 @@ public class AudioPlayerEngine: NSObject {
     //playback postion as percentage 0.0->1.0
     public var trackProgress:Float {
         get {
-            var result:Float = 0
-            if self.trackLength > 0 {
-                result = Float(self.trackPosition/self.trackLength)
+            guard self.trackLength > 0.0 else {
+                return 0.0
             }
-            return result
+
+            return Float(self.trackPosition/self.trackLength)
         }
         
         set(position) {
@@ -109,13 +118,9 @@ public class AudioPlayerEngine: NSObject {
         }
     }
     
-    //MARK: - Init
+    //MARK: - Initialization
 
-    override public init() {
-        self.seekPosition = kTrackHeadFramePosition
-
-        super.init()
-        
+    public init() {
         initAudioEngine()
     }
     
@@ -127,6 +132,9 @@ public class AudioPlayerEngine: NSObject {
         engine.attach(player)
         engine.connect(player, to: engine.mainMixerNode, format: engine.mainMixerNode.outputFormat(forBus: 0))
         engine.prepare()
+        if #available(iOS 11.0, *) {
+            engine.isAutoShutdownEnabled = true
+        }
     }
     
     //MARK: - Public Methods
@@ -140,7 +148,7 @@ public class AudioPlayerEngine: NSObject {
         do {
             self.audioFile = try AVAudioFile.init(forReading: url as URL)
             let processingFormat:AVAudioFormat = self.audioFile!.processingFormat
-            self._trackLength = Double(self.audioFile!.length)/processingFormat.sampleRate
+            self.trackLength = Double(self.audioFile!.length)/processingFormat.sampleRate
             self.seekPosition = kTrackHeadFramePosition
 
             registerForMediaServerNotifications()
@@ -162,29 +170,68 @@ public class AudioPlayerEngine: NSObject {
             return self.player.isPlaying
         }
     }
-
+    
+    public func isPaused() -> Bool {
+        return self.bufferQueue.sync {
+            return self.paused
+        }
+    }
+    
     @discardableResult public func play() -> Bool {
-        guard _play() else {
-            return false
+        let result:Bool
+        
+        if isPaused() {
+            self.bufferQueue.sync {
+                self.player.play()
+                self.paused = false
+            }
+            result = true
+        } else {
+            result = _play()
         }
         
-        DispatchQueue.main.async {
-            self.delegate?.playbackStarted()
+        if result {
+            DispatchQueue.main.async {
+                self.delegate?.playbackStarted()
+            }
         }
         
-        return true
+        return result
     }
 
     public func pause() {
         guard isPlaying() else {
             return
         }
+
+        let trackPosition = self.trackPosition
+
+        self.bufferQueue.sync {
+            self.player.pause()
+            self.paused = true
+            self.pausedPosition = trackPosition
+        }
         
-        let now:TimeInterval = self.trackPosition
-        stop()
-        self.trackPosition = now
+        DispatchQueue.main.async {
+            self.delegate?.playbackPaused()
+        }
     }
     
+    public func stop() {
+        guard isPlaying() else {
+            return
+        }
+        
+        let trackProgress:Float = self.trackProgress
+        
+        _stop()
+        
+        DispatchQueue.main.async {
+            self.delegate?.playbackStopped(trackCompleted: trackProgress >= 1.0)
+        }
+    }
+    
+    ///Toggle play/pause as appropriate
     @discardableResult public func plause() -> Bool {
         if isPlaying() {
             pause()
@@ -194,19 +241,7 @@ public class AudioPlayerEngine: NSObject {
         
         return isPlaying()
     }
-
-    public func stop() {
-        guard isPlaying() else {
-            return
-        }
-        
-        let progress:Float = self.trackProgress
-        _stop()
-        DispatchQueue.main.async {
-            self.delegate?.playbackStopped(trackCompleted: progress >= 1.0)
-        }
-    }
-
+    
     //MARK: - Private Methods
     
     @discardableResult private func _play() -> Bool {
@@ -250,27 +285,43 @@ public class AudioPlayerEngine: NSObject {
         return self.isPlaying()
     }
 
+    ///Stops engine, blocks until buffers are released
     private func _stop() {
         self.bufferQueue.sync {
             self.player.stop()
+            self.paused = false
         }
         
-        //wait for buffer queue to drain
+        //wait for buffer queue to drain - block calling thread
         _ = self.bufferGroup.wait(timeout: DispatchTime.distantFuture)
+        
+        self.stopEngine()
     }
 
     //MARK: - Utility
     
-    private func startEngine() -> Bool {
-        if !engine.isRunning {
-            do {
-                try engine.start()
-            } catch let error as NSError {
-                print("Exception in audio engine start: \(error.localizedDescription)")
-            }
+    @discardableResult private func startEngine() -> Bool {
+        guard !engine.isRunning else {
+            return false
         }
-
+        
+        do {
+            try engine.start()
+        } catch let error as NSError {
+            print("Exception in audio engine start: \(error.localizedDescription)")
+        }
+        
         return engine.isRunning
+    }
+    
+    @discardableResult private func stopEngine() -> Bool {
+        guard engine.isRunning else {
+            return false
+        }
+        
+        engine.stop()
+        
+        return !engine.isRunning
     }
     
     private func currentPlayerTime() -> AVAudioTime? {
@@ -290,8 +341,8 @@ public class AudioPlayerEngine: NSObject {
             return
         }
         
-        for _ in 1...self.kMaxBuffersInFlight {
-            guard let buffer:AVAudioPCMBuffer = AVAudioPCMBuffer(pcmFormat: audioFile.processingFormat, frameCapacity: self.kBufferFrameCount) else {
+        for _ in 1...kMaxBuffersInFlight {
+            guard let buffer:AVAudioPCMBuffer = AVAudioPCMBuffer(pcmFormat: audioFile.processingFormat, frameCapacity: kBufferFrameCount) else {
                 return
             }
             self.scheduleBuffer(buffer: buffer)
@@ -310,14 +361,13 @@ public class AudioPlayerEngine: NSObject {
             
             //schedule buffer for playback at end of player queue
             self.player.scheduleBuffer(buffer) { () -> Void in
-                var bufferQueueExhausted:Bool = false
-                self.bufferQueue.sync {
+                let bufferQueueExhausted:Bool = self.bufferQueue.sync {
                     self.buffersInFlight -= 1
                     self.bufferGroup.leave()
-                    bufferQueueExhausted = self.buffersInFlight <= 0
+                    return self.buffersInFlight <= 0
                 }
                 
-                //Reschedule buffer or stop if at end of file
+                //If we are still playing reschedule this buffer or stop if at end of file
                 if self.isPlaying() {
                     if bufferQueueExhausted {
                         self.stop()
@@ -350,26 +400,26 @@ public class AudioPlayerEngine: NSObject {
     
     private func registerForMediaServerNotifications() {
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name.AVAudioSessionInterruption, object: nil)
-        NotificationCenter.default.addObserver(forName: NSNotification.Name.AVAudioSessionInterruption, object: nil, queue: nil) { (notification:Notification) in
+        NotificationCenter.default.addObserver(forName: NSNotification.Name.AVAudioSessionInterruption, object: nil, queue: nil) { [weak self] (notification:Notification) in
             guard let why:AVAudioSessionInterruptionType = notification.userInfo?[AVAudioSessionInterruptionTypeKey] as? AVAudioSessionInterruptionType else {
                 return
             }
             
             switch why {
             case .began:
-                self.interruptSessionBegin()
+                self?.interruptSessionBegin()
             case .ended:
-                self.interruptSessionEnd()
+                self?.interruptSessionEnd()
             }
         }
 
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name.AVAudioSessionMediaServicesWereLost, object: nil)
-        NotificationCenter.default.addObserver(forName: NSNotification.Name.AVAudioSessionMediaServicesWereLost, object: nil, queue: nil) { (notification:Notification) in
+        NotificationCenter.default.addObserver(forName: NSNotification.Name.AVAudioSessionMediaServicesWereLost, object: nil, queue: nil) { /*[weak self]*/ (notification:Notification) in
             //TODO: Reset everything here
         }
 
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name.AVAudioSessionMediaServicesWereReset, object: nil)
-        NotificationCenter.default.addObserver(forName: NSNotification.Name.AVAudioSessionMediaServicesWereReset, object: nil, queue: nil) { (notification:Notification) in
+        NotificationCenter.default.addObserver(forName: NSNotification.Name.AVAudioSessionMediaServicesWereReset, object: nil, queue: nil) { /*[weak self]*/ (notification:Notification) in
             //TODO: Reset everything here
         }
     }
@@ -397,6 +447,22 @@ public class AudioPlayerEngine: NSObject {
 
 //MARK: - FXAudioPlayerEngine
 
+//TimePitch Rate constants
+fileprivate let kRateCenter:Float = 1.0
+fileprivate let kRateDetentRange:Float = 0.025
+
+//Track output level constants
+fileprivate let kOutputLevelDefault:Float = 0.0
+fileprivate let kOutputLevelDetentRange:Float = 0.25
+
+//Equalizer constants
+fileprivate let kNumberOfBands:Int = 4
+fileprivate let kLowShelfInitialFrequency:Float = 20.0
+fileprivate let kParametricLowInitialFrequency:Float = 200.0
+fileprivate let kParametricHighInitialFrequency:Float = 2000.0
+fileprivate let kHighShelfInitialFrequency:Float = 20000.0
+fileprivate let kEQGainDetentRange:Float = 0.5
+
 ///AudioPlayerEngine subclass that adds time rate control, four band parametric EQ, and simple output routing
 public class FXAudioPlayerEngine: AudioPlayerEngine {
     
@@ -407,25 +473,10 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
         case MonoRight
     }
     
-    //TimePitch Rate constants
-    private static let kRateCenter:Float = 1.0
-    private static let kRateDetentRange:Float = 0.025
-    
-    //Track output level constants
-    private static let kOutputLevelDefault:Float = 0.0
-    private static let kOutputLevelDetentRange:Float = 0.25
-
-    //EQ initial frequencies
-    private static let kLowShelfInitialFrequency:Float = 20.0
-    private static let kParametricLowInitialFrequency:Float = 200.0
-    private static let kParametricHighInitialFrequency:Float = 2000.0
-    private static let kHighShelfInitialFrequency:Float = 20000.0
-    private static let kEQGainDetentRange:Float = 0.5
-    
-
-    private var timePitch:AVAudioUnitTimePitch!
-    private var equalizer:AVAudioUnitEQ!
-    private var routingMixer:AVAudioMixerNode!
+    //Audio Units
+    private let timePitch:AVAudioUnitTimePitch = AVAudioUnitTimePitch()
+    private let equalizer:AVAudioUnitEQ = AVAudioUnitEQ(numberOfBands: kNumberOfBands)
+    private let routingMixer:AVAudioMixerNode = AVAudioMixerNode()
 
     //MARK: - Member variables - public
     
@@ -474,12 +525,12 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
     
     ///Adjust track playback levels in range: -1.0 to 1.0
     ///A detent around zero is automatically applied
-    public var trackOutputLevelAdjust:Float = FXAudioPlayerEngine.kOutputLevelDefault {
+    public var trackOutputLevelAdjust:Float = kOutputLevelDefault {
         didSet {
             var adjustment:Float = trackOutputLevelAdjust
             //apply detent around zero
-            if fabs(adjustment) <= FXAudioPlayerEngine.kOutputLevelDetentRange {
-                adjustment = FXAudioPlayerEngine.kOutputLevelDefault
+            if fabs(adjustment) <= kOutputLevelDetentRange {
+                adjustment = kOutputLevelDefault
             }
             engine.mainMixerNode.outputVolume = (adjustment + 1.0)/2.0
         }
@@ -493,9 +544,9 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
         }
         
         set(rate) {
-            let centerOffset:Float = fabs(FXAudioPlayerEngine.kRateCenter - fabs(rate))
-            if centerOffset <= FXAudioPlayerEngine.kRateDetentRange {
-                timePitch.rate = FXAudioPlayerEngine.kRateCenter
+            let centerOffset:Float = fabs(kRateCenter - fabs(rate))
+            if centerOffset <= kRateDetentRange {
+                timePitch.rate = kRateCenter
             } else {
                 timePitch.rate = rate
             }
@@ -528,19 +579,16 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
         super.initAudioEngine()
         
         //configure time pitch
-        timePitch = AVAudioUnitTimePitch()
         timePitch.bypass = false
         engine.attach(timePitch)
         
         //configure eq
-        equalizer = AVAudioUnitEQ(numberOfBands: 4)
-        equalizer.globalGain = 0.0
         equalizer.bypass = false
+        equalizer.globalGain = 0.0
         engine.attach(equalizer)
         normalizeEQ()
         
         //configure mixer
-        routingMixer = AVAudioMixerNode()
         engine.attach(routingMixer)
 
         //disconnect player so we can insert our effects between player and output
@@ -556,7 +604,7 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
         engine.connect(routingMixer, to: engine.mainMixerNode, format: outputFormat)
 
         //configure gain structure
-        self.trackOutputLevelAdjust = FXAudioPlayerEngine.kOutputLevelDefault
+        self.trackOutputLevelAdjust = kOutputLevelDefault
 
         //prepare the engine
         engine.prepare()
@@ -567,31 +615,31 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
     ///Reset EQ, track output level, and time pitch effect to nominal values.
     public func normalize() {
         normalizeEQ()
-        trackOutputLevelAdjust = FXAudioPlayerEngine.kOutputLevelDefault
-        timePitchRate = FXAudioPlayerEngine.kRateCenter
+        trackOutputLevelAdjust = kOutputLevelDefault
+        timePitchRate = kRateCenter
     }
 
     ///Reset EQ to nominal (flat) values
     public func normalizeEQ() {
         equalizer.bands[0].filterType = .lowShelf
-        equalizer.bands[0].frequency = FXAudioPlayerEngine.kLowShelfInitialFrequency
+        equalizer.bands[0].frequency = kLowShelfInitialFrequency
         equalizer.bands[0].gain = 0.0
         equalizer.bands[0].bypass = false
         
         equalizer.bands[1].filterType = .parametric
-        equalizer.bands[1].frequency = FXAudioPlayerEngine.kParametricLowInitialFrequency
+        equalizer.bands[1].frequency = kParametricLowInitialFrequency
         equalizer.bands[1].gain = 0.0
         equalizer.bands[1].bandwidth = 1.0
         equalizer.bands[1].bypass = false
         
         equalizer.bands[2].filterType = .parametric
-        equalizer.bands[2].frequency = FXAudioPlayerEngine.kParametricHighInitialFrequency
+        equalizer.bands[2].frequency = kParametricHighInitialFrequency
         equalizer.bands[2].gain = 0.0
         equalizer.bands[2].bandwidth = 1.0
         equalizer.bands[2].bypass = false
         
         equalizer.bands[3].filterType = .highShelf
-        equalizer.bands[3].frequency = FXAudioPlayerEngine.kHighShelfInitialFrequency
+        equalizer.bands[3].frequency = kHighShelfInitialFrequency
         equalizer.bands[3].gain = 0.0
         equalizer.bands[3].bypass = false
     }
@@ -606,7 +654,7 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
     public func setFilterAtIndex(filterIndex:Int, frequency:Float , gain:Float, bandwidth:Float = 0.0) {
         equalizer.bands[filterIndex].frequency = frequency
         
-        if fabs(gain) <= FXAudioPlayerEngine.kEQGainDetentRange {
+        if fabs(gain) <= kEQGainDetentRange {
             equalizer.bands[filterIndex].gain = 0.0
         } else {
             equalizer.bands[filterIndex].gain = gain
