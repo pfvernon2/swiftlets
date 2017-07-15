@@ -9,7 +9,7 @@
 import Foundation
 
 extension String {
-    public init?(localized:String, comment:String?) {
+    public init?(localized:String, comment:String? = nil) {
         self.init(NSLocalizedString(localized, comment: comment ?? ""))
     }
     
