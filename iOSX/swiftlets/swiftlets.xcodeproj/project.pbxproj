@@ -34,6 +34,8 @@
 		01C4FA5C1E0B217E00E96F4F /* UserDefaultsTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01C4FA5B1E0B217E00E96F4F /* UserDefaultsTextField.swift */; };
 		01CD89E21CDD0B24000790C2 /* UIAlertController+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01CD89E11CDD0B24000790C2 /* UIAlertController+Utilities.swift */; };
 		01D1ED151D415FE600886D3D /* Platform.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01D1ED141D415FE600886D3D /* Platform.swift */; };
+		01E05E741F08018500B074F2 /* Scanner+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E05E731F08018400B074F2 /* Scanner+Utilities.swift */; };
+		01E05EF51F10495C00B074F2 /* LineReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E05EF41F10495C00B074F2 /* LineReader.swift */; };
 		01E6783F1CD5145E00ABE1CB /* Data+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E6783E1CD5145E00ABE1CB /* Data+Utilities.swift */; };
 		01E6784E1CD5315D00ABE1CB /* MKMapKit+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E6784C1CD5315D00ABE1CB /* MKMapKit+Utilities.swift */; };
 		01E6784F1CD5315D00ABE1CB /* MKMapView+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E6784D1CD5315D00ABE1CB /* MKMapView+Utilities.swift */; };
@@ -86,6 +88,8 @@
 		01CD89E11CDD0B24000790C2 /* UIAlertController+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIAlertController+Utilities.swift"; path = "../../iOS/UIAlertController+Utilities.swift"; sourceTree = "<group>"; };
 		01D1ED141D415FE600886D3D /* Platform.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Platform.swift; path = ../../Platform.swift; sourceTree = "<group>"; };
 		01DB660B1E7AF25600020AB5 /* URLRequest+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "URLRequest+Utilities.swift"; path = "../../URLRequest+Utilities.swift"; sourceTree = "<group>"; };
+		01E05E731F08018400B074F2 /* Scanner+Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "Scanner+Utilities.swift"; path = "../../../Portable/Scanner+Utilities.swift"; sourceTree = "<group>"; };
+		01E05EF41F10495C00B074F2 /* LineReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LineReader.swift; path = ../../../Portable/LineReader.swift; sourceTree = "<group>"; };
 		01E6783E1CD5145E00ABE1CB /* Data+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Data+Utilities.swift"; path = "../../Data+Utilities.swift"; sourceTree = "<group>"; };
 		01E6784C1CD5315D00ABE1CB /* MKMapKit+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "MKMapKit+Utilities.swift"; path = "../../MKMapKit+Utilities.swift"; sourceTree = "<group>"; };
 		01E6784D1CD5315D00ABE1CB /* MKMapView+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "MKMapView+Utilities.swift"; path = "../../MKMapView+Utilities.swift"; sourceTree = "<group>"; };
@@ -169,6 +173,8 @@
 				01E769771CF22D1500866433 /* DateFormatter+Utilities.swift */,
 				01ADE31A1D34AD5E005424EF /* UIFont+Utilities.swift */,
 				01D1ED141D415FE600886D3D /* Platform.swift */,
+				01E05E731F08018400B074F2 /* Scanner+Utilities.swift */,
+				01E05EF41F10495C00B074F2 /* LineReader.swift */,
 			);
 			path = swiftlets;
 			sourceTree = "<group>";
@@ -306,6 +312,7 @@
 				01533B071C9DDF2000C6E69D /* CoalescingTimer.swift in Sources */,
 				01533B061C9DDF2000C6E69D /* AudioPlayerEngine.swift in Sources */,
 				01E678541CD531AA00ABE1CB /* UIColor+Utilities.swift in Sources */,
+				01E05E741F08018500B074F2 /* Scanner+Utilities.swift in Sources */,
 				01ADE31B1D34AD5E005424EF /* UIFont+Utilities.swift in Sources */,
 				01947BE41E62197300C1FF1D /* Operation+Concurrency.swift in Sources */,
 				01CD89E21CDD0B24000790C2 /* UIAlertController+Utilities.swift in Sources */,
@@ -322,6 +329,7 @@
 				01533B0A1C9DDF2000C6E69D /* UIImage+Scaling.swift in Sources */,
 				018B5A051F03476E009F40FB /* URLComponent+Utilities.swift in Sources */,
 				01D1ED151D415FE600886D3D /* Platform.swift in Sources */,
+				01E05EF51F10495C00B074F2 /* LineReader.swift in Sources */,
 				011330811D05CC27002DA0F0 /* String+Localization.swift in Sources */,
 				01E6784F1CD5315D00ABE1CB /* MKMapView+Utilities.swift in Sources */,
 				01C4FA5C1E0B217E00E96F4F /* UserDefaultsTextField.swift in Sources */,
