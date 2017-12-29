@@ -66,7 +66,7 @@ public extension String {
     }
 
     public func length() -> Int {
-        return self.characters.count
+        return self.count
     }
     
     mutating public func trimSuffix(_ suffix: String) {
@@ -103,7 +103,18 @@ public extension String {
     }
 
     func isLikeZipCode() -> Bool {
-        return self.characters.count == 5 && self.isAllDigits()
+        if self.count == 5 && self.isAllDigits() {
+            return true
+        }
+        
+        else if self.count == 10 {
+            let plusFours: [String] = self.split(separator: "-").map { String($0) }
+            return plusFours.count == 2
+                && plusFours[0].count == 5 && plusFours[0].isAllDigits()
+                && plusFours[1].count == 4 && plusFours[1].isAllDigits()
+        }
+        
+        return false
     }
 
     func isLikeEmailAddress() -> Bool {
