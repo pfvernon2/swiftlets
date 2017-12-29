@@ -384,6 +384,15 @@ public enum HTTPURLReponseStatus {
             self = .unknownClass(statusCode)
         }
     }
+    
+    func isSuccess() -> Bool {
+        switch self {
+        case .success:
+            return true
+        default:
+            return false
+        }
+    }
 }
 
 public extension HTTPURLResponse {
