@@ -6,11 +6,18 @@
 //  Copyright © 2017 Frank Vernon. All rights reserved.
 //
 
+#if os(iOS)
 import UIKit
+#endif
+
+#if os(OSX)
+import AppKit
+#endif
 
 fileprivate let rfc2822LineEnding:String = "\r\n"
 
 public extension URLRequest {
+    #if os(iOS)
     /**
      Appends a UIImage as a form section to a URLRequest body as JPEG.
      
@@ -37,7 +44,38 @@ public extension URLRequest {
                                  contentData: scaledImageData,
                                  isFinal: isFinal)
     }
+    #endif
     
+    #if os(OSX)
+    /**
+     Appends a UIImage as a form section to a URLRequest body as JPEG.
+     
+     - Parameter boundary: The boundary for the form section
+     - Parameter image: The image to include in the form section
+     - Parameter fileName: The filename for the form section
+     - Parameter isFinal: Boolean indicating if a MIME boundary termination should be included
+     
+     - Returns: True if form section was appended, false otherwise
+     */
+    @discardableResult mutating func appendJPEGImageFormSection(withBoundary boundary:String = UUID().uuidString,
+                                                                image:NSImage,
+                                                                fileName:String,
+                                                                name:String? = nil,
+                                                                isFinal:Bool = false) -> Bool {
+        guard let bits = image.representations.first as? NSBitmapImageRep,
+            let scaledImageData = bits.representation(using: .jpeg, properties: [:]) else {
+            return false
+        }
+
+        return appendFormSection(withBoundary: boundary,
+                                 mimeType: "image/jpeg",
+                                 name: name ?? "data",
+                                 fileName: fileName,
+                                 contentData: scaledImageData,
+                                 isFinal: isFinal)
+    }
+    #endif
+
     /**
      Appends a form section to a URLRequest body.
      

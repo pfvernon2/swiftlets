@@ -6,7 +6,7 @@
 //  Copyright © 2016 Frank Vernon. All rights reserved.
 //
 
-import UIKit
+import Foundation
 
 // MARK: - pathComponents
 
