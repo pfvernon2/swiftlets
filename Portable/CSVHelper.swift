@@ -6,7 +6,7 @@
 //  Copyright (c) 2014 Frank Vernon. All rights reserved.
 //
 
-import UIKit
+import Foundation
 
 fileprivate let fieldDelimiter:Character = ","
 fileprivate let recordDelimiter:Character = "\r\n"
@@ -14,14 +14,23 @@ fileprivate let bareReturn:Character = "\r"
 fileprivate let bareLinefeed:Character = "\n"
 fileprivate let quoteCharacter:Character = "\""
 fileprivate let escapeSequence:String = "\"\""
-fileprivate let quoteSequence:String = String("\"")
-fileprivate let fieldDelimiterSequence:String = String(",")
+fileprivate let quoteSequence:String = String(quoteCharacter)
+fileprivate let fieldDelimiterSequence:String = String(fieldDelimiter)
+fileprivate let recordDelimiterSequence:String = String(recordDelimiter)
 
 ///RFC 4180 compliant CSV parser/writer
 class CSVHelper: NSObject {
 	
 	func read(contentsOfURL url: URL, useEncoding encoding: String.Encoding = String.Encoding.utf8) -> [[String]] {
-		let characterData:String = try! String(contentsOfFile: url.path, encoding: encoding)
+        guard var characterData:String = try? String(contentsOfFile: url.path, encoding: encoding) else {
+            return []
+        }
+        
+        //ensure record terminator at end of file
+        if characterData.last != recordDelimiter {
+            characterData.append(recordDelimiter)
+        }
+        
 		var table:[[String]] = []
 		
 		var quoted:Bool = false
@@ -29,7 +38,7 @@ class CSVHelper: NSObject {
 		var testRecordEnd:Bool = false
 		var field:String = ""
 		var record:[String] = []
-        for current:Character in characterData.characters {
+        characterData.forEach { current in
 			if testEscaped && current != quoteCharacter {
 				testEscaped = false
 				quoted = false
@@ -38,7 +47,7 @@ class CSVHelper: NSObject {
 			//check for escape sequence start
 			if current == quoteCharacter && quoted && !testEscaped {
 				testEscaped = true
-				continue
+				return
 			}
 				
             //check for quote sequence start
@@ -50,7 +59,7 @@ class CSVHelper: NSObject {
             // supporting bare CR & LF, not required by RFC4180 but common
 			else if !quoted && (current == bareReturn || current == bareLinefeed) {
 				testRecordEnd = true
-                continue
+                return
 			}
                 
             //if outside of quoted section and at end of record then: add last field to record,
@@ -100,14 +109,14 @@ class CSVHelper: NSObject {
     
     fileprivate func encode(record: [String]) -> String {
         let escapedRecord:[String] = record.map { (field) -> String in
-            guard field.contains(quoteCharacter) else {
-                return field
-            }
-            
-            let escapedField = field.replacingOccurrences(of: quoteSequence, with: escapeSequence, options: NSString.CompareOptions.literal, range: nil)
+            let escapedField = field.replacingOccurrences(of: quoteSequence,
+                                                          with: escapeSequence,
+                                                          options: NSString.CompareOptions.literal,
+                                                          range: nil)
             return quoteSequence + escapedField + quoteSequence
         }
-        return escapedRecord.joined(separator: fieldDelimiterSequence)
+        
+        return escapedRecord.joined(separator: fieldDelimiterSequence) + recordDelimiterSequence
     }
 }
 
