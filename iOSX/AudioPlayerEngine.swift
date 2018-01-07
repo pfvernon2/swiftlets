@@ -15,7 +15,7 @@ import AVFoundation
 fileprivate let kMaxBuffersInFlight:Int = 4
 fileprivate let kBufferFrameCount:UInt32 = 64 * 1024
 
-//interal indication track should begin at head
+//internal indication track should begin at head
 fileprivate let kTrackHeadFramePosition:AVAudioFramePosition = -1
 
 ///Watcher protocol for the AudioPlayerEngine class. All methods guaranteed to be called on main thread.
@@ -65,11 +65,11 @@ public class AudioPlayerEngine {
             if let playerTime:AVAudioTime = currentPlayerTime() {
                 return TimeInterval(playerTime.sampleTime) / playerTime.sampleRate
             }
-            //paused
+                //paused
             else if isPaused() {
                 return self.pausedPosition
             }
-            //stopped
+                //stopped
             else if let currentAudioFile = self.audioFile {
                 return TimeInterval(self.seekPosition/AVAudioFramePosition(currentAudioFile.fileFormat.sampleRate))
             }
@@ -128,6 +128,16 @@ public class AudioPlayerEngine {
         NotificationCenter.default.removeObserver(self)
     }
     
+    ///Call this is to setup playback options for your app for allow simulataneous playback with other apps.
+    /// This mode allows playback of audio when the ringer (mute) switch is enabled.
+    /// Be sure to enable audio in the BackgroundModes settings of your apps Capabilities if necessary.
+    class func initAudioSessionCooperativePlayback() {
+        try? AVAudioSession.sharedInstance().setActive(true)
+        
+        //AVAudioSessionCategoryMultiRoute - AVAudioSessionCategoryPlayback
+        try? AVAudioSession.sharedInstance().setCategory(AVAudioSessionCategoryPlayback, with: .mixWithOthers)
+    }
+    
     internal func initAudioEngine () {
         engine.attach(player)
         engine.connect(player, to: engine.mainMixerNode, format: engine.mainMixerNode.outputFormat(forBus: 0))
@@ -138,31 +148,28 @@ public class AudioPlayerEngine {
     }
     
     //MARK: - Public Methods
-
-    @discardableResult public func setTrack(url:NSURL) -> Bool {
+    @discardableResult public func setTrack(url: URL) -> Bool {
         let wasPlaying:Bool = isPlaying()
+        
+        guard let file:AVAudioFile = try? AVAudioFile.init(forReading: url) else {
+            return false
+        }
+        
         if wasPlaying {
             _stop()
         }
+
+        self.audioFile = file
+        self.trackLength = Double(file.length)/file.processingFormat.sampleRate
+        self.seekPosition = kTrackHeadFramePosition
         
-        do {
-            self.audioFile = try AVAudioFile.init(forReading: url as URL)
-            let processingFormat:AVAudioFormat = self.audioFile!.processingFormat
-            self.trackLength = Double(self.audioFile!.length)/processingFormat.sampleRate
-            self.seekPosition = kTrackHeadFramePosition
-
-            registerForMediaServerNotifications()
-            
-            if wasPlaying {
-                _play()
-            }
-
-            return true
-        } catch let error as NSError {
-            print("Exception in audio engine scheduleFile: \(error.localizedDescription)")
+        registerForMediaServerNotifications()
+        
+        if wasPlaying {
+            _play()
         }
         
-        return false
+        return true
     }
     
     public func isPlaying() -> Bool {
@@ -204,13 +211,7 @@ public class AudioPlayerEngine {
             return
         }
 
-        let trackPosition = self.trackPosition
-
-        self.bufferQueue.sync {
-            self.player.pause()
-            self.paused = true
-            self.pausedPosition = trackPosition
-        }
+        _pause()
         
         DispatchQueue.main.async {
             self.delegate?.playbackPaused()
@@ -223,6 +224,9 @@ public class AudioPlayerEngine {
         }
         
         let trackProgress:Float = self.trackProgress
+
+        //pause stops the buffer recycling so we can tear down the engine in _stop()
+        _pause()
         
         _stop()
         
@@ -262,7 +266,7 @@ public class AudioPlayerEngine {
             self.bufferQueue.sync {
                 if let currentPos:AVAudioFramePosition = self.player.lastRenderTime?.sampleTime {
                     let playTime:AVAudioTime = AVAudioTime(sampleTime: currentPos-self.seekPosition,
-                        atRate: trackToPlay.processingFormat.sampleRate)
+                                                           atRate: trackToPlay.processingFormat.sampleRate)
                     self.player.play(at: playTime)
                 }
             }
@@ -271,7 +275,7 @@ public class AudioPlayerEngine {
             self.seekPosition = kTrackHeadFramePosition
         }
             
-        //otherwise just start playing at beginning of track
+            //otherwise just start playing at beginning of track
         else {
             //ensure file framePosition at head in case we are re-playing a track
             trackToPlay.framePosition = 0
@@ -285,15 +289,28 @@ public class AudioPlayerEngine {
         return self.isPlaying()
     }
 
-    ///Stops engine, blocks until buffers are released
-    private func _stop() {
+    private func _pause() {
+        let trackPosition = self.trackPosition
+
+        self.player.pause()
+
         self.bufferQueue.sync {
-            self.player.stop()
+            self.paused = true
+            self.pausedPosition = trackPosition
+        }
+    }
+    
+    ///Stops engine, blocks until buffers are released
+    /// Yes, I know blocking is uncool but this should happen nearly instantly.
+    private func _stop() {
+        self.player.stop()
+        
+        //wait for buffer queue to drain - blocks calling thread
+        _ = self.bufferGroup.wait(timeout: DispatchTime.distantFuture)
+        
+        self.bufferQueue.sync {
             self.paused = false
         }
-        
-        //wait for buffer queue to drain - block calling thread
-        _ = self.bufferGroup.wait(timeout: DispatchTime.distantFuture)
         
         self.stopEngine()
     }
@@ -368,14 +385,19 @@ public class AudioPlayerEngine {
                 }
                 
                 //If we are still playing reschedule this buffer or stop if at end of file
-                if self.isPlaying() {
-                    if bufferQueueExhausted {
-                        self.stop()
-                    } else {
-                        //to understand recursion one must first understand recursion
-                        self.scheduleBuffer(buffer: buffer)
-                    }
+                guard self.isPlaying() else {
+                    return
                 }
+                
+                guard !bufferQueueExhausted else {
+                    DispatchQueue.main.async {
+                        self.stop()
+                    }
+                    return
+                }
+                
+                //to understand recursion one must first understand recursion
+                self.scheduleBuffer(buffer: buffer)
             }
             
             return true
@@ -427,7 +449,7 @@ public class AudioPlayerEngine {
     private func interruptSessionBegin() {
         guard let nodeTime:AVAudioTime = self.player.lastRenderTime,
             let playerTime:AVAudioTime = self.player.playerTime(forNodeTime: nodeTime) else {
-            return
+                return
         }
         
         self.interrupted = true
@@ -467,10 +489,10 @@ fileprivate let kEQGainDetentRange:Float = 0.5
 public class FXAudioPlayerEngine: AudioPlayerEngine {
     
     public enum OutputRouting {
-        case Stereo
-        case Mono
-        case MonoLeft
-        case MonoRight
+        case stereo
+        case mono
+        case monoLeft
+        case monoRight
     }
     
     //Audio Units
@@ -486,7 +508,7 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
         }
     }
     
-    public var outputRouting:OutputRouting = .Stereo {
+    public var outputRouting:OutputRouting = .stereo {
         didSet {
             guard outputRouting != oldValue else {
                 return
@@ -499,24 +521,24 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
             engine.disconnectNodeOutput(routingMixer)
             let outputFormat = engine.mainMixerNode.outputFormat(forBus: 0)
             let monoFormat = AVAudioFormat(commonFormat:outputFormat.commonFormat,
-                sampleRate: outputFormat.sampleRate,
-                interleaved: outputFormat.isInterleaved,
-                channelLayout: monoLayout)
-
+                                           sampleRate: outputFormat.sampleRate,
+                                           interleaved: outputFormat.isInterleaved,
+                                           channelLayout: monoLayout)
+            
             switch outputRouting {
-            case .Stereo:
+            case .stereo:
                 engine.connect(routingMixer, to: engine.mainMixerNode, format: outputFormat)
                 routingMixer.pan = 0.0
                 
-            case .Mono:
+            case .mono:
                 engine.connect(routingMixer, to: engine.mainMixerNode, format: monoFormat)
                 routingMixer.pan = 0.0
 
-            case .MonoLeft:
+            case .monoLeft:
                 engine.connect(routingMixer, to: engine.mainMixerNode, format: monoFormat)
                 routingMixer.pan = -1.0
                 
-            case .MonoRight:
+            case .monoRight:
                 engine.connect(routingMixer, to: engine.mainMixerNode, format: monoFormat)
                 routingMixer.pan = 1.0
             }
@@ -651,7 +673,7 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
     }
     
     ///Adjust EQ filter at given index to given set of filter parameters
-    public func setFilterAtIndex(filterIndex:Int, frequency:Float , gain:Float, bandwidth:Float = 0.0) {
+    public func setFilterAtIndex(filterIndex:Int, frequency:Float, gain:Float, bandwidth:Float = 0.0) {
         equalizer.bands[filterIndex].frequency = frequency
         
         if fabs(gain) <= kEQGainDetentRange {
@@ -667,7 +689,7 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
 }
 
 ///Wrapup class for EQ settings... these map directly to AVAudioUnitEQFilterParameters which is not copyable/fungable
-public class AudioUnitEQFilterParameters: NSObject, NSCoding {
+public class AudioUnitEQFilterParameters: NSCoding {
     
     //Properties from AVAudioUnitEQFilterParameters
     public var filterType:AVAudioUnitEQFilterType
@@ -682,18 +704,18 @@ public class AudioUnitEQFilterParameters: NSObject, NSCoding {
         self.bandwidth = filter.bandwidth
         self.gain = filter.gain
         self.bypass = filter.bypass
-        
-        super.init()
     }
     
     public required init?(coder aDecoder: NSCoder) {
-        self.filterType = AVAudioUnitEQFilterType(rawValue: aDecoder.decodeInteger(forKey: "filterType"))!
+        guard let filterType: AVAudioUnitEQFilterType = AVAudioUnitEQFilterType(rawValue: aDecoder.decodeInteger(forKey: "filterType")) else {
+            return nil
+        }
+        
+        self.filterType = filterType
         self.frequency = aDecoder.decodeFloat(forKey: "frequency")
         self.bandwidth = aDecoder.decodeFloat(forKey: "bandwidth")
         self.gain = aDecoder.decodeFloat(forKey: "gain")
         self.bypass = aDecoder.decodeBool(forKey: "bypass")
-
-        super.init()
     }
     
     public func encode(with aCoder: NSCoder) {
@@ -704,11 +726,12 @@ public class AudioUnitEQFilterParameters: NSObject, NSCoding {
         aCoder.encode(self.bypass, forKey: "bypass")
     }
     
-    override public var description : String {
+    public var description : String {
         return "AudioUnitEQFilterParameters:\nfilterType:\(self.filterType)\nfrequency:\(self.frequency)\nbandwidth:\(self.bandwidth)\ngain:\(self.gain)\nbypass:\(self.bypass)"
     }
     
-    override public var debugDescription : String {
+    public var debugDescription : String {
         return "AudioUnitEQFilterParameters:\nfilterType:\(self.filterType)\nfrequency:\(self.frequency)\nbandwidth:\(self.bandwidth)\ngain:\(self.gain)\nbypass:\(self.bypass)"
     }
 }
+
