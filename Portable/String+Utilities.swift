@@ -137,5 +137,14 @@ public extension String {
         
         return start ..< end
     }
+    
+    static func fourCCToString(_ value: FourCharCode) -> String {
+        let utf16 = [
+            UInt16((value >> 24) & 0xFF),
+            UInt16((value >> 16) & 0xFF),
+            UInt16((value >> 8) & 0xFF),
+            UInt16((value & 0xFF)) ]
+        return String(utf16CodeUnits: utf16, count: 4)
+    }
 }
 
