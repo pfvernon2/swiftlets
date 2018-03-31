@@ -46,11 +46,11 @@ extension Array where Element: Equatable {
     }
     
     func indexes(ofItemsLike item: Element) -> [Int]  {
-        return self.enumerated().flatMap { $0.element == item ? $0.offset : nil }
+        return self.enumerated().compactMap { $0.element == item ? $0.offset : nil }
     }
     
     func indexes(ofItemsNotLike item: Element) -> [Int]  {
-        return self.enumerated().flatMap { $0.element != item ? $0.offset : nil }
+        return self.enumerated().compactMap { $0.element != item ? $0.offset : nil }
     }
 }
 

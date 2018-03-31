@@ -243,7 +243,7 @@ public extension URLQueryItem {
     }
     
     static func urlEscapedDescription(queryItems:[URLQueryItem]) -> String? {
-        return queryItems.flatMap { (queryItem) -> String? in
+        return queryItems.compactMap { (queryItem) -> String? in
             return queryItem.urlEscapedDescription()
         }.joined(separator: "&")
     }

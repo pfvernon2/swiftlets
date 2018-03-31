@@ -256,8 +256,6 @@ public enum HTTPURLReponseStatus {
                 self = .loginTimeout
             case 449:
                 self = .retryWith
-            case 451:
-                self = .redirect
             case 444:
                 self = .noResponse
             case 495:

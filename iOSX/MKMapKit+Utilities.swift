@@ -128,6 +128,7 @@ extension MKRoute {
 extension MKMapPoint {
     init(coordinate: CLLocationCoordinate2D) {
         let mapPoint = MKMapPointForCoordinate(coordinate)
+        self.init()
         self.x = mapPoint.x
         self.y = mapPoint.y
     }
@@ -183,6 +184,7 @@ extension MKCoordinateRegion {
                                                         latitudinalMeters,
                                                         longitudinalMeters)
         
+        self.init()
         self.center = region.center
         self.span = region.span
     }

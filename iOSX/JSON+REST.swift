@@ -390,7 +390,7 @@ fileprivate extension URLQueryItem {
     }
     
     static func REST_urlEscapedDescription(queryItems:[URLQueryItem]) -> String? {
-        return queryItems.flatMap { (queryItem) -> String? in
+        return queryItems.compactMap { (queryItem) -> String? in
             return queryItem.REST_urlEscapedDescription()
             }.joined(separator: "&")
     }

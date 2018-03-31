@@ -36,7 +36,7 @@ extension DateFormatter {
     class func ISO8601DateTimeFormatter(_ precision:ISO8601ExtendedPrecision = .conforming) -> DateFormatter {
         //Create formatter; ignoring user locale
         let dateFormatterISO8601 = DateFormatter()
-        dateFormatterISO8601.locale = NSLocale(localeIdentifier: "en_US_POSIX") as Locale!
+        dateFormatterISO8601.locale = NSLocale(localeIdentifier: "en_US_POSIX") as Locale?
         
         //set format based precision specified
         switch precision {
@@ -51,7 +51,7 @@ extension DateFormatter {
         //Create Gregorian; calender ignoring user locale calendar
         let gregorian = NSCalendar(identifier: NSCalendar.Identifier.gregorian)!
         gregorian.timeZone = NSTimeZone(abbreviation: "UMT")! as TimeZone
-        dateFormatterISO8601.calendar = gregorian as Calendar!
+        dateFormatterISO8601.calendar = gregorian as Calendar?
         
         return dateFormatterISO8601
     }
