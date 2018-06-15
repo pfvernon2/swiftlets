@@ -26,7 +26,7 @@ extension UIAlertController {
      - returns: A UIAlertController
      
      */
-    class func alertControllerOKCancel(title:String?, message:String?, preferredStyle:UIAlertControllerStyle = .alert, okHandler: ((UIAlertAction) -> Void)?, cancelHandler: ((UIAlertAction) -> Void)?) -> UIAlertController{
+    class func alertControllerOKCancel(title:String?, message:String?, preferredStyle:UIAlertController.Style = .alert, okHandler: ((UIAlertAction) -> Void)?, cancelHandler: ((UIAlertAction) -> Void)?) -> UIAlertController{
         
         let result = UIAlertController(title: title, message: message, preferredStyle: preferredStyle)
         

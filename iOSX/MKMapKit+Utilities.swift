@@ -100,7 +100,7 @@ extension CLLocationDistance {
     }
 }
 
-extension MKRouteStep {
+extension MKRoute.Step {
     var distanceMiles:CLLocationDistanceMiles {
         return distance.toMiles()
     }
@@ -127,14 +127,10 @@ extension MKRoute {
 
 extension MKMapPoint {
     init(coordinate: CLLocationCoordinate2D) {
-        let mapPoint = MKMapPointForCoordinate(coordinate)
+        let mapPoint = MKMapPoint(coordinate)
         self.init()
         self.x = mapPoint.x
         self.y = mapPoint.y
-    }
-    
-    func distanceTo(point:MKMapPoint) -> CLLocationDistance {
-        return MKMetersBetweenMapPoints(self, point)
     }
     
     func bearingTo(point: MKMapPoint) -> CLLocationDirection {
@@ -148,12 +144,6 @@ extension MKMapPoint {
         
         return result
     }
-    
-    var coordinate:CLLocationCoordinate2D {
-        get {
-            return MKCoordinateForMapPoint(self)
-        }
-    }
 }
 
 extension MKMapPoint: Equatable {}
@@ -164,15 +154,15 @@ public func ==(lhs: MKMapPoint, rhs: MKMapPoint) -> Bool {
 
 extension MKMapRect {
     func contains(point:MKMapPoint) -> Bool {
-        return MKMapRectContainsPoint(self, point)
+        return self.contains(point)
     }
     
     func contains(rect:MKMapRect) -> Bool {
-        return MKMapRectContainsRect(self, rect)
+        return self.contains(rect)
     }
     
     func intersects(rect:MKMapRect) -> Bool {
-        return MKMapRectIntersectsRect(self, rect)
+        return self.intersects(rect)
     }
 }
 
@@ -180,9 +170,9 @@ extension MKCoordinateRegion {
     init(centerCoordinate: CLLocationCoordinate2D,
          latitudinalMeters: CLLocationDistance,
          longitudinalMeters: CLLocationDistance) {
-        let region = MKCoordinateRegionMakeWithDistance(centerCoordinate,
-                                                        latitudinalMeters,
-                                                        longitudinalMeters)
+        let region = MKCoordinateRegion(center: centerCoordinate,
+                                        latitudinalMeters: latitudinalMeters,
+                                        longitudinalMeters: longitudinalMeters)
         
         self.init()
         self.center = region.center
@@ -230,8 +220,8 @@ extension MKMapView {
                                                 y: visibleMapRect.origin.y + visibleMapRect.size.height)
         
         
-        let horizontalMeters = MKMetersBetweenMapPoints(topLeft, topRight)
-        let verticalMeters = MKMetersBetweenMapPoints(topRight, bottomRight)
+        let horizontalMeters = topLeft.distance(to: topRight)
+        let verticalMeters = topRight.distance(to: bottomRight)
         
         return max(horizontalMeters, verticalMeters)
     }
@@ -331,7 +321,7 @@ extension CLLocation {
     }
 }
 
-extension MKDirectionsResponse {
+extension MKDirections.Response {
     public func greatCircleDistance() -> CLLocationDistance {
         if let sourceLocation:CLLocation = self.source.placemark.location,
             let destinationLocation:CLLocation = self.destination.placemark.location
@@ -359,33 +349,18 @@ extension CLPlacemark {
     func postalAddressFromAddressDictionary() -> CNMutablePostalAddress {
         let postalAddress = CNMutablePostalAddress()
         
-        if let addressDictionary = addressDictionary {
-            //Note: As of iOS9 kABPersonAddressStreetKey is deprecated but CNPostalAddress.street is not a direct replacment
-            postalAddress.street = addressDictionary["Street"] as? String ?? ""
-            postalAddress.state = addressDictionary["State"] as? String ?? ""
-            postalAddress.city = addressDictionary["City"] as? String ?? ""
-            postalAddress.country = addressDictionary["Country"] as? String ?? ""
-            postalAddress.postalCode = addressDictionary["ZIP"] as? String ?? ""
-        }
+        //Note: As of iOS9 kABPersonAddressStreetKey is deprecated but CNPostalAddress.street is not a direct replacment
+        postalAddress.street = thoroughfare ?? ""
+        postalAddress.state = administrativeArea ?? ""
+        postalAddress.city = locality ?? ""
+        postalAddress.country = country ?? ""
+        postalAddress.postalCode = postalCode ?? ""
         
         return postalAddress
     }
     
     func localizedStringForAddressDictionary() -> String {
         return CNPostalAddressFormatter.string(from: postalAddressFromAddressDictionary(), style: .mailingAddress)
-    }
-    
-    ///Unwrap internal dictionary of [AnyHashable:Any] to [String:Any] required by other interfaces
-    func unwrappedAddressDictionary() -> [String : Any] {
-        var result:[String : Any] = [:]
-        
-        addressDictionary?.forEach({ (element) in
-            if let keyString:String = element.key as? String {
-                result[keyString] = element.value
-            }
-        })
-        
-        return result
-    }
+    }    
 }
 

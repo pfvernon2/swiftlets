@@ -128,14 +128,17 @@ public class AudioPlayerEngine {
         NotificationCenter.default.removeObserver(self)
     }
     
-    ///Call this is to setup playback options for your app for allow simulataneous playback with other apps.
+    ///Call this is to setup playback options for your app to allow simulataneous playback with other apps.
     /// This mode allows playback of audio when the ringer (mute) switch is enabled.
     /// Be sure to enable audio in the BackgroundModes settings of your apps Capabilities if necessary.
     class func initAudioSessionCooperativePlayback() {
         try? AVAudioSession.sharedInstance().setActive(true)
         
         //AVAudioSessionCategoryMultiRoute - AVAudioSessionCategoryPlayback
-        try? AVAudioSession.sharedInstance().setCategory(AVAudioSessionCategoryPlayback, with: .mixWithOthers)
+        try? AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback,
+                                                         mode: .default,
+                                                         policy: .default,
+                                                         options: [.mixWithOthers])
     }
     
     internal func initAudioEngine () {
@@ -421,9 +424,9 @@ public class AudioPlayerEngine {
     //MARK: - Session notificaiton handling
     
     private func registerForMediaServerNotifications() {
-        NotificationCenter.default.removeObserver(self, name: NSNotification.Name.AVAudioSessionInterruption, object: nil)
-        NotificationCenter.default.addObserver(forName: NSNotification.Name.AVAudioSessionInterruption, object: nil, queue: nil) { [weak self] (notification:Notification) in
-            guard let why:AVAudioSessionInterruptionType = notification.userInfo?[AVAudioSessionInterruptionTypeKey] as? AVAudioSessionInterruptionType else {
+        NotificationCenter.default.removeObserver(self, name: AVAudioSession.interruptionNotification, object: nil)
+        NotificationCenter.default.addObserver(forName: AVAudioSession.interruptionNotification, object: nil, queue: nil) { [weak self] (notification:Notification) in
+            guard let why:AVAudioSession.InterruptionType = notification.userInfo?[AVAudioSessionInterruptionTypeKey] as? AVAudioSession.InterruptionType else {
                 return
             }
             
@@ -435,13 +438,13 @@ public class AudioPlayerEngine {
             }
         }
 
-        NotificationCenter.default.removeObserver(self, name: NSNotification.Name.AVAudioSessionMediaServicesWereLost, object: nil)
-        NotificationCenter.default.addObserver(forName: NSNotification.Name.AVAudioSessionMediaServicesWereLost, object: nil, queue: nil) { /*[weak self]*/ (notification:Notification) in
+        NotificationCenter.default.removeObserver(self, name: AVAudioSession.mediaServicesWereLostNotification, object: nil)
+        NotificationCenter.default.addObserver(forName: AVAudioSession.mediaServicesWereLostNotification, object: nil, queue: nil) { /*[weak self]*/ (notification:Notification) in
             //TODO: Reset everything here
         }
 
-        NotificationCenter.default.removeObserver(self, name: NSNotification.Name.AVAudioSessionMediaServicesWereReset, object: nil)
-        NotificationCenter.default.addObserver(forName: NSNotification.Name.AVAudioSessionMediaServicesWereReset, object: nil, queue: nil) { /*[weak self]*/ (notification:Notification) in
+        NotificationCenter.default.removeObserver(self, name: AVAudioSession.mediaServicesWereResetNotification, object: nil)
+        NotificationCenter.default.addObserver(forName: AVAudioSession.mediaServicesWereResetNotification, object: nil, queue: nil) { /*[weak self]*/ (notification:Notification) in
             //TODO: Reset everything here
         }
     }

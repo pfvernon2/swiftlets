@@ -33,7 +33,7 @@ public extension URLRequest {
                                                                 fileName:String,
                                                                 name:String? = nil,
                                                                 isFinal:Bool = false) -> Bool {
-        guard let scaledImageData:Data = UIImageJPEGRepresentation(image, 1.0) else {
+        guard let scaledImageData:Data = image.jpegData(compressionQuality: 1.0) else {
             return false
         }
         

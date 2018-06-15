@@ -212,11 +212,11 @@ extension UIView {
     }
     
     func moveToFront() {
-        self.superview?.bringSubview(toFront: self)
+        self.superview?.bringSubviewToFront(self)
     }
     
     func moveToBack() {
-        self.superview?.sendSubview(toBack: self)
+        self.superview?.sendSubviewToBack(self)
     }
 
     func moveForward() {
@@ -257,7 +257,7 @@ extension UIView {
 
      - note: The progress is an estimatation based on the start time, end time, and duration of the animation. There is no compensation for any curve that may have been applied.
      */
-    open class func animationProgress(withDuration duration: TimeInterval, delay: TimeInterval, options: UIViewAnimationOptions, animations: @escaping () -> Void, progress: ((_ progress: Double) -> Swift.Void)? = nil) {
+    open class func animationProgress(withDuration duration: TimeInterval, delay: TimeInterval, options: UIView.AnimationOptions, animations: @escaping () -> Void, progress: ((_ progress: Double) -> Swift.Void)? = nil) {
         let startTime = Date()
         UIView.animate(withDuration: duration, delay: delay, options: options, animations: animations, completion: { (success) in
             if let progress = progress {
@@ -268,6 +268,6 @@ extension UIView {
     
     // delay = 0.0, options = 0
     open class func animationProgress(withDuration duration: TimeInterval, animations: @escaping () -> Swift.Void, progress: ((_ progress: Double) -> Swift.Void)? = nil) {
-        animationProgress(withDuration: duration, delay: 0.0, options: UIViewAnimationOptions(rawValue: UInt(0)), animations: animations, progress: progress)
+        animationProgress(withDuration: duration, delay: 0.0, options: UIView.AnimationOptions(rawValue: UInt(0)), animations: animations, progress: progress)
     }
 }

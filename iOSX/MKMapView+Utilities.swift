@@ -31,7 +31,7 @@ extension MKMapView {
         let polygon:MKPolygon = MKPolygon(coordinates: &mapCoordinates, count: mapCoordinates.count)
         let mapRect:MKMapRect = polygon.boundingMapRect
         
-        var region:MKCoordinateRegion = MKCoordinateRegionForMapRect(mapRect)
+        var region:MKCoordinateRegion = MKCoordinateRegion(mapRect)
         region.span.latitudeDelta  *= kANNOTATION_LAT_PAD_FACTOR * 2.0
         region.span.longitudeDelta *= kANNOTATION_LONG_PAD_FACTOR * 2.0
         
@@ -45,8 +45,8 @@ extension MKMapView {
     }
     
     func animateDrop(annotationView:MKAnnotationView, closure:@escaping ()->()) {
-        let dropPoint:MKMapPoint = MKMapPointForCoordinate(annotationView.annotation!.coordinate)
-        if MKMapRectContainsPoint(self.visibleMapRect, dropPoint) {
+        let dropPoint:MKMapPoint = MKMapPoint(annotationView.annotation!.coordinate)
+        if self.visibleMapRect.contains(dropPoint) {
             let endRect = annotationView.frame
             var startRect = endRect
             startRect.origin.y -= self.frame.size.height

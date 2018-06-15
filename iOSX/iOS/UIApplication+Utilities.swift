@@ -10,7 +10,7 @@ import UIKit
 
 extension UIApplication {
     public class func jumpOutToAppPreferences() {
-        guard let settingsURL:URL = URL(string: UIApplicationOpenSettingsURLString),
+        guard let settingsURL:URL = URL(string: UIApplication.openSettingsURLString),
             UIApplication.shared.canOpenURL(settingsURL) else {
                 return
         }
