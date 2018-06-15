@@ -20,11 +20,7 @@ extension Int {
      */
     func format(_ formatString: String) -> String {
         return String(format: "%\(formatString)d", self)
-    }
-    
-    static func randomNumberFrom(_ from: Range<Int>) -> Int {
-        return from.lowerBound + Int(arc4random_uniform(UInt32(from.upperBound - from.lowerBound)))
-    }
+    }    
 }
 
 extension Double {
