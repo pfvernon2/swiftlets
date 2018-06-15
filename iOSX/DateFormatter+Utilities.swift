@@ -12,11 +12,13 @@ extension DateFormatter {
     //MARK: - ISO 8601 Utilities
     static fileprivate var formatterCache:[String:DateFormatter] = [:]
     
-    enum ISO8601ExtendedPrecision:Int {
-        case conforming, milliseconds, microseconds
+    enum ISO8601ExtendedPrecision:Int,CaseIterable {
+        case seconds, milliseconds, microseconds
         case java, windows
         
-        static let allValues = [conforming, milliseconds, microseconds]
+        static var allCases: [ISO8601ExtendedPrecision] {
+            return [seconds, milliseconds, microseconds]
+        }
     }
     
     /**
@@ -30,17 +32,17 @@ extension DateFormatter {
      - returns: NSDateFormatter
 
      - note: As of iOS10 a system ISO 8601 formatter is availble. This class is (now) primarily
-     useful for cases where you are dealing with non-conforming formats specifying extended precision
+     useful for cases where you are dealing with formats specifying extended precision
      in the time field.
      */
-    class func ISO8601DateTimeFormatter(_ precision:ISO8601ExtendedPrecision = .conforming) -> DateFormatter {
+    class func ISO8601DateTimeFormatter(_ precision:ISO8601ExtendedPrecision = .seconds) -> DateFormatter {
         //Create formatter; ignoring user locale
         let dateFormatterISO8601 = DateFormatter()
         dateFormatterISO8601.locale = NSLocale(localeIdentifier: "en_US_POSIX") as Locale?
         
         //set format based precision specified
         switch precision {
-        case .conforming:
+        case .seconds:
             dateFormatterISO8601.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
         case .milliseconds, .java:
             dateFormatterISO8601.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
@@ -57,7 +59,7 @@ extension DateFormatter {
     }
     
     ///Return cached ISO8601 date formatter for thread safe operation, assumes >iOS7 || >OSX10.9+64bit
-    class func cachedISO8601DateTimeFormatter(ofPrecision precision:ISO8601ExtendedPrecision = .conforming) -> DateFormatter {
+    class func cachedISO8601DateTimeFormatter(ofPrecision precision:ISO8601ExtendedPrecision = .seconds) -> DateFormatter {
         let formatterKey:String = "com.cyberdev.ISO8601Formatter.\(precision.rawValue)"
         if let formatter:DateFormatter = formatterCache[formatterKey] {
             return formatter
@@ -70,7 +72,7 @@ extension DateFormatter {
     
     ///Attempts to parse a string to a date using one of the common variations on ISO8601 date time
     class func tryParseISO8601LikeDateString(_ date:String) -> Date? {
-        for precision in ISO8601ExtendedPrecision.allValues {
+        for precision in ISO8601ExtendedPrecision.allCases {
             let formatter:DateFormatter = cachedISO8601DateTimeFormatter(ofPrecision: precision)
             if let result = formatter.date(from: date) {
                 return result
