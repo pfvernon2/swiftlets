@@ -54,7 +54,7 @@ public extension DispatchQueue {
 /**
  Reader Writer queue with first-in priority semantics. Reads occur concurrently and writes serially.
  
- Execution is based on first-in semantics of the queue. i.e. Pending read operations will be exhausted before a write operation occurs
+ Execution is based on first-in semantics of the queue, i.e. pending read operations will be exhausted before a write operation occurs
  and subsequent read operations will be held off until a write completes.
  
  - note: Pending read operations may cause unexpected race conditions. If you must ensure that the data
@@ -76,7 +76,7 @@ open class DispatchReaderWriter {
 /**
  This class is similar to a reader writer queue but with write priority semantics. Reads occur concurrently and writes serially.
  
- Execution is based on write priotity at execution time rather than the first-in semantics of the reader writter queue. i.e. Pending reads
+ Execution is based on write priotity at execution time rather than the first-in semantics of the reader writter queue, i.e. pending reads
  that have not begun executing will be held off until all writes occur. This is useful in situations where race conditions
  at execution time must be minimized. While this may be useful, or even critical, for some operations please be aware that it can result
  in long delays, or even starvation, on read.

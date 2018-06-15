@@ -18,7 +18,7 @@ let kImageCacheInMemorySize:Int = 100 * 1024 * 1024 //100 MiB
  - Parameter diskCapacity: Maximum size in bytes of image data to keep on disk.
  - Parameter cacheName: Optional name of the on-disk cache.
  
- - Note: This object is thread safe but you may encounter race conditions when updating the caches across multiple threads.
+ - Note: This object is thread safe but you may encounter race conditions when updating the caches across multiple threads. These are normally benign but may result in unnecessary work being done. If preventing unnecessary fetches is more important than overall throughput you may want to consider serializing access to the cache objects you instantiate.
  
  - Note: Each instance of this class manages its own in-memory cache. However, to maintain seperate on-disk caches you must give them unique cache names.
  */
@@ -62,7 +62,7 @@ open class RemoteImageCache {
             }
             
             //retrieve from disk cache/URL location
-            let downloadTask:URLSessionDataTask = self.session.dataTask(with: url) { data,response,error in
+            self.session.dataTask(with: url) { data,response,error in
                 guard let data = data, let image:UIImage = UIImage(data: data), error == nil else {
                     closure(nil)
                     return
@@ -72,9 +72,7 @@ open class RemoteImageCache {
                 self.memoryCache.setObject(image, forKey: imageKey, cost:data.count)
                 
                 closure(image)
-            }
-            
-            downloadTask.resume()
+            }.resume()
         }
     }
 }

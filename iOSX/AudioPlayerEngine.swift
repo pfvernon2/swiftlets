@@ -100,7 +100,7 @@ public class AudioPlayerEngine {
         }
     }
     
-    //playback postion as percentage 0.0->1.0
+    ///playback postion as percentage 0.0->1.0
     public var trackProgress:Float {
         get {
             guard self.trackLength > 0.0 else {
