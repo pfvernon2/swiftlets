@@ -181,29 +181,6 @@ class WrappingIndexingGenerator<C: Collection>: IteratorProtocol {
     }
 }
 
-/// Protocol for enums providing a count of its cases.
-///
-/// To conform to this protocol implement the caseCount var as:
-///
-/// ~~~
-///  static let caseCount = MyEnum.countCases()
-/// ~~~
-///
-/// - note: The countCases() func is implemented in default extension. You need only implement the caseCount var as described above.
-protocol CountableCases {
-    static func countCases() -> Int
-    static var caseCount:Int { get }
-}
-
-/// Default implementation of CountableCases providing generic solution for counting cases in the enum
-extension CountableCases where Self : RawRepresentable, Self.RawValue == Int {
-    static func countCases() -> Int {
-        var count = 0
-        while let _ = Self(rawValue: count) { count += 1 }
-        return count
-    }
-}
-
 extension FileManager {
     var documentsDirectoryPath:String? {
         return FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.path
