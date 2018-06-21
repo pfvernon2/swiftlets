@@ -19,11 +19,11 @@ public protocol pathComponents:CustomStringConvertible {
     ///The components of the path
     var components:[String] { get set }
     
-    ///An indication of whether the path is fully qualified or not. e.g. it begins at the root directory
+    ///An indication of whether the path is absolute
     ///
     /// - note: This value should defualt to 'true' in implementions where you prefer to return
-    /// a fully qualified path immediatley after initialization. See UnixPathComponents for example.
-    var isFullyQualified:Bool { get set }
+    /// an absolute path immediatley after initialization. See UnixPathComponents for example.
+    var isAbsolute:Bool { get set }
     
     ///An indication of whether the path is a leaf node or not. e.g. is it a file or a directory
     var isLeaf:Bool { get set }
@@ -64,20 +64,20 @@ public extension pathComponents {
                 return !pathComponent.isEmpty
             }
         }
-        isFullyQualified = paths.first?.hasPrefix(String(seperator)) ?? false
+        isAbsolute = paths.first?.hasPrefix(String(seperator)) ?? false
         isLeaf = !(paths.last?.hasSuffix(String(seperator)) ?? false)
     }
     
     mutating func append(pathComponents:pathComponents) {
         components.append(contentsOf: pathComponents.components)
-        //isFullyQualified - follows parent object
+        //isAbsolute - follows parent object
         isLeaf = pathComponents.isLeaf
     }
     
     var description:String {
         var result:String = String()
         
-        if isFullyQualified {
+        if isAbsolute {
             result.append(seperator)
         }
         
@@ -92,20 +92,20 @@ public extension pathComponents {
     }
 }
 
-//Representation of path components using the unix convention ('/' character) as the seperator.
-public struct UnixPathComponents:pathComponents {
+//Representation of path components using the POSIX convention ('/' character) as the seperator.
+public struct POSIXPathComponents:pathComponents {
     public var seperator: Character = "/"
     public var components: [String] = []
     public var isLeaf: Bool = true
-    //default is true so that we return fully qualified path immediatly after initialization
-    public var isFullyQualified: Bool = true
+    //default is true so that we return absolute path immediatly after initialization
+    public var isAbsolute: Bool = true
     
     public init() {
     }
 }
 
-public typealias HTTPURLPathComponents = UnixPathComponents
-public typealias FileURLPathComponents = UnixPathComponents
+public typealias HTTPURLPathComponents = POSIXPathComponents
+public typealias FileURLPathComponents = POSIXPathComponents
 
 // MARK: - URLComponents
 
@@ -190,6 +190,7 @@ public extension URLComponents {
         return baseURLCopy.url
     }
     
+    ///Return queryItems as dictionary of String:String pairs
     var queryItemDictionary:[String:String]? {
         get {
             guard let queryItems = queryItems else {

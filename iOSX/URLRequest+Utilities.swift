@@ -48,7 +48,7 @@ public extension URLRequest {
     
     #if os(OSX)
     /**
-     Appends a UIImage as a form section to a URLRequest body as JPEG.
+     Appends a NSImage as a form section to a URLRequest body as JPEG.
      
      - Parameter boundary: The boundary for the form section
      - Parameter image: The image to include in the form section

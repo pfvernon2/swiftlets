@@ -61,8 +61,8 @@ class swiftletsTests: XCTestCase {
     func testPathComponents() {
         //common use case
         let pathString:String = "/1/2/3/4/5"
-        var pathComponents:UnixPathComponents = UnixPathComponents(path: pathString)
-        XCTAssert(pathComponents.isFullyQualified)
+        var pathComponents:POSIXPathComponents = POSIXPathComponents(path: pathString)
+        XCTAssert(pathComponents.isAbsolute)
         XCTAssert(pathComponents.isLeaf)
         XCTAssert(pathComponents.components.count == 5)
         XCTAssert(pathComponents.description == pathString)
@@ -70,13 +70,13 @@ class swiftletsTests: XCTestCase {
         pathComponents.isLeaf = !pathComponents.isLeaf
         XCTAssert(pathComponents.description != pathString)
 
-        pathComponents.append(pathComponents: UnixPathComponents(path:"//6//"))
+        pathComponents.append(pathComponents: POSIXPathComponents(path:"//6//"))
         XCTAssert(pathComponents.components.count == 6)
         
         //edge case - root directory
         let rootPathString:String = "/"
-        let rootDirectory:UnixPathComponents = UnixPathComponents(path: rootPathString)
-        XCTAssert(rootDirectory.isFullyQualified)
+        let rootDirectory:POSIXPathComponents = POSIXPathComponents(path: rootPathString)
+        XCTAssert(rootDirectory.isAbsolute)
         XCTAssert(!rootDirectory.isLeaf)
         XCTAssert(rootDirectory.description == rootPathString)
     }
