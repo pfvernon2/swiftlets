@@ -54,12 +54,12 @@ public extension DispatchQueue {
 /**
  Reader Writer queue with first-in priority semantics. Reads occur concurrently and writes serially.
  
- Execution is based on first-in semantics of the queue, i.e. pending read operations will be exhausted before a write operation occurs
- and subsequent read operations will be held off until a write completes.
+ Execution is based on first-in semantics of the queue, i.e. previously queued read operations will be exhausted before the queued write
+ operation occurs and subsequently queued read operations will be held off until the write completes.
  
- - note: Pending read operations may cause unexpected race conditions. If you must ensure that the data
- read is as fresh as possible you may want to consider using the DispatchWriterReader class. The DispatchWriterReader class ensures
- that reads return the most recent data based on their execution time as apposed to their queue order.
+ - note: Queued read operations may cause unexpected race conditions. If you must ensure that the data
+ read is as fresh as possible at the time it's read you may want to consider using the DispatchWriterReader class.
+ The DispatchWriterReader class ensures that reads return the most recent data based on their execution time as apposed to their queue order.
  */
 open class DispatchReaderWriter {
     private var concurrentQueue:DispatchQueue = DispatchQueue(label: "com.cyberdev.Dispatch.readerWriter", attributes: .concurrent)
@@ -76,8 +76,8 @@ open class DispatchReaderWriter {
 /**
  This class is similar to a reader writer queue but with write priority semantics. Reads occur concurrently and writes serially.
  
- Execution is based on write priotity at execution time rather than the first-in semantics of the reader writter queue, i.e. pending reads
- that have not begun executing will be held off until all writes occur. This is useful in situations where race conditions
+ Execution is based on write priotity at execution time rather than the first-in semantics of the reader writter queue, i.e. queued reads
+ that have not begun executing will be held off until all queued writes occur. This is useful in situations where race conditions
  at execution time must be minimized. While this may be useful, or even critical, for some operations please be aware that it can result
  in long delays, or even starvation, on read.
  
@@ -158,7 +158,7 @@ open class writerReaderType<T> {
 
 /**
  Class representing the concept of a guard in GCD. This would typically be used where
- one must limit the number of threads accessing a resource or otherwise prevent reentrancy.
+ one must limit the number of threads accessing a resource or otherwise prevent re-entrancy.
  
  This class is, in essence, a semaphore with "no wait" semantics. Rather than waiting for
  the semaphore to be signaled this class returns immediately with an indication of whether
@@ -166,18 +166,18 @@ open class writerReaderType<T> {
  to reenter an operation that is already in flight, for example.
  
  ```
- let uiGuard:DispatchGuard = DispatchGuard()
+ let dataGuard:DispatchGuard = DispatchGuard()
  
- func updateUI() {
-    guard uiGuard.enter() else {
+ func refreshData() {
+    guard dataGuard.enter() else {
         return
     }
  
     defer {
-        uiGuard.exit()
+        dataGuard.exit()
     }
  
-    //safely update your user interface here
+    //safely fetch data here without re-entrancy or unnecessary re-fecth issues
  }
  
  ```
@@ -211,17 +211,16 @@ open class DispatchGuard {
  Class to wrap common use case of a DispatchGuard into a RAII style pattern.
  
  ```
- let uiGuard:DispatchGuard = DispatchGuard()
+ let dataGuard:DispatchGuard = DispatchGuard()
  
- func updateUI() {
-     let custodian = DispatchGuardCustodian(uiGuard)
+ func refreshData() {
+     let custodian = DispatchGuardCustodian(dataGuard)
      guard custodian.acquired else {
          return
      }
  
-     //safely update your user interface here
+     //safely fetch data here without re-entrancy or unnecessary re-fecth issues
  }
- 
  ```
  */
 open class DispatchGuardCustodian {

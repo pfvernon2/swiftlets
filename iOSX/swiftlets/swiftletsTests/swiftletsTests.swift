@@ -216,4 +216,40 @@ class swiftletsTests: XCTestCase {
 //        }
 //    }
     
+    
+    func testMisc() {
+        //test CGPoint snap() extension
+        let testPoint: CGPoint = CGPoint(x: 100.4, y: 100.6)
+        
+        let upperLeft: CGPoint = CGPoint(x: 100.0, y: 101.0)
+        let upperRight: CGPoint = CGPoint(x: 101.0, y: 101.0)
+        let lowerLeft: CGPoint = CGPoint(x: 100.0, y: 100.0)
+        let lowerRight: CGPoint = CGPoint(x: 101.0, y: 100.0)
+        let nearest: CGPoint = CGPoint(x: 100.0, y: 101.0)
+        
+        var temp = testPoint;
+        temp.snap(to: .upperLeft);
+        XCTAssert(temp == upperLeft)
+        
+        temp = testPoint;
+        temp.snap(to: .upperRight);
+        XCTAssert(temp == upperRight)
+
+        temp = testPoint;
+        temp.snap(to: .lowerLeft);
+        XCTAssert(temp == lowerLeft)
+
+        temp = testPoint;
+        temp.snap(to: .lowerRight);
+        XCTAssert(temp == lowerRight)
+
+        temp = testPoint;
+        temp.snap(to: .nearest);
+        XCTAssert(temp == nearest)
+        
+        //Test CGSize max/min dimension
+        let testSize: CGSize = CGSize(width: 100.0, height: 200.0)
+        XCTAssert(testSize.maxDimension() == 200.0)
+        XCTAssert(testSize.minDimension() == 100.0)
+    }
 }

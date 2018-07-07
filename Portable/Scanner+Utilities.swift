@@ -8,6 +8,11 @@
 
 import Foundation
 
+/**
+ Scanner overloads that return optionals rather than booleans. This approach
+ also helps reduce redundant definitions of variables when scanning for the
+ same type of element repeatedly.
+ */
 extension Scanner {
     func scanInteger() -> Int? {
         var result: Int = Int()

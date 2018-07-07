@@ -93,7 +93,7 @@ public extension pathComponents {
 }
 
 //Representation of path components using the POSIX convention ('/' character) as the seperator.
-public struct POSIXPathComponents:pathComponents {
+public struct POSIXPathComponents: pathComponents {
     public var seperator: Character = "/"
     public var components: [String] = []
     public var isLeaf: Bool = true

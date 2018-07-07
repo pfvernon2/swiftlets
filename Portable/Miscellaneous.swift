@@ -35,6 +35,41 @@ extension CGRect {
     }
 }
 
+extension CGPoint {
+    enum pixelLocation {
+        case upperLeft
+        case upperRight
+        case lowerLeft
+        case lowerRight
+        case nearest
+    }
+    
+    ///Snap point to nearest pixel at specified location
+    mutating func snap(to location:pixelLocation) {
+        switch location {
+        case .upperLeft:
+            y = ceil(y)
+            x = floor(x)
+            
+        case .upperRight:
+            y = ceil(y)
+            x = ceil(x)
+            
+        case .lowerLeft:
+            y = floor(y)
+            x = floor(x)
+            
+        case .lowerRight:
+            y = floor(y)
+            x = ceil(x)
+            
+        case .nearest:
+            y = round(y)
+            x = round(x)
+        }
+    }
+}
+
 extension CGSize {
     func maxDimension() -> CGFloat {
         return width > height ? width : height

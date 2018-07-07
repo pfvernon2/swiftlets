@@ -12,7 +12,7 @@ extension DateFormatter {
     //MARK: - ISO 8601 Utilities
     static fileprivate var formatterCache:[String:DateFormatter] = [:]
     
-    enum ISO8601ExtendedPrecision:Int,CaseIterable {
+    enum ISO8601ExtendedPrecision: Int, CaseIterable {
         case seconds, milliseconds, microseconds
         case java, windows
         
