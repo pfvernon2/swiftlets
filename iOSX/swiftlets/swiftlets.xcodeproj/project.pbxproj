@@ -26,6 +26,8 @@
 		01533B0A1C9DDF2000C6E69D /* UIImage+Scaling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01533B031C9DDF2000C6E69D /* UIImage+Scaling.swift */; };
 		01533B0B1C9DDF2000C6E69D /* RoundedCornerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01533B041C9DDF2000C6E69D /* RoundedCornerView.swift */; };
 		015710CF1D049C1F0057C1FB /* Array+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 015710CE1D049C1F0057C1FB /* Array+Utilities.swift */; };
+		015A849B20FD50C4006C2583 /* CommandLine+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 015A849A20FD50C4006C2583 /* CommandLine+Utilities.swift */; };
+		015A849C20FD50C4006C2583 /* CommandLine+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 015A849A20FD50C4006C2583 /* CommandLine+Utilities.swift */; };
 		016965851E142D1E00038275 /* UIGraphics+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 016965841E142D1E00038275 /* UIGraphics+Utilities.swift */; };
 		0186212F2002CEAC0048C82B /* AudioPlayerEngine+MediaPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0186212E2002CEAB0048C82B /* AudioPlayerEngine+MediaPlayer.swift */; };
 		018B5A031F034539009F40FB /* URLRequest+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01DB660B1E7AF25600020AB5 /* URLRequest+Utilities.swift */; };
@@ -84,6 +86,7 @@
 		01533B031C9DDF2000C6E69D /* UIImage+Scaling.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIImage+Scaling.swift"; path = "../../iOS/UIImage+Scaling.swift"; sourceTree = "<group>"; };
 		01533B041C9DDF2000C6E69D /* RoundedCornerView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = RoundedCornerView.swift; path = ../../iOS/RoundedCornerView.swift; sourceTree = "<group>"; };
 		015710CE1D049C1F0057C1FB /* Array+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Array+Utilities.swift"; path = "../../../Portable/Array+Utilities.swift"; sourceTree = "<group>"; };
+		015A849A20FD50C4006C2583 /* CommandLine+Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "CommandLine+Utilities.swift"; path = "../../OSX/CommandLine+Utilities.swift"; sourceTree = "<group>"; };
 		016310861D03660500862035 /* URLComponent+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "URLComponent+Utilities.swift"; path = "../../URLComponent+Utilities.swift"; sourceTree = "<group>"; };
 		016965841E142D1E00038275 /* UIGraphics+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIGraphics+Utilities.swift"; path = "../../iOS/UIGraphics+Utilities.swift"; sourceTree = "<group>"; };
 		0186212E2002CEAB0048C82B /* AudioPlayerEngine+MediaPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AudioPlayerEngine+MediaPlayer.swift"; sourceTree = "<group>"; };
@@ -175,6 +178,7 @@
 				01533B031C9DDF2000C6E69D /* UIImage+Scaling.swift */,
 				01533B041C9DDF2000C6E69D /* RoundedCornerView.swift */,
 				01A3E9181CFE6FE300BE5AAA /* Miscellaneous.swift */,
+				015A849A20FD50C4006C2583 /* CommandLine+Utilities.swift */,
 				01E6783E1CD5145E00ABE1CB /* Data+Utilities.swift */,
 				01E678521CD531AA00ABE1CB /* UIColor+Utilities.swift */,
 				01E678531CD531AA00ABE1CB /* UIView+Utilities.swift */,
@@ -348,6 +352,7 @@
 				016965851E142D1E00038275 /* UIGraphics+Utilities.swift in Sources */,
 				011914C31D74984D009B578A /* Dispatch+Utilities.swift in Sources */,
 				015710CF1D049C1F0057C1FB /* Array+Utilities.swift in Sources */,
+				015A849B20FD50C4006C2583 /* CommandLine+Utilities.swift in Sources */,
 				01533B0A1C9DDF2000C6E69D /* UIImage+Scaling.swift in Sources */,
 				018B5A051F03476E009F40FB /* URLComponent+Utilities.swift in Sources */,
 				01D1ED151D415FE600886D3D /* Platform.swift in Sources */,
@@ -374,6 +379,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				015A849C20FD50C4006C2583 /* CommandLine+Utilities.swift in Sources */,
 				01533AD81C9DDAE700C6E69D /* swiftletsTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
