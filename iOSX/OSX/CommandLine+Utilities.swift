@@ -32,13 +32,15 @@ extension CommandLine {
     }
     
     ///Fetch the slice of arguments associated with a flag
-    /// Returns nil if flag not found
+    ///
+    ///Returns nil if flag not found
     public static func flagValues(flag: String) -> ArraySlice<String>? {
         return flagValues(aliases: [flag])
     }
     
-    ///Fetch the slice of arguments associated with a set of flag aliases
-    /// Returns nil if none of the aliases are found
+    ///Fetch the slice of arguments associated with a set of flag aliases.
+    ///
+    ///Returns nil if none of the aliases are found
     public static func flagValues(aliases: Set<String>) -> ArraySlice<String>? {
         guard let flag = flagIndex(aliases: aliases) else {
             return nil;
@@ -83,7 +85,8 @@ extension CommandLine {
     }
     
     ///Returns the set of all flags found in the arguments.
-    /// Order is not guaranteed, duplicates will be removed.
+    ///
+    ///Order is not guaranteed, duplicates will be removed.
     public static var allFlags: Set<String> {
         get {
             return Set(CommandLine.arguments.filter({$0.hasPrefix(FLAG_TOKEN)}))
