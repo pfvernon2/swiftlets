@@ -53,13 +53,15 @@ extension CommandLine {
     }
     
     ///Returns the set of flags in the arguments which are not present in the set of expected flags
-    /// This is a utility method to test for unexpected flags on the command line.
+    ///
+    ///This is a utility method to test for unexpected flags on the command line.
     public static func findUnknown(expected: Set<String>) -> Set<String> {
         return CommandLine.allFlags.subtracting(expected)
     }
     
     ///Returns the set of flags in the arguments which are not present in the set of required flags
-    /// This is a utility method to test for the presence of required flags on the command line.
+    ///
+    ///This is a utility method to test for the presence of required flags on the command line.
     public static func findMissing(required: Set<String>) -> Set<String> {
         return required.subtracting(CommandLine.allFlags)
     }
@@ -72,7 +74,7 @@ extension CommandLine {
         return CommandLine.arguments[..<firstFlag].dropFirst()
     }
     
-    ///Returns slice of arguments up to the first flag
+    ///Returns slice of arguments after the last flag
     public static func tail() -> ArraySlice<String> {
         guard let lastFlag = CommandLine.arguments.lastIndex(where: {$0.hasPrefix(FLAG_TOKEN)}) else {
             return CommandLine.arguments[..<CommandLine.arguments.endIndex].dropFirst()
