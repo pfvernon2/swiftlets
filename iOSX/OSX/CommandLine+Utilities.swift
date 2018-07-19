@@ -65,6 +65,7 @@ extension CommandLine {
     }
     
     ///Returns slice of arguments up to the first flag
+    /// This a utility method to access any non-flag related parameters that appear at the beginning of the list
     public static func head() -> ArraySlice<String> {
         guard let firstFlag = CommandLine.arguments.firstIndex(where: {$0.hasPrefix(FLAG_TOKEN)}) else {
             return CommandLine.arguments[..<CommandLine.arguments.endIndex].dropFirst()
@@ -72,7 +73,8 @@ extension CommandLine {
         return CommandLine.arguments[..<firstFlag].dropFirst()
     }
     
-    ///Returns slice of arguments up to the first flag
+    ///Returns slice of arguments after the last flag
+    /// This a utility method to access any non-flag related parameters that appear at the end of the list
     public static func tail() -> ArraySlice<String> {
         guard let lastFlag = CommandLine.arguments.lastIndex(where: {$0.hasPrefix(FLAG_TOKEN)}) else {
             return CommandLine.arguments[..<CommandLine.arguments.endIndex].dropFirst()
