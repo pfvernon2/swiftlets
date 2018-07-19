@@ -32,13 +32,15 @@ extension CommandLine {
     }
     
     ///Fetch the slice of arguments associated with a flag
-    /// Returns nil if flag not found
+    ///
+    ///Returns nil if flag not found
     public static func flagValues(flag: String) -> ArraySlice<String>? {
         return flagValues(aliases: [flag])
     }
     
-    ///Fetch the slice of arguments associated with a set of flag aliases
-    /// Returns nil if none of the aliases are found
+    ///Fetch the slice of arguments associated with a set of flag aliases.
+    ///
+    ///Returns nil if none of the aliases are found
     public static func flagValues(aliases: Set<String>) -> ArraySlice<String>? {
         guard let flag = flagIndex(aliases: aliases) else {
             return nil;
@@ -53,13 +55,15 @@ extension CommandLine {
     }
     
     ///Returns the set of flags in the arguments which are not present in the set of expected flags
-    /// This is a utility method to test for unexpected flags on the command line.
+    ///
+    ///This is a utility method to test for unexpected flags on the command line.
     public static func findUnknown(expected: Set<String>) -> Set<String> {
         return CommandLine.allFlags.subtracting(expected)
     }
     
     ///Returns the set of flags in the arguments which are not present in the set of required flags
-    /// This is a utility method to test for the presence of required flags on the command line.
+    ///
+    ///This is a utility method to test for the presence of required flags on the command line.
     public static func findMissing(required: Set<String>) -> Set<String> {
         return required.subtracting(CommandLine.allFlags)
     }
@@ -83,7 +87,8 @@ extension CommandLine {
     }
     
     ///Returns the set of all flags found in the arguments.
-    /// Order is not guaranteed, duplicates will be removed.
+    ///
+    ///Order is not guaranteed, duplicates will be removed.
     public static var allFlags: Set<String> {
         get {
             return Set(CommandLine.arguments.filter({$0.hasPrefix(FLAG_TOKEN)}))
