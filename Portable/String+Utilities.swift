@@ -64,20 +64,16 @@ public extension String {
         result.strip(charactersInSet: characterSet)
         return result
     }
-
-    public func length() -> Int {
-        return self.count
-    }
     
     mutating public func trimSuffix(_ suffix: String) {
         if hasSuffix(suffix) {
-            removeSubrange(index(endIndex, offsetBy: -(suffix.length()))...)
+            removeSubrange(index(endIndex, offsetBy: -(suffix.count))...)
         }
     }
     
     mutating public func trimPrefix(_ prefix: String) {
         if hasPrefix(prefix) {
-            removeSubrange(..<index(startIndex, offsetBy: prefix.length()))
+            removeSubrange(..<index(startIndex, offsetBy: prefix.count))
         }
     }
     
@@ -103,10 +99,12 @@ public extension String {
     }
 
     func isLikeZipCode() -> Bool {
+        //trivial case
         if self.count == 5 && self.isAllDigits() {
             return true
         }
         
+        //zip+4
         else if self.count == 10 {
             let plusFours: [String] = self.split(separator: "-").map { String($0) }
             return plusFours.count == 2

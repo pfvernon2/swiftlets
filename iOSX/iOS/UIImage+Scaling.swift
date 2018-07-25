@@ -23,7 +23,6 @@ extension UIImage {
             return nil
         }
         
-        
         // Set the quality level to use when rescaling
         context.interpolationQuality = CGInterpolationQuality.high
         
@@ -42,7 +41,6 @@ extension UIImage {
         }
         
         let newImage:UIImage = UIImage(cgImage: newImageRef)
-        
         
         return newImage;
     }

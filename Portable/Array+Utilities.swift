@@ -1,58 +1,12 @@
 //
-//  Array+DHV.swift
+//  Array+Utilities.swift
 //  swiftlets
 //
-//  Created by David Vernon on 6/5/16.
-//  Copyright © 2016 David Vernon. All rights reserved.
+//  Created by Frank Vernon on 7/16/18.
+//  Copyright © 2018 Frank Vernon. All rights reserved.
 //
 
 import Foundation
-
-extension Array where Element: Equatable {
-    @discardableResult mutating func remove(firstLike item: Element) -> Element? {
-        guard let matching:Int = index(where: { $0 == item }) else {
-            return nil
-        }
-        
-        return self.remove(at: matching)
-    }
-    
-    @discardableResult mutating func remove(firstNotLike item: Element) -> Element? {
-        guard let matching:Int = index(where: { $0 != item }) else {
-            return nil
-        }
-        
-        return self.remove(at: matching)
-    }
-
-    @discardableResult mutating func remove(allLike item: Element) -> Int {
-        let matching:[Int] = indexes(ofItemsLike: item)
-        
-        matching.reversed().forEach { (index) in
-            remove(at: index)
-        }
-        
-        return matching.count
-    }
-    
-    @discardableResult mutating func remove(allNotLike item: Element) -> Int {
-        let matching:[Int] = indexes(ofItemsNotLike: item)
-        
-        matching.reversed().forEach { (index) in
-            remove(at: index)
-        }
-        
-        return matching.count
-    }
-    
-    func indexes(ofItemsLike item: Element) -> [Int]  {
-        return self.enumerated().compactMap { $0.element == item ? $0.offset : nil }
-    }
-    
-    func indexes(ofItemsNotLike item: Element) -> [Int]  {
-        return self.enumerated().compactMap { $0.element != item ? $0.offset : nil }
-    }
-}
 
 /// A first-in/first-out queue of unconstrained size
 /// - Complexity: push is O(1), pop is O(`count`)

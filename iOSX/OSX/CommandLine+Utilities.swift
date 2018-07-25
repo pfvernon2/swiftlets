@@ -11,16 +11,6 @@ import Foundation
 private let FLAG_TOKEN:String = "-"
 
 extension CommandLine {
-    ///Returns the index of the flag in the arguments, nil if not found
-    public static func flagIndex(flag: String) -> Int? {
-        return flagIndex(aliases: [flag])
-    }
-    
-    ///Returns the index of the first alias found in the arguments, nil if none found
-    public static func flagIndex(aliases: Set<String>) -> Int? {
-        return CommandLine.arguments.firstIndex(where:{aliases.contains($0)});
-    }
-    
     ///Returns true if the flag is found in the arguments
     public static func flagExists(flag: String) -> Bool {
         return flagExists(aliases: [flag])
@@ -31,7 +21,7 @@ extension CommandLine {
         return flagIndex(aliases: aliases) != nil;
     }
     
-    ///Fetch the slice of arguments associated with a flag
+    ///Fetch the slice of arguments associated with a flag.
     ///
     ///Returns nil if flag not found
     public static func flagValues(flag: String) -> ArraySlice<String>? {
@@ -84,6 +74,18 @@ extension CommandLine {
             return CommandLine.arguments[..<CommandLine.arguments.endIndex].dropFirst()
         }
         return CommandLine.arguments[lastFlag...].dropFirst()
+    }
+    
+    // MARK: - Utilities
+    
+    ///Returns the index of the flag in the arguments, nil if not found
+    public static func flagIndex(flag: String) -> Int? {
+        return flagIndex(aliases: [flag])
+    }
+    
+    ///Returns the index of the first alias found in the arguments, nil if none found
+    public static func flagIndex(aliases: Set<String>) -> Int? {
+        return CommandLine.arguments.firstIndex(where:{aliases.contains($0)});
     }
     
     ///Returns the set of all flags found in the arguments.
