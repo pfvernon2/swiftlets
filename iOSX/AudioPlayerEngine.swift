@@ -554,7 +554,7 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
         didSet {
             var adjustment:Float = trackOutputLevelAdjust
             //apply detent around zero
-            if fabs(adjustment) <= kOutputLevelDetentRange {
+            if abs(adjustment) <= kOutputLevelDetentRange {
                 adjustment = kOutputLevelDefault
             }
             engine.mainMixerNode.outputVolume = (adjustment + 1.0)/2.0
@@ -569,7 +569,7 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
         }
         
         set(rate) {
-            let centerOffset:Float = fabs(kRateCenter - fabs(rate))
+            let centerOffset:Float = abs(kRateCenter - abs(rate))
             if centerOffset <= kRateDetentRange {
                 timePitch.rate = kRateCenter
             } else {
@@ -679,7 +679,7 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
     public func setFilterAtIndex(filterIndex:Int, frequency:Float, gain:Float, bandwidth:Float = 0.0) {
         equalizer.bands[filterIndex].frequency = frequency
         
-        if fabs(gain) <= kEQGainDetentRange {
+        if abs(gain) <= kEQGainDetentRange {
             equalizer.bands[filterIndex].gain = 0.0
         } else {
             equalizer.bands[filterIndex].gain = gain
