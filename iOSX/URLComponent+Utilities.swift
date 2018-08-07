@@ -58,6 +58,10 @@ public extension pathComponents {
         append(paths:paths)
     }
     
+    mutating func append(path:String) {
+        append(paths: [path])
+    }
+
     mutating func append(paths:[String]) {
         paths.forEach { (path) in
             components += path.components(separatedBy: String(seperator)).filter { (pathComponent) -> Bool in
@@ -75,19 +79,18 @@ public extension pathComponents {
     }
     
     var description:String {
-        var result:String = String()
+        var result:String = components.joined(separator: String(seperator))
         
+        //add terminating seperator if we're not a leaf
+        if !isLeaf && !result.isEmpty {
+            result.append(seperator)
+        }
+
+        //add leading seperator if we're an absolute path
         if isAbsolute {
-            result.append(seperator)
+            result.insert(seperator, at: result.startIndex)
         }
         
-        if !components.isEmpty {
-            result.append(components.joined(separator: String(seperator)))
-        }
-        
-        if !isLeaf && !components.isEmpty {
-            result.append(seperator)
-        }
         return result
     }
 }
@@ -100,8 +103,7 @@ public struct POSIXPathComponents: pathComponents {
     //default is true so that we return absolute path immediatly after initialization
     public var isAbsolute: Bool = true
     
-    public init() {
-    }
+    public init() {}
 }
 
 public typealias HTTPURLPathComponents = POSIXPathComponents

@@ -79,6 +79,14 @@ class swiftletsTests: XCTestCase {
         XCTAssert(rootDirectory.isAbsolute)
         XCTAssert(!rootDirectory.isLeaf)
         XCTAssert(rootDirectory.description == rootPathString)
+        
+        //path built from empty struct
+        var emptyPath:POSIXPathComponents = POSIXPathComponents()
+        emptyPath.append(path: pathString)
+        XCTAssert(emptyPath.isAbsolute)
+        XCTAssert(emptyPath.isLeaf)
+        XCTAssert(emptyPath.components.count == 5)
+        XCTAssert(emptyPath.description == pathString)
     }
     
     //Test using jsontest.com json validation method
@@ -100,8 +108,14 @@ class swiftletsTests: XCTestCase {
         let session:URLSession = URLSession(configuration: .default)
         session.httpGet(with: url) { (response, json: JSONTestIP?, error) in
             XCTAssertNil(error)
+            
             XCTAssertNotNil(response)
+            XCTAssert(response!.status.isSuccess())
+            
             XCTAssertNotNil(json)
+            XCTAssert(json!.ip.isLikeIPV4Address())
+            print(json!.toJSONString(prettyPrint: true) ?? "bad json?")
+            
             self.testGroup.leave()
         }
     }
@@ -207,6 +221,10 @@ class swiftletsTests: XCTestCase {
         
         XCTAssert(String("foo@bar.com").isLikeEmailAddress())
         XCTAssertFalse(String("foobar.com").isLikeEmailAddress())
+        
+        XCTAssert(String("1.1.1.1").isLikeIPV4Address())
+        XCTAssertFalse(String("1.1.1.").isLikeIPV4Address())
+        XCTAssertFalse(String("1.1.1.512").isLikeIPV4Address())
     }
     
 //    func testPerformanceExample() {

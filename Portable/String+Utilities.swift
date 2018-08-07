@@ -119,6 +119,19 @@ public extension String {
         //Per Apple recommendation WWDC16 - https://developer.apple.com/videos/play/wwdc2016/714/
         return self.contains("@")
     }
+    
+    func isLikeIPV4Address() -> Bool {
+        let components = self.split(separator: ".")
+        guard components.count == 4 else {
+            return false
+        }
+        
+        if let _ = components.first(where: {(!String($0).isAllDigits()) || (UInt($0) ?? UInt.max > 255)}) {
+            return false
+        }
+        
+        return true
+    }
 
     var isNotEmpty:Bool {
         return !isEmpty
