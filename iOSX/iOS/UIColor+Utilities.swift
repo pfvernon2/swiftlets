@@ -15,7 +15,7 @@ extension UIColor {
      - parameters:
      - htmlHex: HTML style hex description of RGB color: [#]RRGGBB[AA]
      
-     - note: The leading # and trailing alpha valuse are optional.
+     - note: The leading # and trailing alpha values are optional.
      
      - returns: The color specified by the hex string or the the color white in the event parsing fails.
      */
@@ -29,6 +29,16 @@ extension UIColor {
 }
 
 extension String {
+    /**
+     Convenience method for creating UIColor from HTML hex formats: [#]RRGGBB[AA]
+     
+     - parameters:
+     - htmlHex: HTML style hex description of RGB color: [#]RRGGBB[AA]
+     
+     - note: The leading # and trailing alpha values are optional.
+     
+     - returns: The color specified by the hex string or the the color white in the event parsing fails.
+     */
     public func colorForHex() -> UIColor? {
         //creating temp string so we can manipulate as necessary
         var working = self
@@ -54,7 +64,7 @@ extension String {
             break
             
         default:
-            //just to keep compiler happy
+            //just here to keep compiler happy
             return nil
         }
         
