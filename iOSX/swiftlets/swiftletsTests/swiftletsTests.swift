@@ -270,4 +270,28 @@ class swiftletsTests: XCTestCase {
         XCTAssert(testSize.maxDimension() == 200.0)
         XCTAssert(testSize.minDimension() == 100.0)
     }
+    
+    func testColor() {
+        let red:String = "FF0000"
+        let redAlpha:String = "#ff0000ff"
+        
+        let redColor:UIColor? = red.colorForHex()
+        XCTAssertNotNil(redColor)
+        
+        let redAlphaColor:UIColor? = redAlpha.colorForHex()
+        XCTAssertNotNil(redAlphaColor)
+        
+        let bad:String = "xxxxxx"
+        let badColor:UIColor? = bad.colorForHex()
+        XCTAssertNil(badColor)
+        
+        let color:UIColor? = UIColor(htmlHex: redAlpha)
+        XCTAssertNotNil(color)
+        let colorComponents:[CGFloat]? = color?.cgColor.components
+        XCTAssertNotNil(colorComponents)
+        XCTAssert(colorComponents![0] == 1.0)
+        XCTAssert(colorComponents![1] == 0.0)
+        XCTAssert(colorComponents![2] == 0.0)
+        XCTAssert(colorComponents![3] == 1.0)
+    }
 }
