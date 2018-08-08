@@ -17,7 +17,7 @@ extension UIColor {
      
      - note: The leading # and trailing alpha values are optional.
      
-     - returns: The color specified by the hex string or the the color white in the event parsing fails.
+     - returns: The color specified by the hex string or nil in the event parsing fails.
      */
     public convenience init?(htmlHex:String) {
         guard let color = htmlHex.colorForHex() else {
@@ -37,7 +37,7 @@ extension String {
      
      - note: The leading # and trailing alpha values are optional.
      
-     - returns: The color specified by the hex string or the the color white in the event parsing fails.
+     - returns: The color specified by the hex string or nil in the event parsing fails.
      */
     public func colorForHex() -> UIColor? {
         //creating temp string so we can manipulate as necessary
@@ -56,7 +56,7 @@ extension String {
             
         case 6:
             //RRGGBB
-            //add alpha for ease of processing below
+            //add default alpha for ease of processing below
             working.append("FF")
             
         case 8:
