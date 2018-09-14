@@ -61,7 +61,7 @@ open class RemoteImageCache {
                 return
             }
             
-            //retrieve from disk cache/URL location
+            //retrieve from disk cache or URL
             self.session.dataTask(with: url) { data,response,error in
                 guard let data = data, let image:UIImage = UIImage(data: data), error == nil else {
                     closure(nil)

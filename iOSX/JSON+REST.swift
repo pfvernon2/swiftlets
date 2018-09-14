@@ -365,7 +365,7 @@ public extension URLSession {
 }
 
 //MARK: - fileprivate extensions
-// Duplicated from URLComponenets+Utilites for the sake of portability
+// Duplicated from URLComponenets+Utilites for the sake of file portability
 
 fileprivate extension NSCharacterSet {
     static let REST_urlQueryItemParamAndValueAllowed:CharacterSet = {

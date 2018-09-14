@@ -170,8 +170,7 @@ extension UIView {
             guard let firstConstraint = constraint.firstItem, let secondConstraint = constraint.secondItem else {
                 return
             }
-            
-            
+
             if firstConstraint.isEqual(self) {
                 self.superview?.addConstraint(NSLayoutConstraint(item: destinationView, attribute: constraint.firstAttribute, relatedBy: constraint.relation, toItem: secondConstraint, attribute: constraint.secondAttribute, multiplier: constraint.multiplier, constant: constraint.constant))
             } else if secondConstraint.isEqual(self) {

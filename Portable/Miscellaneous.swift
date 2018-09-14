@@ -15,7 +15,10 @@ extension CGRect {
     }
     
     static func rectCenteredOn(center:CGPoint, radius:CGFloat) -> CGRect {
-        return CGRect(x: floor(center.x - radius), y: floor(center.y - radius), width: floor(radius*2.0), height: floor(radius*2.0))
+        return CGRect(x: floor(center.x - radius),
+                      y: floor(center.y - radius),
+                      width: floor(radius*2.0),
+                      height: floor(radius*2.0))
     }
     
     var top:CGFloat {

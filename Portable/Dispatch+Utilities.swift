@@ -9,6 +9,7 @@
 import Foundation
 
 public extension DispatchQueue {
+    ///DispatchTime converstion from TimeInterval with microsecond precision.
     private func dispatchTimeFromNow(seconds: TimeInterval) -> DispatchTime {
         let microseconds:Int = Int(seconds * 1000000.0)
         let dispatchOffset:DispatchTime = .now() + .microseconds(microseconds)
@@ -54,12 +55,9 @@ public extension DispatchQueue {
 /**
  Reader Writer queue with first-in priority semantics. Reads occur concurrently and writes serially.
  
- Execution is based on first-in semantics of the queue, i.e. previously queued read operations will be exhausted before the queued write
- operation occurs and subsequently queued read operations will be held off until the write completes.
+ Execution is based on first-in semantics of the queue, i.e. previously queued read operations will be exhausted before the queued write operation occurs and subsequently queued read operations will be held off until the write completes.
  
- - note: Queued read operations may cause unexpected race conditions. If you must ensure that the data
- read is as fresh as possible at the time it's read you may want to consider using the DispatchWriterReader class.
- The DispatchWriterReader class ensures that reads return the most recent data based on their execution time as apposed to their queue order.
+ - note: Queued read operations may cause unexpected race conditions. If you must ensure that the data read is as fresh as possible at the time it's read you may want to consider using the DispatchWriterReader class. The DispatchWriterReader class ensures that reads return the most recent data based on their execution time as apposed to their queue order.
  */
 open class DispatchReaderWriter {
     private var concurrentQueue:DispatchQueue = DispatchQueue(label: "com.cyberdev.Dispatch.readerWriter", attributes: .concurrent)
@@ -76,13 +74,9 @@ open class DispatchReaderWriter {
 /**
  This class is similar to a reader writer queue but with write priority semantics. Reads occur concurrently and writes serially.
  
- Execution is based on write priotity at execution time rather than the first-in semantics of the reader writter queue, i.e. queued reads
- that have not begun executing will be held off until all queued writes occur. This is useful in situations where race conditions
- at execution time must be minimized. While this may be useful, or even critical, for some operations please be aware that it can result
- in long delays, or even starvation, on read.
+ Execution is based on write priotity at execution time rather than the first-in semantics of the reader writter queue, i.e. queued reads, that have not begun executing, will be held off until all queued writes occur. This is useful in situations where race conditions at execution time must be minimized. While this may be useful, or even critical, for some operations please be aware that it can result in long delays, or even starvation, on read.
  
- - note: This object incurs significantly more overhead than the DispatchReaderWriter class. Its usefulness is likely limited to
- cases where it is crucial to minimize race conditions when accessing the data.
+ - note: This object incurs significantly more overhead than the DispatchReaderWriter class. Its usefulness is likely limited to cases where it is crucial to minimize race conditions when accessing the data.
  */
 open class DispatchWriterReader {
     private var writeQueue:DispatchQueue = DispatchQueue(label: "com.cyberdev.Dispatch.writerReader.write")
