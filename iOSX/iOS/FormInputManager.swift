@@ -16,6 +16,8 @@ protocol FormInputElement {
     var isRequired: Bool {get set}
 }
 
+///Example of UITextField implementing FormInputElement protocol
+/// If you have your own UITextField subclasses you need only implement 'isRequired'.
 class FormInputTextField: UITextField, FormInputElement {
     var isRequired: Bool = true
 
@@ -28,6 +30,7 @@ class FormInputTextField: UITextField, FormInputElement {
     }
 }
 
+///Example of UISwitch implementing FormInputElement protocol
 class FormInputSwitch: UISwitch, FormInputElement {
     var isRequired: Bool = false
 
@@ -45,15 +48,25 @@ class FormInputSwitch: UISwitch, FormInputElement {
 /// next/done implementation for text input fields
 /// TODO: utility for data collection and conversion to JSON
 protocol FormInputManager {
+    //list of elements associated with your input form
     var formInputElements:Array<FormInputElement> {get set}
+
+    //indicates all input elements indicated as 'required' have
+    // been completed. You may want/need to override the default
+    // implementation in cases where you have input fields other than
+    // text fields that require validation.
     var formComplete: Bool {get}
 
-    func setReturnKeyType(for field: FormInputTextField)
+    //Text field next/done return key utility
+    // When using default implementation you can call this with 'nil'
+    //  to get first available input field.
     func nextTabbedTextField(after field: FormInputTextField?) -> FormInputTextField?
+
+    var formJSON: JSON {get}
 }
 
 extension FormInputManager {
-    private var activeFormInputControls:Array<FormInputElement> {
+    private var activeFormInputElements:Array<FormInputElement> {
         return formInputElements.filter {
             switch $0 {
             case let control as UIControl:
@@ -68,34 +81,36 @@ extension FormInputManager {
     }
 
     var formComplete: Bool {
-        return incompleteTabbedTextFields.isEmpty
+        return incompleteFormInputTextFields.isEmpty
     }
 
     //Text input field handling
-    private var activeFormTextFields:[FormInputTextField] {
-        return activeFormInputControls.compactMap { $0 as? FormInputTextField }
+    private var activeFormInputTextFields:[FormInputTextField] {
+        return activeFormInputElements.compactMap { $0 as? FormInputTextField }
     }
 
-    private var incompleteTabbedTextFields:[FormInputTextField] {
-        return activeFormTextFields.filter {$0.isRequired && $0.text?.isEmpty != false}
+    private var incompleteFormInputTextFields:[FormInputTextField] {
+        return activeFormInputTextFields.filter {$0.isRequired && $0.text?.isEmpty != false}
     }
 
     func setReturnKeyType(for field: FormInputTextField) {
         field.returnKeyType = formComplete ? .done : .next
     }
 
-    func nextTabbedTextField(after field: FormInputTextField?) -> FormInputTextField? {
+    func nextTabbedTextField(after field: FormInputTextField? = nil) -> FormInputTextField? {
         //get index of current field or return the first field in the set of incomplete fields
-        guard let field = field, let current = incompleteTabbedTextFields.firstIndex(of: field) else {
-            return incompleteTabbedTextFields.first
+        guard let field = field, let current = incompleteFormInputTextFields.firstIndex(of: field) else {
+            return incompleteFormInputTextFields.first
         }
 
         //get index of next field (if any) or return the first field in the set of active fields
-        let next = incompleteTabbedTextFields.index(after: current)
-        guard let result = incompleteTabbedTextFields.suffix(from: next).first else {
-            return incompleteTabbedTextFields.first
+        let next = incompleteFormInputTextFields.index(after: current)
+        guard let result = incompleteFormInputTextFields.suffix(from: next).first else {
+            return incompleteFormInputTextFields.first
         }
 
+        //set return key type of next field as appropriate
+        setReturnKeyType(for: result);
         return result;
     }
 }
