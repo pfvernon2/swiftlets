@@ -36,6 +36,7 @@
 		01947BE41E62197300C1FF1D /* Operation+Concurrency.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01947BE31E62197300C1FF1D /* Operation+Concurrency.swift */; };
 		01A3E9191CFE6FE300BE5AAA /* Miscellaneous.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A3E9181CFE6FE300BE5AAA /* Miscellaneous.swift */; };
 		01ADE31B1D34AD5E005424EF /* UIFont+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01ADE31A1D34AD5E005424EF /* UIFont+Utilities.swift */; };
+		01BCDEAC215E927F0059248B /* FormInputManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01BCDEAB215E927F0059248B /* FormInputManager.swift */; };
 		01C4FA5C1E0B217E00E96F4F /* UserDefaultsTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01C4FA5B1E0B217E00E96F4F /* UserDefaultsTextField.swift */; };
 		01CD89E21CDD0B24000790C2 /* UIAlertController+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01CD89E11CDD0B24000790C2 /* UIAlertController+Utilities.swift */; };
 		01D1ED151D415FE600886D3D /* Platform.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01D1ED141D415FE600886D3D /* Platform.swift */; };
@@ -94,6 +95,7 @@
 		01947BE31E62197300C1FF1D /* Operation+Concurrency.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Operation+Concurrency.swift"; sourceTree = "<group>"; };
 		01A3E9181CFE6FE300BE5AAA /* Miscellaneous.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Miscellaneous.swift; path = ../../../Portable/Miscellaneous.swift; sourceTree = "<group>"; };
 		01ADE31A1D34AD5E005424EF /* UIFont+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIFont+Utilities.swift"; path = "../../UIFont+Utilities.swift"; sourceTree = "<group>"; };
+		01BCDEAB215E927F0059248B /* FormInputManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FormInputManager.swift; path = ../../iOS/FormInputManager.swift; sourceTree = "<group>"; };
 		01C4FA5B1E0B217E00E96F4F /* UserDefaultsTextField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = UserDefaultsTextField.swift; path = ../../iOS/UserDefaultsTextField.swift; sourceTree = "<group>"; };
 		01CD89E11CDD0B24000790C2 /* UIAlertController+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIAlertController+Utilities.swift"; path = "../../iOS/UIAlertController+Utilities.swift"; sourceTree = "<group>"; };
 		01D1ED141D415FE600886D3D /* Platform.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Platform.swift; path = ../../Platform.swift; sourceTree = "<group>"; };
@@ -166,6 +168,7 @@
 				01533ACB1C9DDAE700C6E69D /* swiftlets.h */,
 				01B4044C1DCBFADA00EA7400 /* REST */,
 				01382E891DC66D5B00B55A9C /* RemoteImageCache.swift */,
+				01BCDEAB215E927F0059248B /* FormInputManager.swift */,
 				011914C21D74984D009B578A /* Dispatch+Utilities.swift */,
 				01947BE31E62197300C1FF1D /* Operation+Concurrency.swift */,
 				01C4FA5B1E0B217E00E96F4F /* UserDefaultsTextField.swift */,
@@ -349,6 +352,7 @@
 				011C42202013DAF80032EC48 /* AVMetadataIdentifier+id3v2.swift in Sources */,
 				01E678551CD531AA00ABE1CB /* UIView+Utilities.swift in Sources */,
 				0111A0301D21CBC700A9B35E /* Dictionary+Utilities.swift in Sources */,
+				01BCDEAC215E927F0059248B /* FormInputManager.swift in Sources */,
 				01A3E9191CFE6FE300BE5AAA /* Miscellaneous.swift in Sources */,
 				01E6783F1CD5145E00ABE1CB /* Data+Utilities.swift in Sources */,
 				016965851E142D1E00038275 /* UIGraphics+Utilities.swift in Sources */,
