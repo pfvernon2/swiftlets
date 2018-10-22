@@ -14,12 +14,19 @@ import Foundation
 ///  See: FormInputTextField, FormInputSwitch
 protocol FormInputElement {
     var isRequired: Bool {get set}
+    var isComplete: Bool {get}
 }
 
 ///Example of UITextField implementing FormInputElement protocol
-/// If you have your own UITextField subclasses you need only implement 'isRequired'.
 class FormInputTextField: UITextField, FormInputElement {
+    // FormInputElement
     var isRequired: Bool = true
+    var isComplete: Bool {
+        //You may want to create your own subclass or
+        // to perform appropriate validation of the
+        // contents of the text field.
+        return (text?.isEmpty) ?? false
+    }
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -32,7 +39,11 @@ class FormInputTextField: UITextField, FormInputElement {
 
 ///Example of UISwitch implementing FormInputElement protocol
 class FormInputSwitch: UISwitch, FormInputElement {
+    // FormInputElement
     var isRequired: Bool = false
+    var isComplete: Bool {
+        return true
+    }
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -46,55 +57,27 @@ class FormInputSwitch: UISwitch, FormInputElement {
 ///Protocol for conformance to form input manager
 /// Manages form input elements and helps automate
 /// next/done implementation for text input fields
-/// TODO: utility for data collection and conversion to JSON
+/// This would most likely be used on a UIViewController to
+/// implement tabbing between fields and basic form validation.
 protocol FormInputManager {
-    //list of elements associated with your input form
+    ///The list of controls associated with your input form
+    /// - Note: The order of this array defines the order of tabbing operations.
     var formInputElements:Array<FormInputElement> {get set}
 
-    //indicates all input elements indicated as 'required' have
-    // been completed. You may want/need to override the default
-    // implementation in cases where you have input fields other than
-    // text fields that require validation.
+    ///Indicates all input elements indicated as 'required' have
+    /// been completed.
     var formComplete: Bool {get}
 
-    //Text field next/done return key utility
-    // When using default implementation you can call this with 'nil'
-    //  to get first available input field.
+    ///Text field next/done return key utility.
+    ///
+    /// When using default implementation you can call this with 'nil'
+    /// to get first incomplete input field.
     func nextTabbedTextField(after field: FormInputTextField?) -> FormInputTextField?
-
-    var formJSON: JSON {get}
 }
 
 extension FormInputManager {
-    private var activeFormInputElements:Array<FormInputElement> {
-        return formInputElements.filter {
-            switch $0 {
-            case let control as UIControl:
-                return control.isEnabled
-                    && !control.isHidden
-                    && control.alpha > 0
-
-            default:
-                return true;
-            }
-        }
-    }
-
     var formComplete: Bool {
-        return incompleteFormInputTextFields.isEmpty
-    }
-
-    //Text input field handling
-    private var activeFormInputTextFields:[FormInputTextField] {
-        return activeFormInputElements.compactMap { $0 as? FormInputTextField }
-    }
-
-    private var incompleteFormInputTextFields:[FormInputTextField] {
-        return activeFormInputTextFields.filter {$0.isRequired && $0.text?.isEmpty != false}
-    }
-
-    func setReturnKeyType(for field: FormInputTextField) {
-        field.returnKeyType = formComplete ? .done : .next
+        return formInputElements.contains{$0.isRequired && !$0.isComplete}
     }
 
     func nextTabbedTextField(after field: FormInputTextField? = nil) -> FormInputTextField? {
@@ -112,5 +95,29 @@ extension FormInputManager {
         //set return key type of next field as appropriate
         setReturnKeyType(for: result);
         return result;
+    }
+
+    //Utility method to get array of active UIControls
+    // Active controls are defined as those which are enabled and visible
+    private var activeFormControls:Array<FormInputElement> {
+        return formInputElements.filter {
+            guard let control:UIControl = $0 as? UIControl else {
+                return false
+            }
+            return control.isEnabled && !control.isHidden && control.alpha > 0
+        }
+    }
+
+    //Text input field handling
+    private var activeFormInputTextFields:[FormInputTextField] {
+        return activeFormControls.compactMap {$0 as? FormInputTextField}
+    }
+
+    private var incompleteFormInputTextFields:[FormInputTextField] {
+        return activeFormInputTextFields.filter {$0.isRequired && !$0.isComplete}
+    }
+
+    func setReturnKeyType(for field: FormInputTextField) {
+        field.returnKeyType = formComplete ? .done : .next
     }
 }
