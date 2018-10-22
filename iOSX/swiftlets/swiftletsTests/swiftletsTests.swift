@@ -215,6 +215,8 @@ class swiftletsTests: XCTestCase {
     func testStrings() {
         XCTAssert(String("00000").isLikeZipCode())
         XCTAssert(String("00000-0000").isLikeZipCode())
+        XCTAssertFalse(String("00000-000").isLikeZipCode())
+        XCTAssertFalse(String("0000-0000").isLikeZipCode())
         XCTAssertFalse(String("0000-00000").isLikeZipCode())
         XCTAssertFalse(String("fubar-0000").isLikeZipCode())
         XCTAssertFalse(String("00000-fubr").isLikeZipCode())
