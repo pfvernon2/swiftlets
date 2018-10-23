@@ -243,6 +243,10 @@ extension FileManager {
         pathURL.appendPathComponent(path)
         try removeItem(at: pathURL)
     }
+
+    open var temporaryFile: URL {
+        return temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    }
 }
 
 extension NotificationCenter {

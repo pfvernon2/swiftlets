@@ -296,4 +296,20 @@ class swiftletsTests: XCTestCase {
         XCTAssert(colorComponents![2] == 0.0)
         XCTAssert(colorComponents![3] == 1.0)
     }
+
+    func testCSV() {
+        let tempFile = FileManager.default.temporaryFile
+
+        let writeTest:[[String]] = [
+            ["#", "A", "B", "C", "D"],
+            ["1", "A,1", "B,1", "C,1", "D,1"],
+            ["2", "A\"2", "B\"2", "C\"2", "D\"2"],
+            ["3", "A3", "B3", "C3", "D3"],
+            ["4", "A4", "B4", "C4", "D4"],
+            ]
+        CSVHelper.write(writeTest, toFile: tempFile)
+
+        let readTest = CSVHelper.read(contentsOfURL: tempFile)
+        XCTAssert(readTest == writeTest)
+    }
 }

@@ -19,9 +19,9 @@ fileprivate let fieldDelimiterSequence:String = String(fieldDelimiter)
 fileprivate let recordDelimiterSequence:String = String(recordDelimiter)
 
 ///RFC 4180 compliant CSV parser/writer
-class CSVHelper: NSObject {
+class CSVHelper {
 	
-	func read(contentsOfURL url: URL, useEncoding encoding: String.Encoding = String.Encoding.utf8) -> [[String]] {
+	static func read(contentsOfURL url: URL, useEncoding encoding: String.Encoding = String.Encoding.utf8) -> [[String]] {
         guard var characterData:String = try? String(contentsOfFile: url.path, encoding: encoding) else {
             return []
         }
@@ -92,7 +92,7 @@ class CSVHelper: NSObject {
 		return table
 	}
     
-	func write(_ table: [[String]], toFile url: URL, useEncoding encoding: String.Encoding = String.Encoding.utf8) {
+	static func write(_ table: [[String]], toFile url: URL, useEncoding encoding: String.Encoding = String.Encoding.utf8) {
         guard let stream = OutputStream(url: url, append: true) else {
             return
         }
@@ -107,7 +107,7 @@ class CSVHelper: NSObject {
         }
 	}
     
-    fileprivate func encode(record: [String]) -> String {
+    static fileprivate func encode(record: [String]) -> String {
         let escapedRecord:[String] = record.map { (field) -> String in
             let escapedField = field.replacingOccurrences(of: quoteSequence,
                                                           with: escapeSequence,
