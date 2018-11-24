@@ -93,7 +93,7 @@ public class AudioPlayerEngine {
             }
 
             self.seekPosition = newPosition
-            
+
             if wasPlaying {
                 _play()
             }
@@ -133,12 +133,9 @@ public class AudioPlayerEngine {
     /// Be sure to enable audio in the BackgroundModes settings of your apps Capabilities if necessary.
     class func initAudioSessionCooperativePlayback() {
         try? AVAudioSession.sharedInstance().setActive(true)
-        
+
         //AVAudioSessionCategoryMultiRoute - AVAudioSessionCategoryPlayback
-        try? AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback,
-                                                         mode: .default,
-                                                         policy: .default,
-                                                         options: [.mixWithOthers])
+        try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
     }
     
     internal func initAudioEngine () {
@@ -255,7 +252,7 @@ public class AudioPlayerEngine {
         guard !self.isPlaying() else {
             return true
         }
-        
+
         //check we are configured to play something
         guard let trackToPlay = self.audioFile, startEngine() else {
             return false
@@ -308,14 +305,15 @@ public class AudioPlayerEngine {
     private func _stop() {
         self.player.stop()
         
-        //wait for buffer queue to drain - blocks calling thread
-        _ = self.bufferGroup.wait(timeout: DispatchTime.distantFuture)
-        
         self.bufferQueue.sync {
             self.paused = false
         }
         
         self.stopEngine()
+
+        //wait for buffer queue to drain - blocks calling thread
+        // note: must occur after engine stop to avoid race condition
+        _ = self.bufferGroup.wait(timeout: DispatchTime.distantFuture)
     }
 
     //MARK: - Utility
@@ -378,7 +376,7 @@ public class AudioPlayerEngine {
             
             self.bufferGroup.enter()
             self.buffersInFlight += 1
-            
+
             //schedule buffer for playback at end of player queue
             self.player.scheduleBuffer(buffer) { () -> Void in
                 let bufferQueueExhausted:Bool = self.bufferQueue.sync {
@@ -490,14 +488,24 @@ fileprivate let kEQGainDetentRange:Float = 0.5
 
 ///AudioPlayerEngine subclass that adds time rate control, four band parametric EQ, and simple output routing
 public class FXAudioPlayerEngine: AudioPlayerEngine {
-    
+
+    ///Defines simplified audio routing options supported by this class
     public enum OutputRouting {
         case stereo
         case mono
         case monoLeft
         case monoRight
     }
-    
+
+    ///Defines simplified values for TimePitch overlap parameter which roughly
+    /// translates to quality, i.e. reduction in artifacts at the
+    /// expense of significant CPU overhead.
+    public enum TimePitchQuality: Float {
+        case low = 3.0
+        case med = 8.0
+        case high = 32.0
+    }
+
     //Audio Units
     private let timePitch:AVAudioUnitTimePitch = AVAudioUnitTimePitch()
     private let equalizer:AVAudioUnitEQ = AVAudioUnitEQ(numberOfBands: kNumberOfBands)
@@ -560,6 +568,12 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
             engine.mainMixerNode.outputVolume = (adjustment + 1.0)/2.0
         }
     }
+
+    public var timePitchQuality:TimePitchQuality = .med {
+        didSet {
+            timePitch.overlap = timePitchQuality.rawValue
+        }
+    }
     
     ///Adjust the time pitch rate in the range: 0.03125 to 32.0, default is 1.0
     ///A detent around 1.0 is automatically applied
@@ -572,8 +586,11 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
             let centerOffset:Float = abs(kRateCenter - abs(rate))
             if centerOffset <= kRateDetentRange {
                 timePitch.rate = kRateCenter
+                //enabling bypass when at center position saves us significant CPU cycles
+                timePitch.bypass = true
             } else {
                 timePitch.rate = rate
+                timePitch.bypass = false
             }
         }
     }
@@ -605,6 +622,7 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
         
         //configure time pitch
         timePitch.bypass = false
+        timePitch.overlap = timePitchQuality.rawValue
         engine.attach(timePitch)
         
         //configure eq
@@ -619,8 +637,8 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
         //disconnect player so we can insert our effects between player and output
         engine.disconnectNodeOutput(player)
         
-        //format of output
-        let outputFormat = engine.mainMixerNode.outputFormat(forBus: 0)
+        //format of processing output = format of input to main mixer
+        let outputFormat = engine.mainMixerNode.inputFormat(forBus: 0)
 
         //construct node graph
         engine.connect(player, to: timePitch, format: outputFormat)
