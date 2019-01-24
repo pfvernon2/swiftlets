@@ -46,13 +46,13 @@ public protocol pathComponents:CustomStringConvertible {
 
 //Default implementation of pathComponents protocol
 public extension pathComponents {
-    public init(path:String) {
+    init(path:String) {
         self.init()
         components = []
         append(paths:[path])
     }
     
-    public init(paths:[String]) {
+    init(paths:[String]) {
         self.init()
         components = []
         append(paths:paths)
@@ -113,7 +113,7 @@ public typealias FileURLPathComponents = POSIXPathComponents
 
 public extension URLComponents {
     //Enumeration for common URL schemes
-    public enum urlSchemes: String {
+    enum urlSchemes: String {
         case http, https, file
     }
     
@@ -136,7 +136,7 @@ public extension URLComponents {
     }
     
     ///Access path as array of path components
-    public var pathComponents:HTTPURLPathComponents {
+    var pathComponents:HTTPURLPathComponents {
         get {
             return HTTPURLPathComponents(path: self.path)
         }
@@ -210,7 +210,7 @@ public extension URLComponents {
 // MARK: - NSCharacterSet
 
 public extension NSCharacterSet {
-    public static let urlQueryItemParamAndValueAllowed:CharacterSet = {
+    static let urlQueryItemParamAndValueAllowed:CharacterSet = {
         var allowedQueryParamAndKey = NSCharacterSet.urlQueryAllowed
         allowedQueryParamAndKey.remove(charactersIn: ";/?:@&=+$, ")
         return allowedQueryParamAndKey
@@ -220,20 +220,20 @@ public extension NSCharacterSet {
 // MARK: - URLQueryItem
 
 public extension URLQueryItem {
-    public init(name: String, intValue: Int) {
+    init(name: String, intValue: Int) {
         self.init(name: name, value: String(intValue))
     }
     
-    public init(name: String, doubleValue: Double) {
+    init(name: String, doubleValue: Double) {
         self.init(name: name, value: String(doubleValue))
     }
     
-    public init(name: String, floatValue: Float) {
+    init(name: String, floatValue: Float) {
         self.init(name: name, value: String(floatValue))
     }
     
     ///Utility method to return the URL Query Item description with the name and value escaped for use in a URL query
-    public func urlEscapedDescription() -> String? {
+    func urlEscapedDescription() -> String? {
         guard let encodedName = self.name.addingPercentEncoding(withAllowedCharacters: NSCharacterSet.urlQueryItemParamAndValueAllowed) else {
             return nil
         }

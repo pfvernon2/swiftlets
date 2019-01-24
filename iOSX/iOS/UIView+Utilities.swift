@@ -203,7 +203,7 @@ extension UIView {
     }
     
     func indexInSuperview() -> Int {
-        if let index = self.superview?.subviews.index(of: self) {
+        if let index = self.superview?.subviews.firstIndex(of: self) {
             return index
         } else {
             return -1

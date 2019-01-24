@@ -70,7 +70,7 @@ extension JSON {
 
 public extension URLSessionConfiguration {
     ///Sensible defaults for a REST style session
-    public class func RESTConfiguration(cachePolicy: NSURLRequest.CachePolicy = .reloadIgnoringLocalCacheData) -> URLSessionConfiguration {
+    class func RESTConfiguration(cachePolicy: NSURLRequest.CachePolicy = .reloadIgnoringLocalCacheData) -> URLSessionConfiguration {
         let config:URLSessionConfiguration = URLSessionConfiguration.default
         
         #if os(iOS)
@@ -98,12 +98,12 @@ public extension URLSessionConfiguration {
 //MARK: - URLSession Extensions
 
 public extension URLSession {
-    public enum JSONSessionErrors: Error {
+    enum JSONSessionErrors: Error {
         case invalidQueryItem(String)
         case badHTTPResponse(Data)
     }
     
-    public enum HTTPHeaders:String {
+    enum HTTPHeaders:String {
         case accept = "Accept"
         case contentType = "Content-Type"
     }

@@ -35,7 +35,7 @@ public extension DispatchQueue {
      - parameter identifier: A unique identifier such as a reverse DNS style name (com.domain.appIdentifier), or a GUID
      - parameter closure: Block of code to execute only once
      */
-    public class func executeOnce(identifier: String, closure:()->Swift.Void) {
+    class func executeOnce(identifier: String, closure:()->Swift.Void) {
         objc_sync_enter(self)
         
         defer {

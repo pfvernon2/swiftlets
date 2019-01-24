@@ -10,7 +10,7 @@ import Foundation
 import MediaPlayer
 
 public extension AudioPlayerEngine {
-    @discardableResult public func setTrack(mediaItem: MPMediaItem) -> Bool {
+    @discardableResult func setTrack(mediaItem: MPMediaItem) -> Bool {
         guard let url: URL = mediaItem.assetURL else {
             return false
         }
