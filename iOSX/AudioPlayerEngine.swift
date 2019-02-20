@@ -433,6 +433,8 @@ public class AudioPlayerEngine {
                 self?.interruptSessionBegin()
             case .ended:
                 self?.interruptSessionEnd()
+            @unknown default:
+                break;
             }
         }
 

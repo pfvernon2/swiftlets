@@ -133,19 +133,21 @@ fileprivate extension OutputStream {
     @discardableResult func write(_ string: String, encoding: String.Encoding = .utf8, allowLossyConversion: Bool = false) -> Int {
         
         if let data = string.data(using: encoding, allowLossyConversion: allowLossyConversion) {
-            return data.withUnsafeBytes { (bytes: UnsafePointer<UInt8>) -> Int in
-                var pointer = bytes
+            return data.withUnsafeBytes { (bytes: UnsafeRawBufferPointer) -> Int in
+                guard let pointer = bytes.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+                    return -1
+                }
                 var bytesRemaining = data.count
                 var totalBytesWritten = 0
                 
                 while bytesRemaining > 0 {
-                    let bytesWritten = self.write(pointer, maxLength: bytesRemaining)
-                    if bytesWritten < 0 {
+                    let bytesWritten = self.write(pointer.advanced(by: totalBytesWritten),
+                                                  maxLength: bytesRemaining)
+                    guard bytesWritten > 0 else {
                         return -1
                     }
-                    
+
                     bytesRemaining -= bytesWritten
-                    pointer += bytesWritten
                     totalBytesWritten += bytesWritten
                 }
                 
