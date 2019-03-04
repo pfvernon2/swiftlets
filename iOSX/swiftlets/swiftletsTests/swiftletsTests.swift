@@ -312,4 +312,32 @@ class swiftletsTests: XCTestCase {
         let readTest = CSVHelper.read(contentsOfURL: tempFile)
         XCTAssert(readTest == writeTest)
     }
+
+    func testData() {
+        //hex representation
+        let hexData:Data = Data([0,2,4,8,16,32,64,128,255])
+        XCTAssertEqual(hexData.hexRepresentation(), "0002040810204080FF")
+
+        //appending utf8 string
+        let testString = "FooBar";
+        var stringData:Data = Data()
+        stringData.appendStringAsUTF8(testString);
+        XCTAssertEqual(String(data: stringData, encoding: .utf8), testString)
+    }
+
+    func testDate() {
+        //extended precision 8601
+        let testString:String = "1965-11-13T13:07:36.639Z"
+        guard let testDate:Date = DateFormatter.tryParseISO8601LikeDateString(testString) else {
+            XCTFail()
+            return
+        }
+        XCTAssertEqual(testDate, Date(timeIntervalSince1970: -130391543.36100006))
+
+        //relative date string, test assumes locale is english
+        let relativity:String = DateFormatter.relativeDateTimeString(from: Date(timeIntervalSinceNow: 60.0 * 60.0 * 24.0),
+                                                                     dateStyle: .medium,
+                                                                     timeStyle: .none)
+        XCTAssertEqual(relativity, "Tomorrow")
+    }
 }

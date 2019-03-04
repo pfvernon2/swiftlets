@@ -10,21 +10,19 @@ import Foundation
 
 extension Data {
     func hexRepresentation() -> String {
-        let pointer = (self as NSData).bytes.bindMemory(to: UInt8.self, capacity: self.count)
-
         var result: String = String()
-        for i in 0 ..< self.count {
-            result += String(format: "%02.2X", pointer[i])
+        for byte in enumerated() {
+            result += String(format: "%02.2X", byte.element)
         }
         
         return result
     }
     
     @discardableResult mutating func appendStringAsUTF8(_ string: String) -> Bool {
-        if let data = string.data(using: String.Encoding.utf8, allowLossyConversion: true) {
-            append(data)
-            return true
+        guard let data = string.data(using: String.Encoding.utf8, allowLossyConversion: true) else {
+            return false
         }
-        return false
+        append(data)
+        return true
     }
 }

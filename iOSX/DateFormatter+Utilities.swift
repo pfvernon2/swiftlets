@@ -23,10 +23,7 @@ extension DateFormatter {
     
     /**
      Creates a date formatter for working with the ISO8601 date format.
-     
-     The 8601 format has been widely hijacked by various platforms and used in non-conforming ways.
-     The optional parameter allows you to specify one of the typical non-conforming formats if required.
-     
+
      - parameters:
          - precision: (optional) see ISO8601ExtendedPrecision
      - returns: NSDateFormatter
@@ -50,10 +47,13 @@ extension DateFormatter {
             dateFormatterISO8601.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'"
         }
 
-        //Create Gregorian; calender ignoring user locale calendar
-        let gregorian = NSCalendar(identifier: NSCalendar.Identifier.gregorian)!
-        gregorian.timeZone = NSTimeZone(abbreviation: "UMT")! as TimeZone
-        dateFormatterISO8601.calendar = gregorian as Calendar?
+        //Create Gregorian calender ignoring user locale calendar
+        guard var gregorian:Calendar = NSCalendar(identifier: NSCalendar.Identifier.gregorian) as Calendar?,
+            let timezone:TimeZone = NSTimeZone(abbreviation: "UMT") as TimeZone? else {
+            return dateFormatterISO8601;
+        }
+        gregorian.timeZone = timezone
+        dateFormatterISO8601.calendar = gregorian
         
         return dateFormatterISO8601
     }
@@ -124,19 +124,33 @@ extension DateFormatter {
         let relativeDateString:String = relativeDateFormatter.string(from: date)
         let absoluteDateString:String = absoluteDateFormatter.string(from: date)
         let absoluteTimeString:String = absoluteTimeFormatter.string(from: date)
-        
+
+        //Utility to append time to date as appropriate for formats specified
+        func conditionalAppend(date:String, time:String, separator:String = " ") -> String {
+            switch (date.isEmpty, time.isEmpty) {
+            case (true, true):
+                return String()
+            case (true, false):
+                return time
+            case (false, true):
+                return date
+            case (false, false):
+                return date + separator + time
+            }
+        }
+
         //First, check to see if the relativeDateString has a value unique from the absoluteDateString.
         // note: this is a 'hack' to check to see if a language/calendar specific notion of relative date was
         // returned from the system. This may include values such as "Yesterday", "Tomorrow", "Après-après-demain", etc.
         guard absoluteDateString == relativeDateString else {
-            return "\(relativeDateString) \(absoluteTimeString)"
+            return conditionalAppend(date: relativeDateString, time: absoluteTimeString)
         }
         
         //Get the number of days in the week for this calendar. I believe this is always 7 for all calendars but
         /// this approach protects us should that assumption not hold true for all calendaring systems.
         // If this fails just return the system notion of the absolute date which is the best we can do.
         guard let lengthOfWeekInCalendar = calendar.maximumRange(of: .weekday)?.count else {
-            return "\(absoluteDateString) \(absoluteTimeString)"
+            return conditionalAppend(date: absoluteDateString, time: absoluteTimeString)
         }
         
         //Assuming the current calendar has a concept of a week then get number of days between current date and the supplied date
@@ -146,7 +160,7 @@ extension DateFormatter {
                                                             from: calendar.startOfDay(for: Date()),
                                                             to: calendar.startOfDay(for: date)).day else
         {
-            return "\(absoluteDateString) \(absoluteTimeString)"
+            return conditionalAppend(date: absoluteDateString, time: absoluteTimeString)
         }
         
         //If we are inside the calendars concept of 'the last week' then return the localized day of the week for the date
@@ -157,9 +171,9 @@ extension DateFormatter {
             dayofWeekFormatter.doesRelativeDateFormatting = false
             
             let dayOfWeekString:String = dayofWeekFormatter.string(from: date)
-            return "\(dayOfWeekString) \(absoluteTimeString)"
+            return conditionalAppend(date: dayOfWeekString, time: absoluteTimeString)
         } else {
-            return "\(absoluteDateString) \(absoluteTimeString)"
+            return conditionalAppend(date: absoluteDateString, time: absoluteTimeString)
         }
     }
 }
