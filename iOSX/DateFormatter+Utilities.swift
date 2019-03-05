@@ -103,7 +103,7 @@ extension DateFormatter {
      - Thursday 12:00 PM
      - Dec 25, 2016 6:00 AM
      */
-    class func relativeDateTimeString(from date:Date, dateStyle:DateFormatter.Style = .medium, timeStyle:DateFormatter.Style = .short) -> String {
+    class func relativeDateTimeString(from date:Date, dateStyle:DateFormatter.Style = .medium, timeStyle:DateFormatter.Style = .short) -> String? {
         let calendar:Calendar = Calendar.autoupdatingCurrent
         
         let relativeDateFormatter:DateFormatter = DateFormatter()
@@ -126,10 +126,10 @@ extension DateFormatter {
         let absoluteTimeString:String = absoluteTimeFormatter.string(from: date)
 
         //Utility to append time to date as appropriate for formats specified
-        func conditionalAppend(date:String, time:String, separator:String = " ") -> String {
+        func conditionalAppend(date:String, time:String, separator:String = " ") -> String? {
             switch (date.isEmpty, time.isEmpty) {
             case (true, true):
-                return String()
+                return nil
             case (true, false):
                 return time
             case (false, true):

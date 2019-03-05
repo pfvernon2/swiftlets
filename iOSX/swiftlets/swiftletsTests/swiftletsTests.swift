@@ -339,9 +339,12 @@ class swiftletsTests: XCTestCase {
         XCTAssertEqual(testDate, Date(timeIntervalSince1970: -130391543.36100006))
 
         //relative date string, test assumes system locale is english
-        let relativity:String = DateFormatter.relativeDateTimeString(from: Date(timeIntervalSinceNow: 60.0 * 60.0 * 24.0),
+        guard let relativity:String = DateFormatter.relativeDateTimeString(from: Date(timeIntervalSinceNow: 60.0 * 60.0 * 24.0),
                                                                      dateStyle: .medium,
-                                                                     timeStyle: .none)
+                                                                     timeStyle: .none) else {
+                                                                        XCTFail()
+                                                                        return
+        }
         XCTAssertEqual(relativity, "Tomorrow")
     }
 }
