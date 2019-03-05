@@ -233,6 +233,10 @@ class swiftletsTests: XCTestCase {
         XCTAssert(String("1.1.1.1").isLikeIPV4Address())
         XCTAssertFalse(String("1.1.1.").isLikeIPV4Address())
         XCTAssertFalse(String("1.1.1.512").isLikeIPV4Address())
+
+        let osType:FourCharCode = "AAPL"
+        XCTAssertEqual(osType, 0x4141504C)
+        XCTAssertEqual(osType.string, "AAPL")
     }
     
 //    func testPerformanceExample() {
@@ -320,15 +324,9 @@ class swiftletsTests: XCTestCase {
     }
 
     func testData() {
-        //hex representation
-        let hexData:Data = Data([0,2,4,8,16,32,64,128,255])
-        XCTAssertEqual(hexData.hexRepresentation(), "0002040810204080FF")
-
-        //appending utf8 string
-        let testString = "FooBar";
         var stringData:Data = Data()
-        stringData.appendStringAsUTF8(testString);
-        XCTAssertEqual(String(data: stringData, encoding: .utf8), testString)
+        stringData.appendStringAsUTF8("foobar");
+        XCTAssertEqual(stringData.hexRepresentation(), "666F6F626172")
     }
 
     func testDate() {
@@ -340,7 +338,7 @@ class swiftletsTests: XCTestCase {
         }
         XCTAssertEqual(testDate, Date(timeIntervalSince1970: -130391543.36100006))
 
-        //relative date string, test assumes locale is english
+        //relative date string, test assumes system locale is english
         let relativity:String = DateFormatter.relativeDateTimeString(from: Date(timeIntervalSinceNow: 60.0 * 60.0 * 24.0),
                                                                      dateStyle: .medium,
                                                                      timeStyle: .none)

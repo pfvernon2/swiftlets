@@ -148,14 +148,38 @@ public extension String {
         
         return start ..< end
     }
-    
-    static func fourCCToString(_ value: FourCharCode) -> String {
-        let utf16 = [
-            UInt16((value >> 24) & 0xFF),
-            UInt16((value >> 16) & 0xFF),
-            UInt16((value >> 8) & 0xFF),
-            UInt16((value & 0xFF)) ]
-        return String(utf16CodeUnits: utf16, count: 4)
-    }
 }
 
+///Convert four char codes to/from strings
+extension FourCharCode: ExpressibleByStringLiteral {
+    public init(stringLiteral value: StringLiteralType) {
+        guard value.utf16.count == 4 else {
+            self = 0x3F3F3F3F // '????'
+            return
+        }
+        self = value.utf16.reduce(0, {$0 << 8 + FourCharCode($1)});
+    }
+
+    public init(extendedGraphemeClusterLiteral value: String) {
+        self = FourCharCode(stringLiteral: value)
+    }
+
+    public init(unicodeScalarLiteral value: String) {
+        self = FourCharCode(stringLiteral: value)
+    }
+
+    public init(_ value: String) {
+        self = FourCharCode(stringLiteral: value)
+    }
+
+    public var string: String? {
+        //convert to bytes ensuring correct endianess
+        let bytes: [UInt8] = [
+            UInt8(bigEndian & 0xFF),
+            UInt8(bigEndian >> 8 & 0xFF),
+            UInt8(bigEndian >> 16 & 0xFF),
+            UInt8(bigEndian >> 24 & 0xFF)
+        ]
+        return String(bytes: bytes, encoding: .ascii)
+    }
+}
