@@ -167,18 +167,19 @@ extension TimeInterval {
         formatter.allowedUnits = [.day, .hour, .minute]
         formatter.maximumUnitCount = 2
         
-        return formatter.string(from: start, to: end) ?? ""
+        return formatter.string(from: start, to: end) ?? String()
     }
 }
 
 extension UserDefaults {
     ///setObject(forKey:) where value != nil, removeObjectForKey where value == nil
     func setOrRemoveObject(_ value: Any?, forKey defaultName: String) {
-        if value != nil {
-            UserDefaults.standard.set(value, forKey: defaultName)
-        } else {
+        guard (value != nil) else {
             UserDefaults.standard.removeObject(forKey: defaultName)
+            return
         }
+
+        UserDefaults.standard.set(value, forKey: defaultName)
     }
 }
 

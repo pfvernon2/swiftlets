@@ -8,6 +8,11 @@
 
 import UIKit
 
+/**
+ Protocol associated with DoubleTapTableView for detecting double and single taps on table rows.
+
+ This protocol extends UITableViewDelegate so you can easily use this in place of your standard delegate handling.
+ */
 protocol DoubleTapTableViewDelegate: UITableViewDelegate {
     func tableView(tableView: UITableView, didTapRowAtIndexPath indexPath: IndexPath)
     func tableView(tableView: UITableView, didDoubleTapRowAtIndexPath indexPath: IndexPath)

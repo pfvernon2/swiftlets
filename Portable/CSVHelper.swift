@@ -26,7 +26,7 @@ class CSVHelper {
             return []
         }
         
-        //ensure record terminator at end of file
+        //ensure record terminator at end of file to make our lives easier
         if characterData.last != recordDelimiter {
             characterData.append(recordDelimiter)
         }

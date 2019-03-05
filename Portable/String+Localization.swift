@@ -9,6 +9,13 @@
 import Foundation
 
 extension String {
+    /**
+     Utility initer for referencing localizable strings.
+
+     - note: This mechanism undermines Xcodes ability to generate lists of localized strings in your application
+     and thus has limited value in production applications. While it would be possible to create your own scripts
+     to replicate this functionality I have not done so.
+     */
     public init?(localized:String, comment:String? = nil) {
         self.init(NSLocalizedString(localized, comment: comment ?? ""))
     }

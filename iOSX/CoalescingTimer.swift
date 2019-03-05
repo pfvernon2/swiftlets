@@ -92,14 +92,10 @@ open class CoalescingTimer {
      */
     open func restart() {
         DispatchQueue.main.async { () -> Void in
-            guard let timer = self.timer else {
+            guard let timer = self.timer, let duration = self.duration else {
                 return
             }
-            
-            guard let duration = self.duration else {
-                return
-            }
-            
+                        
             if timer.isValid {
                 timer.fireDate = Date(timeIntervalSinceNow: duration)
             } else {
