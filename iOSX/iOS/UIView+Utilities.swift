@@ -166,7 +166,11 @@ extension UIView {
     }
     
     func copyConstraintsToView(_ destinationView:UIView) {
-        for constraint:NSLayoutConstraint in self.superview!.constraints {
+        guard let constraints = self.superview?.constraints else {
+            return
+        }
+        
+        for constraint:NSLayoutConstraint in constraints {
             guard let firstConstraint = constraint.firstItem, let secondConstraint = constraint.secondItem else {
                 return
             }

@@ -161,14 +161,12 @@ public extension URLComponents {
     
     ///Append multiple query parameters to the current set of query parameters.
     mutating func append(queryParameterComponents parameters:[URLQueryItem]) {
-        var currentParams = queryItems
-        if currentParams != nil {
-            currentParams!.append(contentsOf: parameters)
-            queryItems = currentParams
-        }
-        else {
+        guard queryItems != nil else {
             queryItems = parameters
+            return
         }
+
+        queryItems?.append(contentsOf: parameters)
     }
     
     ///Create and return URL based on current components by appending supplied paths and parameters.

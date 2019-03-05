@@ -107,16 +107,22 @@ class swiftletsTests: XCTestCase {
         
         let session:URLSession = URLSession(configuration: .default)
         session.httpGet(with: url) { (response, json: JSONTestIP?, error) in
-            XCTAssertNil(error)
-            
-            XCTAssertNotNil(response)
-            XCTAssert(response!.status.isSuccess())
-            
-            XCTAssertNotNil(json)
-            XCTAssert(json!.ip.isLikeIPV4Address())
-            print(json!.toJSONString(prettyPrint: true) ?? "bad json?")
-            
-            self.testGroup.leave()
+            defer {
+                self.testGroup.leave()
+            }
+
+            guard error == nil,
+                let response = response,
+                let json = json,
+                let prettyJSON:String = json.toJSONString(prettyPrint: true) else {
+                    print("3rd party JSON testing service is most likely down.")
+                    XCTFail()
+                    return
+            }
+
+            XCTAssert(response.status.isSuccess())
+            XCTAssert(json.ip.isLikeIPV4Address())
+            print(prettyJSON)
         }
     }
     

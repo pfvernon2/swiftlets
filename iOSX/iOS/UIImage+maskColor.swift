@@ -27,12 +27,16 @@ extension UIImage {
     }
     
     func clipMask(withColor color:UIColor) -> UIImage? {
+        guard let cgImage = self.cgImage else {
+            return nil
+        }
+        
         let rect:CGRect = CGRect(origin: CGPoint.zero, size: size)
         
         UIGraphicsBeginImageContext(rect.size)
         let context:CGContext = UIGraphicsGetCurrentContext()!
         
-        context.clip(to: rect, mask: self.cgImage!)
+        context.clip(to: rect, mask: cgImage)
         context.setFillColor(color.cgColor)
         context.fill(rect)
         

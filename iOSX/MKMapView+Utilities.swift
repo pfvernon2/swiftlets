@@ -45,7 +45,12 @@ extension MKMapView {
     }
     
     func animateDrop(annotationView:MKAnnotationView, closure:@escaping ()->()) {
-        let dropPoint:MKMapPoint = MKMapPoint(annotationView.annotation!.coordinate)
+        guard let viewCoordinate = annotationView.annotation?.coordinate else {
+            closure()
+            return
+        }
+
+        let dropPoint:MKMapPoint = MKMapPoint(viewCoordinate)
         if self.visibleMapRect.contains(dropPoint) {
             let endRect = annotationView.frame
             var startRect = endRect
