@@ -14,7 +14,6 @@ extension UIImage {
         let newRect:CGRect = CGRect(x:0, y:0, width:size.width, height:size.height).integral
         
         UIGraphicsBeginImageContextWithOptions(size, false, scale)
-        
         defer {
             UIGraphicsEndImageContext()
         }
@@ -90,7 +89,6 @@ extension UIImage {
         
         // Create the bitmap context
         UIGraphicsBeginImageContext(rotatedSize)
-        
         defer {
             UIGraphicsEndImageContext()
         }

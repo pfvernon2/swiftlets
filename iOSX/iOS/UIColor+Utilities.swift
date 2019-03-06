@@ -72,11 +72,11 @@ extension String {
         guard Scanner(string: working).scanHexInt64(&rgbaInt) else {
             return nil
         }
-        
-        let red = CGFloat((rgbaInt & 0xFF000000) >> 24)/255.0
-        let green = CGFloat((rgbaInt & 0x00FF0000) >> 16)/255.0
-        let blue = CGFloat((rgbaInt & 0x0000FF00) >> 8)/255.0
-        let alpha = CGFloat((rgbaInt & 0x000000FF))/255.0
+
+        let red = CGFloat((rgbaInt.littleEndian & 0xFF000000) >> 24)/255.0
+        let green = CGFloat((rgbaInt.littleEndian & 0x00FF0000) >> 16)/255.0
+        let blue = CGFloat((rgbaInt.littleEndian & 0x0000FF00) >> 8)/255.0
+        let alpha = CGFloat((rgbaInt.littleEndian & 0x000000FF))/255.0
 
         return UIColor(red: red, green: green, blue: blue, alpha: alpha)
     }

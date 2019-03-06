@@ -19,8 +19,12 @@ fileprivate let fieldDelimiterSequence:String = String(fieldDelimiter)
 fileprivate let recordDelimiterSequence:String = String(recordDelimiter)
 
 ///RFC 4180 compliant CSV parser/writer
+///
+/// While fully 4180 compliant this implementation is simplistic in that it requires that the full
+/// contents of the data reside in memory. In the case of reading from file the data will be duplicated
+/// in memory while being parsed. Once parsed the initial load of data from the file will be released.
 class CSVHelper {
-	
+    ///Reads contents of file URL to an array of string arrays
 	static func read(contentsOfURL url: URL, useEncoding encoding: String.Encoding = String.Encoding.utf8) -> [[String]] {
         guard var characterData:String = try? String(contentsOfFile: url.path, encoding: encoding) else {
             return []
@@ -96,8 +100,8 @@ class CSVHelper {
         guard let stream = OutputStream(url: url, append: true) else {
             return
         }
+
         stream.open()
-        
         defer {
             stream.close()
         }

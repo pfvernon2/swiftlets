@@ -34,14 +34,16 @@ extension UIImage {
         let rect:CGRect = CGRect(origin: CGPoint.zero, size: size)
         
         UIGraphicsBeginImageContext(rect.size)
+        defer {
+            UIGraphicsEndImageContext()
+        }
+
         let context:CGContext = UIGraphicsGetCurrentContext()!
-        
         context.clip(to: rect, mask: cgImage)
         context.setFillColor(color.cgColor)
         context.fill(rect)
         
         let masked:UIImage? = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
 
         guard let image = masked?.cgImage else {
             return nil
