@@ -286,6 +286,7 @@ class swiftletsTests: XCTestCase {
         let bigInteger: UInt64 = 0x0001020304050607
         let bytes = bigInteger.bytes
         XCTAssertEqual(bytes, [0, 1, 2, 3, 4, 5, 6, 7])
+        XCTAssertEqual(bigInteger[6], 0x06)
     }
     
     func testColor() {

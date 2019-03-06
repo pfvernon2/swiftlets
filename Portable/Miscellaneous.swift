@@ -289,14 +289,24 @@ extension Double {
 
 fileprivate var bitsPerByte: Int = 8
 extension FixedWidthInteger {
-    //extract bytes from an integer in big endian, i.e. network, byte order
-    public var bytes:[UInt8] {
-        let byteCount = bitWidth/bitsPerByte;
+    ///subscript access to bytes in big endian, i.e. network, byte order
+    public subscript(index: Int) -> UInt8? {
+        guard index < bitWidth/bitsPerByte else {
+            return nil
+        }
 
+        let shift = index * bitsPerByte;
+        return UInt8(bigEndian >> shift & 0xFF)
+    }
+
+    ///extract bytes from an integer in big endian, i.e. network, byte order
+    public var bytes:[UInt8] {
         var bytes: [UInt8] = []
-        for index in 0..<byteCount {
-            let mask = index * bitsPerByte;
-            bytes.append(UInt8(bigEndian >> mask & 0xFF))
+        
+        var index: Int = 0
+        while let byte = self[index] {
+            bytes.append(byte)
+            index += 1
         }
 
         return bytes
