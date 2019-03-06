@@ -7,7 +7,11 @@
 //
 
 import XCTest
+#if os(iOS)
 @testable import swiftlets
+#else
+@testable import swiftlets_macos
+#endif
 
 class swiftletsTests: XCTestCase {
     let testGroup:DispatchGroup = DispatchGroup()
@@ -145,6 +149,7 @@ class swiftletsTests: XCTestCase {
     }
     
     func testCachedImage() {
+#if os(iOS)
         guard let imageURL:URL = URL(string: "http://i.imgur.com/a97SL24.jpg") else {
             XCTAssert(false)
             return
@@ -161,6 +166,7 @@ class swiftletsTests: XCTestCase {
                 self.testGroup.leave()
             }
         }
+#endif
     }
     
     func testWriterReader() {
@@ -290,6 +296,7 @@ class swiftletsTests: XCTestCase {
     }
     
     func testColor() {
+#if os(iOS)
         let red:String = "FF0000"
         let redAlpha:String = "#ff0000ff"
         
@@ -311,6 +318,7 @@ class swiftletsTests: XCTestCase {
         XCTAssert(colorComponents![1] == 0.0)
         XCTAssert(colorComponents![2] == 0.0)
         XCTAssert(colorComponents![3] == 1.0)
+#endif
     }
 
     func testCSV() {
