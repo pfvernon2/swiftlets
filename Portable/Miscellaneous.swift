@@ -287,4 +287,17 @@ extension Double {
     }
 }
 
+extension FixedWidthInteger {
+    //extract bytes from an integer in big endian, i.e. network, byte order
+    public var bytes:[UInt8] {
+        let byteCount = bitWidth/8;
 
+        var bytes: [UInt8] = []
+        for index in 0..<byteCount {
+            let mask = index * 8;
+            bytes.append(UInt8(bigEndian >> mask & 0xFF))
+        }
+
+        return bytes
+    }
+}
