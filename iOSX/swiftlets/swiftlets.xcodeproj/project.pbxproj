@@ -7,6 +7,25 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0105B261223041370069124E /* swiftlets_macos.h in Headers */ = {isa = PBXBuildFile; fileRef = 0105B260223041370069124E /* swiftlets_macos.h */; };
+		0105B263223041370069124E /* swiftlets_macos.m in Sources */ = {isa = PBXBuildFile; fileRef = 0105B262223041370069124E /* swiftlets_macos.m */; };
+		0105B268223041BD0069124E /* Dispatch+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011914C21D74984D009B578A /* Dispatch+Utilities.swift */; };
+		0105B269223041C00069124E /* Operation+Concurrency.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01947BE31E62197300C1FF1D /* Operation+Concurrency.swift */; };
+		0105B26B223041D60069124E /* CSVHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0130BE241DBA9203008EEEE4 /* CSVHelper.swift */; };
+		0105B26C223041DF0069124E /* AudioPlayerEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01533AFF1C9DDF2000C6E69D /* AudioPlayerEngine.swift */; };
+		0105B270223041EF0069124E /* CoalescingTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01533B001C9DDF2000C6E69D /* CoalescingTimer.swift */; };
+		0105B271223041FF0069124E /* String+Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011330801D05CC27002DA0F0 /* String+Localization.swift */; };
+		0105B2722230422D0069124E /* Miscellaneous.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A3E9181CFE6FE300BE5AAA /* Miscellaneous.swift */; };
+		0105B273223042350069124E /* CommandLine+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 015A849A20FD50C4006C2583 /* CommandLine+Utilities.swift */; };
+		0105B274223042390069124E /* Data+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E6783E1CD5145E00ABE1CB /* Data+Utilities.swift */; };
+		0105B275223042410069124E /* Formatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E678501CD5317400ABE1CB /* Formatting.swift */; };
+		0105B2762230425B0069124E /* Dictionary+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0111A02F1D21CBC700A9B35E /* Dictionary+Utilities.swift */; };
+		0105B2772230425F0069124E /* Array+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 015710CE1D049C1F0057C1FB /* Array+Utilities.swift */; };
+		0105B2782230426C0069124E /* String+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E759521CDD373C00DA15F1 /* String+Utilities.swift */; };
+		0105B279223042730069124E /* DateFormatter+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E769771CF22D1500866433 /* DateFormatter+Utilities.swift */; };
+		0105B27A2230427E0069124E /* Scanner+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E05E731F08018400B074F2 /* Scanner+Utilities.swift */; };
+		0105B27B223042840069124E /* LineReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01E05EF41F10495C00B074F2 /* LineReader.swift */; };
+		0105B27D2230454A0069124E /* UITableView+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0105B27C2230454A0069124E /* UITableView+Utilities.swift */; };
 		0111A02E1D21CB6F00A9B35E /* JSON+REST.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0111A02D1D21CB6F00A9B35E /* JSON+REST.swift */; };
 		0111A0301D21CBC700A9B35E /* Dictionary+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0111A02F1D21CBC700A9B35E /* Dictionary+Utilities.swift */; };
 		011330811D05CC27002DA0F0 /* String+Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011330801D05CC27002DA0F0 /* String+Localization.swift */; };
@@ -64,6 +83,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0105B25E223041370069124E /* libswiftlets_macos.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libswiftlets_macos.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		0105B260223041370069124E /* swiftlets_macos.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = swiftlets_macos.h; sourceTree = "<group>"; };
+		0105B262223041370069124E /* swiftlets_macos.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = swiftlets_macos.m; sourceTree = "<group>"; };
+		0105B27C2230454A0069124E /* UITableView+Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "UITableView+Utilities.swift"; path = "../../iOS/UITableView+Utilities.swift"; sourceTree = "<group>"; };
 		0111A0271D2180CD00A9B35E /* HTTPURLResponse+Utility.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "HTTPURLResponse+Utility.swift"; path = "../../HTTPURLResponse+Utility.swift"; sourceTree = "<group>"; };
 		0111A02D1D21CB6F00A9B35E /* JSON+REST.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "JSON+REST.swift"; path = "../../JSON+REST.swift"; sourceTree = "<group>"; };
 		0111A02F1D21CBC700A9B35E /* Dictionary+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Dictionary+Utilities.swift"; path = "../../../Portable/Dictionary+Utilities.swift"; sourceTree = "<group>"; };
@@ -114,6 +137,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		0105B25C223041370069124E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		01533AC41C9DDAE700C6E69D /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -132,6 +162,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0105B25F223041370069124E /* swiftlets_macos */ = {
+			isa = PBXGroup;
+			children = (
+				0105B260223041370069124E /* swiftlets_macos.h */,
+				0105B262223041370069124E /* swiftlets_macos.m */,
+			);
+			path = swiftlets_macos;
+			sourceTree = "<group>";
+		};
 		011C421E2013DA7B0032EC48 /* MediaPlayer */ = {
 			isa = PBXGroup;
 			children = (
@@ -148,6 +187,7 @@
 				014C896021191097005A0A36 /* README.md */,
 				01533ACA1C9DDAE700C6E69D /* swiftlets */,
 				01533AD61C9DDAE700C6E69D /* swiftletsTests */,
+				0105B25F223041370069124E /* swiftlets_macos */,
 				01533AC91C9DDAE700C6E69D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -157,6 +197,7 @@
 			children = (
 				01533AC81C9DDAE700C6E69D /* swiftlets.framework */,
 				01533AD21C9DDAE700C6E69D /* swiftletsTests.xctest */,
+				0105B25E223041370069124E /* libswiftlets_macos.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -178,6 +219,7 @@
 				011C421E2013DA7B0032EC48 /* MediaPlayer */,
 				01533B001C9DDF2000C6E69D /* CoalescingTimer.swift */,
 				011330801D05CC27002DA0F0 /* String+Localization.swift */,
+				0105B27C2230454A0069124E /* UITableView+Utilities.swift */,
 				01533B011C9DDF2000C6E69D /* DoubleTapTableView.swift */,
 				01533B021C9DDF2000C6E69D /* UIImage+maskColor.swift */,
 				01533B031C9DDF2000C6E69D /* UIImage+Scaling.swift */,
@@ -228,6 +270,14 @@
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
+		0105B25A223041370069124E /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0105B261223041370069124E /* swiftlets_macos.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		01533AC51C9DDAE700C6E69D /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
@@ -239,6 +289,23 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
+		0105B25D223041370069124E /* swiftlets_macos */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0105B266223041370069124E /* Build configuration list for PBXNativeTarget "swiftlets_macos" */;
+			buildPhases = (
+				0105B25A223041370069124E /* Headers */,
+				0105B25B223041370069124E /* Sources */,
+				0105B25C223041370069124E /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = swiftlets_macos;
+			productName = swiftlets_macos;
+			productReference = 0105B25E223041370069124E /* libswiftlets_macos.a */;
+			productType = "com.apple.product-type.library.static";
+		};
 		01533AC71C9DDAE700C6E69D /* swiftlets */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 01533ADC1C9DDAE700C6E69D /* Build configuration list for PBXNativeTarget "swiftlets" */;
@@ -285,6 +352,11 @@
 				LastUpgradeCheck = 1020;
 				ORGANIZATIONNAME = "Frank Vernon";
 				TargetAttributes = {
+					0105B25D223041370069124E = {
+						CreatedOnToolsVersion = 10.2;
+						DevelopmentTeam = K8SUWT674B;
+						ProvisioningStyle = Automatic;
+					};
 					01533AC71C9DDAE700C6E69D = {
 						CreatedOnToolsVersion = 7.2.1;
 						DevelopmentTeam = K8SUWT674B;
@@ -313,6 +385,7 @@
 			targets = (
 				01533AC71C9DDAE700C6E69D /* swiftlets */,
 				01533AD11C9DDAE700C6E69D /* swiftletsTests */,
+				0105B25D223041370069124E /* swiftlets_macos */,
 			);
 		};
 /* End PBXProject section */
@@ -335,6 +408,30 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		0105B25B223041370069124E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0105B275223042410069124E /* Formatting.swift in Sources */,
+				0105B2762230425B0069124E /* Dictionary+Utilities.swift in Sources */,
+				0105B271223041FF0069124E /* String+Localization.swift in Sources */,
+				0105B279223042730069124E /* DateFormatter+Utilities.swift in Sources */,
+				0105B2722230422D0069124E /* Miscellaneous.swift in Sources */,
+				0105B2782230426C0069124E /* String+Utilities.swift in Sources */,
+				0105B269223041C00069124E /* Operation+Concurrency.swift in Sources */,
+				0105B273223042350069124E /* CommandLine+Utilities.swift in Sources */,
+				0105B268223041BD0069124E /* Dispatch+Utilities.swift in Sources */,
+				0105B270223041EF0069124E /* CoalescingTimer.swift in Sources */,
+				0105B27B223042840069124E /* LineReader.swift in Sources */,
+				0105B263223041370069124E /* swiftlets_macos.m in Sources */,
+				0105B274223042390069124E /* Data+Utilities.swift in Sources */,
+				0105B27A2230427E0069124E /* Scanner+Utilities.swift in Sources */,
+				0105B2772230425F0069124E /* Array+Utilities.swift in Sources */,
+				0105B26B223041D60069124E /* CSVHelper.swift in Sources */,
+				0105B26C223041DF0069124E /* AudioPlayerEngine.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		01533AC31C9DDAE700C6E69D /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -360,6 +457,7 @@
 				015710CF1D049C1F0057C1FB /* Array+Utilities.swift in Sources */,
 				015A849B20FD50C4006C2583 /* CommandLine+Utilities.swift in Sources */,
 				01533B0A1C9DDF2000C6E69D /* UIImage+Scaling.swift in Sources */,
+				0105B27D2230454A0069124E /* UITableView+Utilities.swift in Sources */,
 				018B5A051F03476E009F40FB /* URLComponent+Utilities.swift in Sources */,
 				01D1ED151D415FE600886D3D /* Platform.swift in Sources */,
 				01E05EF51F10495C00B074F2 /* LineReader.swift in Sources */,
@@ -402,6 +500,53 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		0105B264223041370069124E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = K8SUWT674B;
+				EXECUTABLE_PREFIX = lib;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		0105B265223041370069124E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = K8SUWT674B;
+				EXECUTABLE_PREFIX = lib;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
 		01533ADA1C9DDAE700C6E69D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -594,6 +739,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		0105B266223041370069124E /* Build configuration list for PBXNativeTarget "swiftlets_macos" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0105B264223041370069124E /* Debug */,
+				0105B265223041370069124E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		01533AC21C9DDAE700C6E69D /* Build configuration list for PBXProject "swiftlets" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

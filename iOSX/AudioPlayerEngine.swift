@@ -6,7 +6,6 @@
 //  Copyright © 2015 Frank Vernon. All rights reserved.
 //
 
-import UIKit
 import AVFoundation
 
 //MARK: - Constants
@@ -131,13 +130,15 @@ public class AudioPlayerEngine {
     ///Call this is to setup playback options for your app to allow simulataneous playback with other apps.
     /// This mode allows playback of audio when the ringer (mute) switch is enabled.
     /// Be sure to enable audio in the BackgroundModes settings of your apps Capabilities if necessary.
+#if os(iOS) || os(watchOS)
     class func initAudioSessionCooperativePlayback() {
         try? AVAudioSession.sharedInstance().setActive(true)
 
         //AVAudioSessionCategoryMultiRoute - AVAudioSessionCategoryPlayback
         try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
     }
-    
+#endif
+
     internal func initAudioEngine () {
         engine.attach(player)
         engine.connect(player, to: engine.mainMixerNode, format: engine.mainMixerNode.outputFormat(forBus: 0))
@@ -420,7 +421,8 @@ public class AudioPlayerEngine {
     }
 
     //MARK: - Session notificaiton handling
-    
+
+#if os(iOS) || os(watchOS)
     private func registerForMediaServerNotifications() {
         NotificationCenter.default.removeObserver(self, name: AVAudioSession.interruptionNotification, object: nil)
         NotificationCenter.default.addObserver(forName: AVAudioSession.interruptionNotification, object: nil, queue: nil) { [weak self] (notification:Notification) in
@@ -448,6 +450,11 @@ public class AudioPlayerEngine {
             //TODO: Reset everything here
         }
     }
+#else
+    private func registerForMediaServerNotifications() {
+        //TODO:
+    }
+#endif
     
     private func interruptSessionBegin() {
         guard let nodeTime:AVAudioTime = self.player.lastRenderTime,
