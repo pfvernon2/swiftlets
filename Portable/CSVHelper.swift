@@ -20,7 +20,7 @@ fileprivate let recordDelimiterSequence:String = String(recordDelimiter)
 
 ///RFC 4180 compliant CSV parser/writer
 ///
-/// While fully 4180 compliant this implementation is simplistic in that it requires that the full
+/// While fully 4180 compliant this implementation is simplistic in that it requires the full
 /// contents of the data reside in memory. In the case of reading from file the data will be duplicated
 /// in memory while being parsed. Once parsed the initial load of data from the file will be released.
 class CSVHelper {
@@ -95,7 +95,9 @@ class CSVHelper {
 		
 		return table
 	}
-    
+
+    ///Write table data to file.
+    /// - note: Data is streamed to file on a per record basis thus there should be minimal impact on memory.
 	static func write(_ table: [[String]], toFile url: URL, useEncoding encoding: String.Encoding = String.Encoding.utf8) {
         guard let stream = OutputStream(url: url, append: true) else {
             return
@@ -135,31 +137,30 @@ fileprivate extension OutputStream {
     /// - returns:                         Return total number of bytes written upon success. Return `-1` upon failure.
     
     @discardableResult func write(_ string: String, encoding: String.Encoding = .utf8, allowLossyConversion: Bool = false) -> Int {
-        
-        if let data = string.data(using: encoding, allowLossyConversion: allowLossyConversion) {
-            return data.withUnsafeBytes { (bytes: UnsafeRawBufferPointer) -> Int in
-                guard let pointer = bytes.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+        guard let data = string.data(using: encoding, allowLossyConversion: allowLossyConversion) else {
+            return -1
+        }
+
+        return data.withUnsafeBytes { (bytes: UnsafeRawBufferPointer) -> Int in
+            guard let pointer = bytes.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
+                return -1
+            }
+            var bytesRemaining = data.count
+            var totalBytesWritten = 0
+
+            while bytesRemaining > 0 {
+                let bytesWritten = self.write(pointer.advanced(by: totalBytesWritten),
+                                              maxLength: bytesRemaining)
+                guard bytesWritten > 0 else {
                     return -1
                 }
-                var bytesRemaining = data.count
-                var totalBytesWritten = 0
-                
-                while bytesRemaining > 0 {
-                    let bytesWritten = self.write(pointer.advanced(by: totalBytesWritten),
-                                                  maxLength: bytesRemaining)
-                    guard bytesWritten > 0 else {
-                        return -1
-                    }
 
-                    bytesRemaining -= bytesWritten
-                    totalBytesWritten += bytesWritten
-                }
-                
-                return totalBytesWritten
+                bytesRemaining -= bytesWritten
+                totalBytesWritten += bytesWritten
             }
+
+            return totalBytesWritten
         }
-        
-        return -1
     }
     
 }
