@@ -31,10 +31,7 @@ extension UIColor {
 extension String {
     /**
      Convenience method for creating UIColor from HTML hex formats: [#]RRGGBB[AA]
-     
-     - parameters:
-     - htmlHex: HTML style hex description of RGB color: [#]RRGGBB[AA]
-     
+
      - note: The leading # and trailing alpha values are optional.
      
      - returns: The color specified by the hex string or nil in the event parsing fails.
@@ -68,16 +65,21 @@ extension String {
             return nil
         }
         
-        var rgbaInt:UInt64 = 0
-        guard Scanner(string: working).scanHexInt64(&rgbaInt) else {
+        var rgbaInt:UInt32 = 0
+        guard Scanner(string: working).scanHexInt32(&rgbaInt) else {
             return nil
         }
 
-        let red = CGFloat((rgbaInt.littleEndian & 0xFF000000) >> 24)/255.0
-        let green = CGFloat((rgbaInt.littleEndian & 0x00FF0000) >> 16)/255.0
-        let blue = CGFloat((rgbaInt.littleEndian & 0x0000FF00) >> 8)/255.0
-        let alpha = CGFloat((rgbaInt.littleEndian & 0x000000FF))/255.0
+        let bytes: [UInt8] = [
+            UInt8(rgbaInt.bigEndian & 0xFF),
+            UInt8(rgbaInt.bigEndian >> 8 & 0xFF),
+            UInt8(rgbaInt.bigEndian >> 16 & 0xFF),
+            UInt8(rgbaInt.bigEndian >> 24 & 0xFF)
+        ]
 
-        return UIColor(red: red, green: green, blue: blue, alpha: alpha)
+        return UIColor(red: CGFloat(bytes[0])/255.0,
+                       green: CGFloat(bytes[1])/255.0,
+                       blue: CGFloat(bytes[2])/255.0,
+                       alpha: CGFloat(bytes[3])/255.0)
     }
 }

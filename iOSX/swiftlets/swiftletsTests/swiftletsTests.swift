@@ -297,25 +297,25 @@ class swiftletsTests: XCTestCase {
     
     func testColor() {
 #if os(iOS)
-        let red:String = "FF0000"
-        let redAlpha:String = "#ff0000ff"
+        let green:String = "00FF00"
+        let greenAlpha:String = "#00ff00ff"
         
-        let redColor:UIColor? = red.colorForHex()
-        XCTAssertNotNil(redColor)
+        let greenColor:UIColor? = green.colorForHex()
+        XCTAssertNotNil(greenColor)
         
-        let redAlphaColor:UIColor? = redAlpha.colorForHex()
-        XCTAssertNotNil(redAlphaColor)
+        let greenAlphaColor:UIColor? = greenAlpha.colorForHex()
+        XCTAssertNotNil(greenAlphaColor)
         
-        let bad:String = "xxxxxx"
+        let bad:String = "F00"
         let badColor:UIColor? = bad.colorForHex()
         XCTAssertNil(badColor)
         
-        let color:UIColor? = UIColor(htmlHex: redAlpha)
+        let color:UIColor? = UIColor(htmlHex: greenAlpha)
         XCTAssertNotNil(color)
         let colorComponents:[CGFloat]? = color?.cgColor.components
         XCTAssertNotNil(colorComponents)
-        XCTAssert(colorComponents![0] == 1.0)
-        XCTAssert(colorComponents![1] == 0.0)
+        XCTAssert(colorComponents![0] == 0.0)
+        XCTAssert(colorComponents![1] == 1.0)
         XCTAssert(colorComponents![2] == 0.0)
         XCTAssert(colorComponents![3] == 1.0)
 #endif
