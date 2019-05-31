@@ -66,6 +66,31 @@ extension JSON {
     }
 }
 
+//MARK: - Result Extensions
+
+extension Result {
+    var isSuccess: Bool {
+        get {
+            switch self {
+            case .success:
+                return true
+            default:
+                return false
+            }
+        }
+    }
+}
+
+extension Result where Success == Data {
+    func json<T: JSON>() -> T? {
+        guard let data = try? get() else {
+            return nil
+        }
+
+        return T.fromJSON(data)
+    }
+}
+
 //MARK: - NSURLSession Extensions
 
 public extension URLSessionConfiguration {
@@ -100,7 +125,9 @@ public extension URLSessionConfiguration {
 public extension URLSession {
     enum JSONSessionErrors: Error {
         case invalidQueryItem(String)
-        case badHTTPResponse(Data)
+        case badHTTPResponse(HTTPURLResponse)
+        case error(Error)
+        case unknown
     }
     
     enum HTTPHeaders:String {
@@ -132,14 +159,14 @@ public extension URLSession {
      - Parameter completion: A closure to be called on success or failure.
      - returns: NSURLSessionDataTask already resumed
      */
-    @discardableResult func httpGet<T:JSON>(with url:URL, headers:[String:String]? = nil, completion:@escaping (HTTPURLResponse?, T?, Error?) -> Swift.Void) -> URLSessionDataTask?
+    @discardableResult func httpGet(with url:URL, headers:[String:String]? = nil, completion:@escaping (Result<Data, JSONSessionErrors>) -> Swift.Void) -> URLSessionDataTask?
     {
         return httpDataTask(with: url,
                             method: .get,
                             headers: headers,
                             completion: completion)
     }
-    
+
     //MARK: - Put
     
     /**
@@ -153,7 +180,7 @@ public extension URLSession {
      - Parameter completion: A closure to be called on success or failure.
      - returns: NSURLSessionDataTask already resumed
      */
-    @discardableResult func httpPut<T:JSON>(with url:URL, bodyJSON:JSON? = nil, headers:[String:String]? = nil, completion:@escaping (HTTPURLResponse?, T?, Error?) -> Swift.Void) -> URLSessionDataTask?
+    @discardableResult func httpPut(with url:URL, bodyJSON:JSON? = nil, headers:[String:String]? = nil, completion:@escaping (Result<Data, JSONSessionErrors>) -> Swift.Void) -> URLSessionDataTask?
     {
         let bodyJSONData:Data? = bodyJSON?.toJSON()
         
@@ -176,10 +203,10 @@ public extension URLSession {
      - Parameter completion: A closure to be called on success or failure.
      - returns: NSURLSessionDataTask already resumed
      */
-    @discardableResult func httpPut<T:JSON>(with url:URL, bodyParameters:[URLQueryItem], headers:[String:String]? = nil, completion:@escaping (HTTPURLResponse?, T?, Error?) -> Swift.Void) -> URLSessionDataTask?
+    @discardableResult func httpPut(with url:URL, bodyParameters:[URLQueryItem], headers:[String:String]? = nil, completion:@escaping (Result<Data, JSONSessionErrors>) -> Swift.Void) -> URLSessionDataTask?
     {
         guard let body:String = URLQueryItem.REST_urlEscapedDescription(queryItems: bodyParameters) else {
-            completion(nil, nil, JSONSessionErrors.invalidQueryItem(bodyParameters.description))
+            completion(.failure(JSONSessionErrors.invalidQueryItem(bodyParameters.description)))
             return nil
         }
         
@@ -203,7 +230,7 @@ public extension URLSession {
      - Parameter completion: A closure to be called on success or failure.
      - returns: NSURLSessionDataTask already resumed
      */
-    @discardableResult func httpPost<T:JSON>(with url:URL, bodyJSON:JSON? = nil, headers:[String:String]? = nil, completion:@escaping (HTTPURLResponse?, T?, Error?) -> Swift.Void) -> URLSessionDataTask?
+    @discardableResult func httpPost(with url:URL, bodyJSON:JSON? = nil, headers:[String:String]? = nil, completion:@escaping (Result<Data, JSONSessionErrors>) -> Swift.Void) -> URLSessionDataTask?
     {
         let bodyJSONData:Data? = bodyJSON?.toJSON()
         
@@ -226,10 +253,10 @@ public extension URLSession {
      - Parameter completion: A closure to be called on success or failure.
      - returns: NSURLSessionDataTask already resumed
      */
-    @discardableResult func httpPost<T:JSON>(with url:URL, bodyParameters:[URLQueryItem], headers:[String:String]? = nil, completion:@escaping (HTTPURLResponse?, T?, Error?) -> Swift.Void) -> URLSessionDataTask?
+    @discardableResult func httpPost(with url:URL, bodyParameters:[URLQueryItem], headers:[String:String]? = nil, completion:@escaping (Result<Data, JSONSessionErrors>) -> Swift.Void) -> URLSessionDataTask?
     {
         guard let body:String = URLQueryItem.REST_urlEscapedDescription(queryItems: bodyParameters) else {
-            completion(nil, nil, JSONSessionErrors.invalidQueryItem(bodyParameters.description))
+            completion(.failure(JSONSessionErrors.invalidQueryItem(bodyParameters.description)))
             return nil
         }
         
@@ -252,7 +279,7 @@ public extension URLSession {
      - Parameter completion: A closure to be called on success or failure.
      - returns: NSURLSessionDataTask already resumed
      */
-    @discardableResult func httpDelete<T:JSON>(with url:URL, headers:[String:String]? = nil, completion:@escaping (HTTPURLResponse?, T?, Error?) -> Swift.Void) -> URLSessionDataTask?
+    @discardableResult func httpDelete(with url:URL, headers:[String:String]? = nil, completion:@escaping (Result<Data, JSONSessionErrors>) -> Swift.Void) -> URLSessionDataTask?
     {
         return httpDataTask(with: url,
                             method: .delete,
@@ -263,33 +290,34 @@ public extension URLSession {
     //MARK: - Utility
     
     ///Utilty method to create an automatically resumed data task given the input configuration.
-    @discardableResult private func httpDataTask<T:JSON>(with url:URL,
+    @discardableResult private func httpDataTask(with url:URL,
                                                  method:HTTPMethods,
                                                  headers:[String:String]? = nil,
                                                  contentType:HTTPContentType? = nil,
                                                  body:Data? = nil,
-                                                 completion:@escaping (HTTPURLResponse?, T?, Error?) -> Swift.Void) -> URLSessionDataTask?
+                                                 completion:@escaping (Result<Data, JSONSessionErrors>) -> Swift.Void) -> URLSessionDataTask?
     {
         //method to handle internal result of success
         func dataTaskSuccessHandler(request:URLRequest?, data:Data?, response:HTTPURLResponse, error:Error?) {
-            #if DUMP_NETWORK_RESULTS
-                printResult(forRequest: request, data: data, response: response, error: error)
-            #endif
-            
-            let result:T? = T.fromJSON(data ?? Data())
-            completion(response, result, nil)
+            guard let data = data else {
+                completion(.failure(JSONSessionErrors.badHTTPResponse(response)))
+                return
+            }
+
+            completion(.success(data))
         }
         
         //method to handle interal result of failure
         func dataTaskFailureHandler(request:URLRequest?, data:Data?, response:HTTPURLResponse?, error:Error?) {
-            #if DUMP_NETWORK_RESULTS || DEBUG
-                printResult(forRequest: request, data: data, response: response, error: error)
-            #endif
-            
-            if let data = data, error == nil {
-                completion(response, nil, JSONSessionErrors.badHTTPResponse(data))
-            } else {
-                completion(response, nil, error)
+            switch (response, error) {
+            case (.some(let response), .some):
+                completion(.failure(JSONSessionErrors.badHTTPResponse(response)))
+            case (.some(let response), .none):
+                completion(.failure(JSONSessionErrors.badHTTPResponse(response)))
+            case (.none, .some(let error)):
+                completion(.failure(JSONSessionErrors.error(error)))
+            default:
+                completion(.failure(JSONSessionErrors.unknown))
             }
         }
         
@@ -318,6 +346,10 @@ public extension URLSession {
         
         //create data task
         let httpDataTask:URLSessionDataTask = dataTask(with: request) { (data, response, error) in
+            #if DUMP_NETWORK_RESULTS || DEBUG
+            printResult(forRequest: request, data: data, response: response, error: error)
+            #endif
+
             guard let httpResponse:HTTPURLResponse = response as? HTTPURLResponse else {
                 dataTaskFailureHandler(request: request as URLRequest, data: data, response:nil, error: error)
                 return
