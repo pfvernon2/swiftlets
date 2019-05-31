@@ -97,10 +97,12 @@ class swiftletsTests: XCTestCase {
     //  http://ip.jsontest.com
     // Not really a unit test but oh well…
     func testJSONRequest() {
+        //expected JSON result format
         struct JSONTestIP: JSON {
             let ip: String
         }
-        
+
+        //create http request
         let urlComponents:URLComponents? = URLComponents(scheme: .http, host: "ip.jsontest.com")
         guard let url:URL = urlComponents?.url else {
             XCTAssert(false)
@@ -108,25 +110,48 @@ class swiftletsTests: XCTestCase {
         }
 
         testGroup.enter()
-        
-        let session:URLSession = URLSession(configuration: .default)
-        session.httpGet(with: url) { (response, json: JSONTestIP?, error) in
+
+        //create REST style URLSession
+        let session = URLSession(configuration: URLSessionConfiguration.RESTConfiguration())
+
+        //test REST request with JSON payload in response
+        session.httpGet(with: url) { result in
             defer {
                 self.testGroup.leave()
             }
 
-            guard error == nil,
-                let response = response,
-                let json = json,
-                let prettyJSON:String = json.toJSONString(prettyPrint: true) else {
-                    print("3rd party JSON testing service is most likely down.")
+            guard result.isSuccess else {
+                if case .failure(let error) = result {
+                    switch error {
+                    case .invalidQueryItem(let query):
+                        print("Bad Query: \(query)")
+
+                    case .badHTTPResponse(let response):
+                        print("Bad Response: \(response.status)")
+
+                    case .error(let error):
+                        print("Error: \(error)")
+
+                    case .unknown:
+                        print("Unknown Error")
+                    }
+                }
+
+                XCTFail()
+                return
+            }
+
+            guard let json:JSONTestIP = result.json() else {
+                    print("JSON error")
                     XCTFail()
                     return
             }
 
-            XCTAssert(response.status.isSuccess())
+            if let prettyJSON:String = json.toJSONString(prettyPrint: true) {
+                print(prettyJSON)
+            }
+
             XCTAssert(json.ip.isLikeIPV4Address())
-            print(prettyJSON)
         }
     }
     
