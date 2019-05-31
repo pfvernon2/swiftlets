@@ -34,327 +34,115 @@ import Foundation
  }
  ````
  */
+
 public enum HTTPURLReponseStatus {
-    public enum informationalStatus {
-        case continuing
-        case switchingProtocols
-        case processing
-        case checkpoint
-        case unknown(Int)
-        
-        init(statusCode: Int) {
-            switch statusCode {
-            case 100:
-                self = .continuing
-            case 101:
-                self = .switchingProtocols
-            case 102:
-                self = .processing
-            case 103:
-                self = .checkpoint
-            default:
-                self = .unknown(statusCode)
-            }
-        }
+
+    public enum informationalStatus: Int {
+        case continuing = 100
+        case switchingProtocols = 101
+        case processing = 102
+        case checkpoint = 103
     }
     
-    public enum successStatus {
-        case ok
-        case created
-        case accepted
-        case nonAuthoritative
-        case noContent
-        case resetContent
-        case partialContent
-        case multiStatus
-        case alreadyReported
-        case imUsed
-        case unknown(Int)
+    public enum successStatus: Int {
+        case ok = 200
+        case created = 201
+        case accepted = 202
+        case nonAuthoritative = 203
+        case noContent = 204
+        case resetContent = 205
+        case partialContent = 206
+        case multiStatus = 207
+        case alreadyReported = 208
+        case imUsed = 226
 
-        init(statusCode: Int) {
-            switch statusCode {
-            case 200:
-                self = .ok
-            case 201:
-                self = .created
-            case 202:
-                self = .accepted
-            case 203:
-                self = .nonAuthoritative
-            case 204:
-                self = .noContent
-            case 205:
-                self = .resetContent
-            case 206:
-                self = .partialContent
-            case 207:
-                self = .multiStatus
-            case 208:
-                self = .alreadyReported
-            case 226:
-                self = .imUsed
-            default:
-                self = .unknown(statusCode)
-            }
-        }
-        
+        //test most common case
         var isOK: Bool {
             get {
-                switch self {
-                case .ok:
-                    return true
-                default:
-                    return false
-                }
+                return self == .ok
             }
         }
     }
 
-    public enum redirectionSatus {
-        case multipleChoices
-        case movedPermanently
-        case found
-        case seeOther
-        case notModified
-        case useProxy
-        case switchProxy
-        case temporaryRedirect
-        case permanentRedirect
-        case unknown(Int)
-        
-        init(statusCode: Int) {
-            switch statusCode {
-            case 300:
-                self = .multipleChoices
-            case 301:
-                self = .movedPermanently
-            case 302:
-                self = .found
-            case 303:
-                self = .seeOther
-            case 304:
-                self = .notModified
-            case 305:
-                self = .useProxy
-            case 306:
-                self = .switchProxy
-            case 307:
-                self = .temporaryRedirect
-            case 308:
-                self = .permanentRedirect
-            default:
-                self = .unknown(statusCode)
-            }
-        }
+    public enum redirectionSatus: Int {
+        case multipleChoices = 300
+        case movedPermanently = 301
+        case found = 302
+        case seeOther = 303
+        case notModified = 304
+        case useProxy = 305
+        case switchProxy = 306
+        case temporaryRedirect = 307
+        case permanentRedirect = 308
     }
     
-    public enum clientErrorStatus {
-        case badRequest
-        case unauthorized
-        case paymentRequired
-        case forbidden
-        case notFound
-        case methodNotAllowed
-        case notAcceptable
-        case proxyAuthenticationRequired
-        case requestTimeout
-        case conflict
-        case gone
-        case lengthRequired
-        case preconditionFailed
-        case payloadTooLarge
-        case uriTooLong
-        case unsupportedMediaType
-        case rangeNotSatisfiable
-        case expectationFailed
-        case imATeapot
-        case imAFox
-        case enhanceYourCalm
-        case misdirectedRequest
-        case unprocessableEntity
-        case locked
-        case failedDependency
-        case upgradeRequired
-        case preconditionRequired
-        case tooManyRequests
-        case requestHeaderFieldsTooLarge
-        case unavailableForLegalReasons
-        case loginTimeout
-        case retryWith
-        case redirect
-        case noResponse
-        case sslCertificateError
-        case sslCertificateRequired
-        case httpRequestSentToHTTPSPort
-        case invalidToken
-        case tokenRequired
-        case unknown(Int)
-        
-        init(statusCode: Int) {
-            switch statusCode {
-            case 400:
-                self = .badRequest
-            case 401:
-                self = .unauthorized
-            case 402:
-                self = .paymentRequired
-            case 403:
-                self = .forbidden
-            case 404:
-                self = .notFound
-            case 405:
-                self = .methodNotAllowed
-            case 406:
-                self = .notAcceptable
-            case 407:
-                self = .proxyAuthenticationRequired
-            case 408:
-                self = .requestTimeout
-            case 409:
-                self = .conflict
-            case 410:
-                self = .gone
-            case 411:
-                self = .lengthRequired
-            case 412:
-                self = .preconditionFailed
-            case 413:
-                self = .payloadTooLarge
-            case 414:
-                self = .uriTooLong
-            case 415:
-                self = .unsupportedMediaType
-            case 416:
-                self = .rangeNotSatisfiable
-            case 417:
-                self = .expectationFailed
-            case 418:
-                self = .imATeapot
-            case 419:
-                self = .imAFox
-            case 420:
-                self = .enhanceYourCalm
-            case 421:
-                self = .misdirectedRequest
-            case 422:
-                self = .unprocessableEntity
-            case 423:
-                self = .locked
-            case 424:
-                self = .failedDependency
-            case 426:
-                self = .upgradeRequired
-            case 428:
-                self = .preconditionRequired
-            case 429:
-                self = .tooManyRequests
-            case 431:
-                self = .requestHeaderFieldsTooLarge
-            case 451:
-                self = .unavailableForLegalReasons
-            case 440:
-                self = .loginTimeout
-            case 449:
-                self = .retryWith
-            case 444:
-                self = .noResponse
-            case 495:
-                self = .sslCertificateError
-            case 496:
-                self = .sslCertificateRequired
-            case 497:
-                self = .httpRequestSentToHTTPSPort
-            case 498:
-                self = .invalidToken
-            case 499:
-                self = .tokenRequired
-            default:
-                self = .unknown(statusCode)
-            }
-        }
+    public enum clientErrorStatus: Int {
+        case badRequest = 400
+        case unauthorized = 401
+        case paymentRequired = 402
+        case forbidden = 403
+        case notFound = 404
+        case methodNotAllowed = 405
+        case notAcceptable = 406
+        case proxyAuthenticationRequired = 407
+        case requestTimeout = 408
+        case conflict = 409
+        case gone = 410
+        case lengthRequired = 411
+        case preconditionFailed = 412
+        case payloadTooLarge = 413
+        case uriTooLong = 414
+        case unsupportedMediaType = 415
+        case rangeNotSatisfiable = 416
+        case expectationFailed = 417
+        case imATeapot = 418
+        case imAFox = 419
+        case enhanceYourCalm = 420
+        case misdirectedRequest = 421
+        case unprocessableEntity = 422
+        case locked = 423
+        case failedDependency = 424
+        case upgradeRequired = 426
+        case preconditionRequired = 428
+        case tooManyRequests = 429
+        case requestHeaderFieldsTooLarge = 431
+        case loginTimeout = 440
+        case noResponse = 444
+        case retryWith = 449
+        case unavailableForLegalReasons = 451
+        case sslCertificateError = 495
+        case sslCertificateRequired = 496
+        case httpRequestSentToHTTPSPort = 497
+        case invalidToken = 498
+        case tokenRequired = 499
     }
 
-    public enum serverErrorStatus {
-        case internalServerError
-        case notImplemented
-        case badGateway
-        case serviceUnavailable
-        case gatewayTimeout
-        case httpVersionNotSupported
-        case variantAlsoNegotiates
-        case insufficientStorage
-        case loopDetected
-        case bandwidthLimitExceeded
-        case notExtended
-        case networkAuthenticationRequired
-        case unknownError
-        case webServerIsDown
-        case connectionTimedOut
-        case originIsUnreachable
-        case timeoutOccurred
-        case sslHandshakeFailed
-        case invalidSSLCertificate
-        case railgunError
-        case siteIsFrozen
-        case unknown(Int)
-        
-        init(statusCode: Int) {
-            switch statusCode {
-            case 500:
-                self = .internalServerError
-            case 501:
-                self = .notImplemented
-            case 502:
-                self = .badGateway
-            case 503:
-                self = .serviceUnavailable
-            case 504:
-                self = .gatewayTimeout
-            case 505:
-                self = .httpVersionNotSupported
-            case 506:
-                self = .variantAlsoNegotiates
-            case 507:
-                self = .insufficientStorage
-            case 508:
-                self = .loopDetected
-            case 509:
-                self = .bandwidthLimitExceeded
-            case 510:
-                self = .notExtended
-            case 511:
-                self = .networkAuthenticationRequired
-            case 520:
-                self = .unknownError
-            case 521:
-                self = .webServerIsDown
-            case 522:
-                self = .connectionTimedOut
-            case 523:
-                self = .originIsUnreachable
-            case 524:
-                self = .timeoutOccurred
-            case 525:
-                self = .sslHandshakeFailed
-            case 526:
-                self = .invalidSSLCertificate
-            case 527:
-                self = .railgunError
-            case 530:
-                self = .siteIsFrozen
-            default:
-                self = .unknown(statusCode)
-            }
-        }
-        
+    public enum serverErrorStatus: Int {
+        case internalServerError = 500
+        case notImplemented = 501
+        case badGateway = 502
+        case serviceUnavailable = 503
+        case gatewayTimeout = 504
+        case httpVersionNotSupported = 505
+        case variantAlsoNegotiates = 506
+        case insufficientStorage = 507
+        case loopDetected = 508
+        case bandwidthLimitExceeded = 509
+        case notExtended = 510
+        case networkAuthenticationRequired = 511
+        case unknownError = 520
+        case webServerIsDown = 521
+        case connectionTimedOut = 522
+        case originIsUnreachable = 523
+        case timeoutOccurred = 524
+        case sslHandshakeFailed = 525
+        case invalidSSLCertificate = 526
+        case railgunError = 527
+        case siteIsFrozen = 530
+
         var isInternalServerError: Bool {
             get {
-                switch self {
-                case .internalServerError:
-                    return true
-                default:
-                    return false
-                }
+                return self == .internalServerError
             }
         }
     }
@@ -364,22 +152,41 @@ public enum HTTPURLReponseStatus {
     case redirection(redirectionSatus)
     case clientError(clientErrorStatus)
     case serverError(serverErrorStatus)
-    case unknownClass(Int)
+    case unknown(Int)
 
     init(statusCode: Int) {
+        //default to unknown in the event parsing below fails to categorize the status code
+        self = .unknown(statusCode)
+
         switch statusCode {
         case 100..<200:
-            self = .informational(HTTPURLReponseStatus.informationalStatus(statusCode: statusCode))
+            if let info = informationalStatus(rawValue: statusCode) {
+                self = .informational(info)
+            }
+
         case 200..<300:
-            self = .success(HTTPURLReponseStatus.successStatus(statusCode: statusCode))
+            if let success = successStatus(rawValue: statusCode) {
+                self = .success(success)
+            }
+
         case 300..<400:
-            self = .redirection(HTTPURLReponseStatus.redirectionSatus(statusCode: statusCode))
+            if let redirect = redirectionSatus(rawValue: statusCode) {
+                self = .redirection(redirect)
+            }
+
         case 400..<500:
-            self = .clientError(HTTPURLReponseStatus.clientErrorStatus(statusCode: statusCode))
+            if let clientError = clientErrorStatus(rawValue: statusCode) {
+                self = .clientError(clientError)
+            }
+
         case 500..<600:
-            self = .serverError(HTTPURLReponseStatus.serverErrorStatus(statusCode: statusCode))
+            if let serverError = serverErrorStatus(rawValue: statusCode) {
+                self = .serverError(serverError)
+            }
+
         default:
-            self = .unknownClass(statusCode)
+            //set to .unknown handled above
+            break
         }
     }
     
@@ -391,10 +198,74 @@ public enum HTTPURLReponseStatus {
             return false
         }
     }
+
+    func isSuccessOK() -> Bool {
+        switch self {
+        case .success(let value):
+            return value.isOK
+        default:
+            return false
+        }
+    }
+
 }
 
+//Extension of HTTPURLResponse to return custom response status enum
 public extension HTTPURLResponse {
     var status:HTTPURLReponseStatus {
         return HTTPURLReponseStatus(statusCode: statusCode)
+    }
+}
+
+//Extension of StringInterpolation to return localized strings for HTTPURLReponseStatus values
+extension String.StringInterpolation {
+    mutating func appendInterpolation(_ status: HTTPURLReponseStatus.successStatus) {
+        let localized = HTTPURLResponse.localizedString(forStatusCode: status.rawValue);
+        appendInterpolation(localized)
+    }
+
+    mutating func appendInterpolation(_ status: HTTPURLReponseStatus.informationalStatus) {
+        let localized = HTTPURLResponse.localizedString(forStatusCode: status.rawValue);
+        appendInterpolation(localized)
+    }
+
+    mutating func appendInterpolation(_ status: HTTPURLReponseStatus.redirectionSatus) {
+        let localized = HTTPURLResponse.localizedString(forStatusCode: status.rawValue);
+        appendInterpolation(localized)
+    }
+
+    mutating func appendInterpolation(_ status: HTTPURLReponseStatus.clientErrorStatus) {
+        let localized = HTTPURLResponse.localizedString(forStatusCode: status.rawValue);
+        appendInterpolation(localized)
+    }
+
+    mutating func appendInterpolation(_ status: HTTPURLReponseStatus.serverErrorStatus) {
+        let localized = HTTPURLResponse.localizedString(forStatusCode: status.rawValue);
+        appendInterpolation(localized)
+    }
+
+    mutating func appendInterpolation(_ httpResponse: HTTPURLReponseStatus) {
+        switch httpResponse {
+        case .informational(let informational):
+            appendInterpolation("\(informational)")
+        case .success(let success):
+            appendInterpolation("\(success)")
+        case .redirection(let redirection):
+            appendInterpolation("\(redirection)")
+        case .clientError(let clientError):
+            appendInterpolation("\(clientError)")
+        case .serverError(let serverError):
+            appendInterpolation("\(serverError)")
+        case .unknown(let unknown):
+            appendInterpolation(HTTPURLResponse.localizedString(forStatusCode: unknown))
+        }
+    }
+}
+
+//Extension to print localized error string HTTPURLResponse
+extension String.StringInterpolation {
+    mutating func appendInterpolation(_ httpResponse: HTTPURLResponse) {
+        let localized = HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode);
+        appendInterpolation(localized)
     }
 }
