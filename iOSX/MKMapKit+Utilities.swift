@@ -11,8 +11,8 @@ import MapKit
 import Contacts
 import AddressBook
 
-let mileMeterRatio = 1609.344
-let meterToDegreesRatio = 111325.0
+fileprivate let mileMeterRatio = 1609.344
+fileprivate let meterToDegreesRatio = 111325.0
 
 ///A simple typealias to maintain explicit distance typing
 typealias CLLocationDistanceMiles = CLLocationDistance

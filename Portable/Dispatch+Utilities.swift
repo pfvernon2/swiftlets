@@ -80,14 +80,17 @@ open class DispatchReaderWriter {
  */
 open class DispatchWriterReader {
     private var writeQueue:DispatchQueue = DispatchQueue(label: "com.cyberdev.Dispatch.writerReader.write")
-    private var readQueue:DispatchQueue = DispatchQueue(label: "com.cyberdev.Dispatch.writerReader.read", attributes: .concurrent)
+    private var readQueue:DispatchQueue = DispatchQueue(label: "com.cyberdev.Dispatch.writerReader.read",
+                                                        attributes: .concurrent)
     private var readGroup:DispatchGroup = DispatchGroup()
     
     public func read<T>(execute work: () throws -> T) rethrows -> T {
         return try self.readQueue.sync {
             self.readGroup.enter()
+            defer {
+                self.readGroup.leave()
+            }
             let result:T = try work()
-            self.readGroup.leave()
             return result
         }
     }
@@ -96,8 +99,10 @@ open class DispatchWriterReader {
         readQueue.suspend()
         self.readGroup.wait()
         self.writeQueue.async {
+            defer {
+                self.readQueue.resume()
+            }
             work()
-            self.readQueue.resume()
         }
     }
 }

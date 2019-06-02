@@ -102,17 +102,18 @@ class swiftletsTests: XCTestCase {
             let ip: String
         }
 
+        //create REST style URLSession
+        let session = URLSession(configuration: URLSessionConfiguration.RESTConfiguration())
+
         //create http request
-        let urlComponents:URLComponents? = URLComponents(scheme: .http, host: "ip.jsontest.com")
+        let urlComponents:URLComponents? = URLComponents(scheme: .http,
+                                                         host: "ip.jsontest.com")
         guard let url:URL = urlComponents?.url else {
             XCTAssert(false)
             return
         }
 
         testGroup.enter()
-
-        //create REST style URLSession
-        let session = URLSession(configuration: URLSessionConfiguration.RESTConfiguration())
 
         //test REST request with JSON payload in response
         session.httpGet(with: url) { result in
@@ -121,8 +122,8 @@ class swiftletsTests: XCTestCase {
             }
 
             guard result.isSuccess else {
-                if case .failure(let error) = result {
-                    switch error {
+                if case .failure(let cause) = result {
+                    switch cause {
                     case .invalidQueryItem(let query):
                         print("Bad Query: \(query)")
 
