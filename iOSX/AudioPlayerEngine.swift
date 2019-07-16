@@ -313,7 +313,7 @@ public class AudioPlayerEngine {
         self.stopEngine()
 
         //wait for buffer queue to drain - blocks calling thread
-        // note: must occur after engine stop to avoid race condition
+        // note: must occur after stopEngine() to avoid race condition
         _ = self.bufferGroup.wait(timeout: DispatchTime.distantFuture)
     }
 
@@ -364,13 +364,13 @@ public class AudioPlayerEngine {
             guard let buffer:AVAudioPCMBuffer = AVAudioPCMBuffer(pcmFormat: audioFile.processingFormat, frameCapacity: kBufferFrameCount) else {
                 return
             }
-            self.scheduleBuffer(buffer: buffer)
+            self.loadBuffer(buffer: buffer)
         }
     }
     
-    @discardableResult private func scheduleBuffer(buffer:AVAudioPCMBuffer) -> Bool {
+    @discardableResult private func loadBuffer(buffer:AVAudioPCMBuffer) -> Bool {
         return self.bufferQueue.sync {
-            //Fill next buffer from file
+            //Fill buffer with samples/data from file
             guard self.readNextBuffer(buffer: buffer) else {
                 return false
             }
@@ -399,7 +399,7 @@ public class AudioPlayerEngine {
                 }
                 
                 //to understand recursion one must first understand recursion
-                self.scheduleBuffer(buffer: buffer)
+                self.loadBuffer(buffer: buffer)
             }
             
             return true
@@ -480,12 +480,15 @@ public class AudioPlayerEngine {
 //MARK: - FXAudioPlayerEngine
 
 //TimePitch Rate constants
-fileprivate let kRateCenter:Float = 1.0
+
+public let kRateMin:Float = 0.03125
+public let kRateCenter:Float = 1.0
+public let kRateMax:Float = 32.0
 fileprivate let kRateDetentRange:Float = 0.025
 
 //Track output level constants
 fileprivate let kOutputLevelDefault:Float = 0.0
-fileprivate let kOutputLevelDetentRange:Float = 0.25
+fileprivate let kOutputLevelDetentRange:Float = 0.025
 
 //Equalizer constants
 fileprivate let kNumberOfBands:Int = 4
@@ -494,6 +497,13 @@ fileprivate let kParametricLowInitialFrequency:Float = 200.0
 fileprivate let kParametricHighInitialFrequency:Float = 2000.0
 fileprivate let kHighShelfInitialFrequency:Float = 20000.0
 fileprivate let kEQGainDetentRange:Float = 0.5
+
+
+
+//Property wrappers?
+
+
+
 
 ///AudioPlayerEngine subclass that adds time rate control, four band parametric EQ, and simple output routing
 public class FXAudioPlayerEngine: AudioPlayerEngine {
@@ -565,20 +575,31 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
         }
     }
     
-    ///Adjust track playback levels in range: -1.0 to 1.0
-    ///A detent around zero is automatically applied
-    public var trackOutputLevelAdjust:Float = kOutputLevelDefault {
-        didSet {
-            var adjustment:Float = trackOutputLevelAdjust
-            //apply detent around zero
-            if abs(adjustment) <= kOutputLevelDetentRange {
+    ///Adjust track playback level in range: -1.0 to 1.0
+    ///A detent around zero is automatically applied.
+    ///
+    ///- note: You may want to read back the value after setting to get actual value of the control.
+    public var trackOutputLevelAdjust: Float {
+        get {
+            return (engine.mainMixerNode.outputVolume * 2.0) - 1.0
+        }
+
+        set(level) {
+            var adjustment = level
+            switch adjustment {
+            case (kOutputLevelDefault - kOutputLevelDetentRange)...(kOutputLevelDefault + kOutputLevelDetentRange):
+                //apply detent if rate at/near center value
                 adjustment = kOutputLevelDefault
+
+            default:
+                break
             }
+
             engine.mainMixerNode.outputVolume = (adjustment + 1.0)/2.0
         }
     }
 
-    public var timePitchQuality:TimePitchQuality = .med {
+    public var timePitchQuality: TimePitchQuality = .med {
         didSet {
             timePitch.overlap = timePitchQuality.rawValue
         }
@@ -586,26 +607,33 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
     
     ///Adjust the time pitch rate in the range: 0.03125 to 32.0, default is 1.0
     ///A detent around 1.0 is automatically applied
-    public var timePitchRate:Float {
+    ///
+    ///- note: You may want to read back the value after setting to get actual value of the control.
+    public var timePitchRate: Float {
         get {
             return timePitch.rate
         }
         
         set(rate) {
-            let centerOffset:Float = abs(kRateCenter - abs(rate))
-            if centerOffset <= kRateDetentRange {
+            switch rate {
+            case (kRateCenter - kRateDetentRange)...(kRateCenter + kRateDetentRange):
+                //apply detent if rate at/near center value
                 timePitch.rate = kRateCenter
-                //enabling bypass when at center position saves us significant CPU cycles
-                timePitch.bypass = true
-            } else {
+
+            default:
                 timePitch.rate = rate
-                timePitch.bypass = false
             }
+
+            //enabling bypass when at center position saves us significant CPU cycles, battery, etc.
+            // I presume Apple doesn't do this by default in order better predict/reserve CPU cycles
+            // necessary for audio processing. This optimization may need to be made conditional if
+            // we hit similar issues.
+            timePitch.bypass = (timePitch.rate == kRateCenter)
         }
     }
     
     ///Array of EQ filter parameters
-    public var equalizerBands:[AudioUnitEQFilterParameters] {
+    public var equalizerBands: [AudioUnitEQFilterParameters] {
         get {
             return equalizer.bands.map { (band) -> AudioUnitEQFilterParameters in
                 AudioUnitEQFilterParameters(filter: band)

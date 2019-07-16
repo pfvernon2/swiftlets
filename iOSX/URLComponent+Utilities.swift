@@ -99,8 +99,8 @@ public extension pathComponents {
 public struct POSIXPathComponents: pathComponents {
     public var seperator: Character = "/"
     public var components: [String] = []
-    public var isLeaf: Bool = true
-    //default is true so that we return absolute path immediatly after initialization
+    public var isLeaf: Bool = false
+    //default is true so that we return absolute path to root immediatly after default initialization
     public var isAbsolute: Bool = true
     
     public init() {}
