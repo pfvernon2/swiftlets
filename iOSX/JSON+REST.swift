@@ -125,7 +125,7 @@ public extension URLSessionConfiguration {
 public extension URLSession {
     enum JSONSessionErrors: Error {
         case invalidQueryItem(String)
-        case badHTTPResponse(HTTPURLResponse)
+        case requestFailed(HTTPURLResponse)
         case error(Error)
         case unknown
     }
@@ -300,7 +300,7 @@ public extension URLSession {
         //method to handle internal result of success
         func dataTaskSuccessHandler(request:URLRequest?, data:Data?, response:HTTPURLResponse, error:Error?) {
             guard let data = data else {
-                completion(.failure(JSONSessionErrors.badHTTPResponse(response)))
+                completion(.failure(JSONSessionErrors.requestFailed(response)))
                 return
             }
 
@@ -311,9 +311,9 @@ public extension URLSession {
         func dataTaskFailureHandler(request:URLRequest?, data:Data?, response:HTTPURLResponse?, error:Error?) {
             switch (response, error) {
             case (.some(let response), .some):
-                completion(.failure(JSONSessionErrors.badHTTPResponse(response)))
+                completion(.failure(JSONSessionErrors.requestFailed(response)))
             case (.some(let response), .none):
-                completion(.failure(JSONSessionErrors.badHTTPResponse(response)))
+                completion(.failure(JSONSessionErrors.requestFailed(response)))
             case (.none, .some(let error)):
                 completion(.failure(JSONSessionErrors.error(error)))
             default:
@@ -393,6 +393,28 @@ public extension URLSession {
         result += "⚠️"
         
         print(result)
+    }
+}
+
+extension String.StringInterpolation {
+    mutating func appendInterpolation(_ jsonSessionError: URLSession.JSONSessionErrors) {
+        switch jsonSessionError {
+        case .invalidQueryItem(let query):
+            appendInterpolation(NSLocalizedString("Invalid Query: \(query)",
+                comment: "URLSession Error - invalid query"))
+
+        case .requestFailed(let response):
+            appendInterpolation(NSLocalizedString("Request Failure: \(response.status) (\(response.statusCode))",
+                comment: "URLSession Error - request failure"))
+
+        case .error(let error):
+            appendInterpolation(NSLocalizedString("Error: \(error)",
+                comment: "URLSession Error - error"))
+
+        case .unknown:
+            appendInterpolation(NSLocalizedString("Unknown error",
+                                                  comment: "URLSession Error - unknown error"))
+        }
     }
 }
 

@@ -95,10 +95,10 @@ class swiftletsTests: XCTestCase {
     
     //Test using jsontest.com json validation method
     //  http://ip.jsontest.com
-    // Not really a unit test but oh well…
+    // Not really a unit test, and failures are common, but oh well…
     func testJSONRequest() {
         //expected JSON result format
-        struct JSONTestIP: JSON {
+        class JSONTestIP: JSON {
             let ip: String
         }
 
@@ -113,9 +113,8 @@ class swiftletsTests: XCTestCase {
             return
         }
 
-        testGroup.enter()
-
         //test REST request with JSON payload in response
+        testGroup.enter()
         session.httpGet(with: url) { result in
             defer {
                 self.testGroup.leave()
@@ -123,19 +122,7 @@ class swiftletsTests: XCTestCase {
 
             guard result.isSuccess else {
                 if case .failure(let cause) = result {
-                    switch cause {
-                    case .invalidQueryItem(let query):
-                        print("Bad Query: \(query)")
-
-                    case .badHTTPResponse(let response):
-                        print("Bad Response: \(response.status)")
-
-                    case .error(let error):
-                        print("Error: \(error)")
-
-                    case .unknown:
-                        print("Unknown Error")
-                    }
+                    self.printFailure("\(cause)")
                 }
 
                 XCTFail()
@@ -143,13 +130,13 @@ class swiftletsTests: XCTestCase {
             }
 
             guard let json:JSONTestIP = result.json() else {
-                    print("JSON error")
+                    self.printFailure("JSON parsing error")
                     XCTFail()
                     return
             }
 
             if let prettyJSON:String = json.toJSONString(prettyPrint: true) {
-                print(prettyJSON)
+                print("JSON response:\n\(prettyJSON)")
             }
 
             XCTAssert(json.ip.isLikeIPV4Address())
@@ -234,22 +221,43 @@ class swiftletsTests: XCTestCase {
     
     func testDispatchGuard() {
         let guardian:DispatchGuard = DispatchGuard(value: 2)
-        
+
+        //test for failure on third entry
         XCTAssert(guardian.enter())
         XCTAssert(guardian.enter())
         XCTAssertFalse(guardian.enter())
 
+        //counter should now be 1
         guardian.exit()
-        
+
+        //test custodian second entry for success
         let custodian:DispatchGuardCustodian = DispatchGuardCustodian(guardian)
         XCTAssert(custodian.acquired)
 
+        //test custodian third entry for failure
         let custodian2:DispatchGuardCustodian = DispatchGuardCustodian(guardian)
         XCTAssertFalse(custodian2.acquired)
-        
+
+        //counter should now be 1
         guardian.exit()
+
+        //remaining custodian will release last guard
     }
-    
+
+    func testExecuteOnce() {
+        var highlander: UInt64 = 0
+
+        DispatchQueue.executeOnce(identifier: "com.cyberdev.there_can_be_only_one") {
+            highlander += 1
+        }
+        XCTAssert(highlander == 1)
+
+        DispatchQueue.executeOnce(identifier: "com.cyberdev.there_can_be_only_one") {
+            highlander += 1
+        }
+        XCTAssert(highlander == 1)
+    }
+
     func testStrings() {
         XCTAssert(String("00000").isLikeZipCode())
         XCTAssert(String("00000-0000").isLikeZipCode())
@@ -260,7 +268,7 @@ class swiftletsTests: XCTestCase {
         XCTAssertFalse(String("00000-fubr").isLikeZipCode())
         
         XCTAssert(String("foo@bar.com").isLikeEmailAddress())
-        XCTAssertFalse(String("foobar.com").isLikeEmailAddress())
+        XCTAssertFalse(String("foo*bar.com").isLikeEmailAddress())
         
         XCTAssert(String("1.1.1.1").isLikeIPV4Address())
         XCTAssertFalse(String("1.1.1.").isLikeIPV4Address())
@@ -386,5 +394,12 @@ class swiftletsTests: XCTestCase {
                                                                         return
         }
         XCTAssertEqual(relativity, "Tomorrow")
+    }
+    
+    //MARK: - Utility
+
+    //Utility to tag failure messages in output
+    func printFailure(_ description: String) {
+        print("⚠️", description)
     }
 }
