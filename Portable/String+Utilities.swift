@@ -90,11 +90,20 @@ public extension String {
     }
 
     func isAllDigits() -> Bool {
-        let nonNumbers = CharacterSet.decimalDigits.inverted
-        guard let _:Range = rangeOfCharacter(from: nonNumbers) else {
+        let digits = CharacterSet.decimalDigits
+        guard let _:Range = rangeOfCharacter(from: digits.inverted) else {
             return true
         }
         
+        return false
+    }
+
+    func isAllHexDigits() -> Bool {
+        let hexCharacters = CharacterSet(charactersIn: "1234567890abcdefABCDEF")
+        guard let _:Range = rangeOfCharacter(from: hexCharacters.inverted) else {
+            return true
+        }
+
         return false
     }
 
@@ -119,17 +128,49 @@ public extension String {
         //Per Apple recommendation WWDC16 - https://developer.apple.com/videos/play/wwdc2016/714/
         return self.contains("@")
     }
-    
+
+    func isLikeIPAddress() -> Bool {
+        return isLikeIPV4Address() || isLikeIPV6Address();
+    }
+
+    //exactly four set of integers, each <= 255, separated by periods
     func isLikeIPV4Address() -> Bool {
-        let components = self.split(separator: ".")
+        let components = self.split(separator: ".", omittingEmptySubsequences: true)
         guard components.count == 4 else {
             return false
         }
         
-        if let _ = components.first(where: {(!String($0).isAllDigits()) || (UInt($0) ?? UInt.max > 255)}) {
+        if let _ = components.first(where: {UInt($0) ?? UInt.max > 255}) {
             return false
         }
         
+        return true
+    }
+
+    //set of up to eight 16 bit hex values separated by colons
+    // edge cases:
+    //  components with leading zeros may have only a two digit hex value
+    //  components with a zero value can be represted by a single digit hex value: (0x)0
+    //  runs of components with zero values can be coalesced into a single empty component
+    //  there can be at most one coalesced component
+    func isLikeIPV6Address() -> Bool {
+        //tokenize on colon
+        let components = self.split(separator: ":", omittingEmptySubsequences: false)
+        guard components.count <= 8 else {
+            return false
+        }
+
+        //test for multiple empty components
+        let filtered = components.filter({!String($0).isEmpty})
+        guard components.count - filtered.count <= 1 else {
+            return false
+        }
+
+        //test components for valid hex values in the range 0..65535
+        if let _ = filtered.first(where: {UInt($0, radix: 16) ?? UInt.max > 65535}) {
+            return false
+        }
+
         return true
     }
 

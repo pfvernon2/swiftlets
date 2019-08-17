@@ -121,25 +121,21 @@ class swiftletsTests: XCTestCase {
             }
 
             guard result.isSuccess else {
-                if case .failure(let cause) = result {
-                    self.printFailure("\(cause)")
-                }
-
+                self.printFailure("\(result)")
                 XCTFail()
                 return
             }
-
-            guard let json:JSONTestIP = result.json() else {
+            
+            guard let json:JSONTestIP = result.json(),
+                let prettyJSON:String = json.toJSONString(prettyPrint: true) else {
                     self.printFailure("JSON parsing error")
                     XCTFail()
                     return
             }
 
-            if let prettyJSON:String = json.toJSONString(prettyPrint: true) {
-                print("JSON response:\n\(prettyJSON)")
-            }
+            print("JSON response:\n\(prettyJSON)")
 
-            XCTAssert(json.ip.isLikeIPV4Address())
+            XCTAssert(json.ip.isLikeIPAddress())
         }
     }
     
@@ -271,8 +267,13 @@ class swiftletsTests: XCTestCase {
         XCTAssertFalse(String("foo*bar.com").isLikeEmailAddress())
         
         XCTAssert(String("1.1.1.1").isLikeIPV4Address())
-        XCTAssertFalse(String("1.1.1.").isLikeIPV4Address())
+        XCTAssertFalse(String("1.1..1").isLikeIPV4Address())
         XCTAssertFalse(String("1.1.1.512").isLikeIPV4Address())
+
+        XCTAssert(String("2001:0000:3238:DFE1:63:0000:0000:FEFB").isLikeIPV6Address())
+        XCTAssert(String("2001:0:3238:DFE1:63::FEFB").isLikeIPV6Address())
+        XCTAssertFalse(String("FE80::F000::F000").isLikeIPV6Address())
+        XCTAssertFalse(String("FE80:F000::BAR0").isLikeIPV6Address())
 
         let osType:FourCharCode = "AAPL"
         XCTAssertEqual(osType, 0x4141504C)
