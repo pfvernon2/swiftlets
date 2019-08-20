@@ -90,17 +90,15 @@ public extension String {
     }
 
     func isAllDigits() -> Bool {
-        let digits = CharacterSet.decimalDigits
-        guard let _:Range = rangeOfCharacter(from: digits.inverted) else {
-            return true
-        }
-        
-        return false
+        return containsOnly(CharacterSet.decimalDigits)
     }
 
     func isAllHexDigits() -> Bool {
-        let hexCharacters = CharacterSet(charactersIn: "1234567890abcdefABCDEF")
-        guard let _:Range = rangeOfCharacter(from: hexCharacters.inverted) else {
+        return containsOnly(CharacterSet.hexCharacters)
+    }
+
+    func containsOnly(_ charset: CharacterSet) -> Bool {
+        guard let _:Range = rangeOfCharacter(from: charset.inverted) else {
             return true
         }
 
@@ -133,41 +131,42 @@ public extension String {
         return isLikeIPV4Address() || isLikeIPV6Address();
     }
 
-    //exactly four set of integers, each <= 255, separated by periods
+    //exactly four set of integers, in the range 0...255, separated by periods
     func isLikeIPV4Address() -> Bool {
+        //tokenize on period, omit empty components for quick exclusion
         let components = self.split(separator: ".", omittingEmptySubsequences: true)
         guard components.count == 4 else {
             return false
         }
         
-        if let _ = components.first(where: {UInt($0) ?? UInt.max > 255}) {
+        if let _ = components.first(where: {UInt8($0) == nil}) {
             return false
         }
         
         return true
     }
 
-    //set of up to eight 16 bit hex values separated by colons
+    //set of up to eight (16 bit) hex values in the range 0...65535 separated by colons
     // edge cases:
     //  components with leading zeros may have only a two digit hex value
-    //  components with a zero value can be represted by a single digit hex value: (0x)0
+    //  components with a zero value can be represented by a single digit hex value: 0
     //  runs of components with zero values can be coalesced into a single empty component
     //  there can be at most one coalesced component
     func isLikeIPV6Address() -> Bool {
-        //tokenize on colon
+        //tokenize on colon, keep empty components so we can test for multiples
         let components = self.split(separator: ":", omittingEmptySubsequences: false)
         guard components.count <= 8 else {
             return false
         }
 
         //test for multiple empty components
-        let filtered = components.filter({!String($0).isEmpty})
+        let filtered = components.filter({!$0.isEmpty})
         guard components.count - filtered.count <= 1 else {
             return false
         }
 
-        //test components for valid hex values in the range 0..65535
-        if let _ = filtered.first(where: {UInt($0, radix: 16) ?? UInt.max > 65535}) {
+        //test remaining components for valid hex values in the range 0...65535
+        if let _ = filtered.first(where: {UInt16($0, radix: 16) == nil}) {
             return false
         }
 
@@ -223,4 +222,8 @@ extension FourCharCode: ExpressibleByStringLiteral {
         ]
         return String(bytes: bytes, encoding: .ascii)
     }
+}
+
+extension CharacterSet {
+    public static var hexCharacters: CharacterSet { return CharacterSet(charactersIn: "1234567890abcdefABCDEF") }
 }
