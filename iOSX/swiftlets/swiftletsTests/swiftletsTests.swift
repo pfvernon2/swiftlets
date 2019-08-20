@@ -387,8 +387,13 @@ class swiftletsTests: XCTestCase {
         }
         XCTAssertEqual(testDate, Date(timeIntervalSince1970: -130391543.36100006))
 
+        //approximate duration string, test assumes system locale is english
+        let tomorrow:Date = Date(timeIntervalSinceNow: (60.0 * 60.0 * 24.0) + 30.0);
+        let approximate:String = tomorrow.timeIntervalSinceNow.approximateDurationLocalizedDescription()
+        XCTAssertEqual(approximate, "About 1 day")
+
         //relative date string, test assumes system locale is english
-        guard let relativity:String = DateFormatter.relativeDateTimeString(from: Date(timeIntervalSinceNow: 60.0 * 60.0 * 24.0),
+        guard let relativity:String = DateFormatter.relativeDateTimeString(from: tomorrow,
                                                                      dateStyle: .medium,
                                                                      timeStyle: .none) else {
                                                                         XCTFail()

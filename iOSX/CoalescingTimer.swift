@@ -18,19 +18,25 @@ to be performed in a batched or coalesced fashion, for example when the device b
  
 ````
  var delayedOperationTimer:CoalescingTimer = CoalescingTimer()
- 
- override func touchesBegan(touches: NSSet!, withEvent event: UIEvent!) {
-    delayedOperationTimer.start(duration:5.0) { (CoalescingTimer) in
+
+ override func touchesEnded(touches: NSSet!, withEvent event: UIEvent!) {
+    //Start a timer to save current state 1 second after the user completes
+    // their touch operation.
+    delayedOperationTimer.start(duration:1.0) { (CoalescingTimer) in
         //Save state
     }
  }
- 
- override func touchesMoved(touches: NSSet!, withEvent event: UIEvent!) {
+
+ override func touchesBegan(touches: NSSet!, withEvent event: UIEvent!) {
+    //User begins new operation so restart the timer.
+    // If a timer not previously started this is a no-op.
     delayedOperationTimer.restart()
  }
  
- override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-    delayedOperationTimer.stop()
+ override func touchesMoved(touches: NSSet!, withEvent event: UIEvent!) {
+    //User still moving so restart the timer.
+    // If a timer not previously started this is a no-op.
+    delayedOperationTimer.restart()
  }
 
  ````

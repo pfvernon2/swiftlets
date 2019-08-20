@@ -138,7 +138,8 @@ public extension String {
         guard components.count == 4 else {
             return false
         }
-        
+
+        //test components for valid numbers in the range 0...255
         if let _ = components.first(where: {UInt8($0) == nil}) {
             return false
         }
@@ -153,7 +154,7 @@ public extension String {
     //  runs of components with zero values can be coalesced into a single empty component
     //  there can be at most one coalesced component
     func isLikeIPV6Address() -> Bool {
-        //tokenize on colon, keep empty components so we can test for multiples
+        //tokenize on colon, keep empty components so we can validate formatting
         let components = self.split(separator: ":", omittingEmptySubsequences: false)
         guard components.count <= 8 else {
             return false

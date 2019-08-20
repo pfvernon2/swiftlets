@@ -21,7 +21,7 @@ fileprivate let recordDelimiterSequence:String = String(recordDelimiter)
 ///RFC 4180 compliant CSV parser/writer
 ///
 /// While fully 4180 compliant this implementation is simplistic in that it requires the full
-/// contents of the data reside in memory. In the case of reading from file the data will be duplicated
+/// contents of the data to reside in memory. In the case of reading from file the data will be duplicated
 /// in memory while being parsed. Once parsed the initial load of data from the file will be released.
 class CSVHelper {
     ///Reads contents of file URL to an array of string arrays

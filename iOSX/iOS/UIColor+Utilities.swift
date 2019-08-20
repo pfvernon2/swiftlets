@@ -47,10 +47,6 @@ extension String {
         
         //ensure string fits length requirements
         switch working.count {
-        case ...5, 7, 9...:
-            //ilegal lengths
-            return nil
-            
         case 6:
             //RRGGBB
             //add default alpha for ease of processing below
@@ -61,12 +57,11 @@ extension String {
             break
             
         default:
-            //just here to keep compiler happy
+            //ilegal lengths
             return nil
         }
         
-        var rgbaInt:UInt32 = 0
-        guard Scanner(string: working).scanHexInt32(&rgbaInt) else {
+        guard let rgbaInt:UInt32 = UInt32(working, radix: 16) else {
             return nil
         }
 

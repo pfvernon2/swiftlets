@@ -271,9 +271,14 @@ extension Double {
 
 fileprivate var bitsPerByte: Int = 8
 extension FixedWidthInteger {
+    ///Utility to get number of bytes in the integer
+    public var byteWidth: Int {
+        return bitWidth/bitsPerByte
+    }
+
     ///subscript access to bytes in big endian, i.e. network, byte order
     public subscript(index: Int) -> UInt8? {
-        guard index < bitWidth/bitsPerByte else {
+        guard index < byteWidth else {
             return nil
         }
 
@@ -282,13 +287,13 @@ extension FixedWidthInteger {
     }
 
     ///extract bytes from an integer in big endian, i.e. network, byte order
+    //Should be a sequence extension?
     public var bytes:[UInt8] {
         var bytes: [UInt8] = []
-        
-        var index: Int = 0
-        while let byte = self[index] {
-            bytes.append(byte)
-            index += 1
+
+        for i in 0..<byteWidth {
+            //force unwrap guarded by byteWidth limit
+            bytes.append(self[i]!)
         }
 
         return bytes

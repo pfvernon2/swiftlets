@@ -9,15 +9,14 @@
 import Foundation
 
 extension Data {
+    //Convert data to string with hexadecimal encoding
     func hexRepresentation() -> String {
-        var result: String = String()
-        for byte in enumerated() {
-            result += String(format: "%02.2X", byte.element)
-        }
-        
-        return result
+        return enumerated().map { (_, element) -> String in
+            String(format: "%02.2X", element)
+        }.joined()
     }
-    
+
+    //Convert string to data with utf8 encoding and append to current data
     @discardableResult mutating func appendStringAsUTF8(_ string: String) -> Bool {
         guard let data = string.data(using: String.Encoding.utf8, allowLossyConversion: true) else {
             return false
