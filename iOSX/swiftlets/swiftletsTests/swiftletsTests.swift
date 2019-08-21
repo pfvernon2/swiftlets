@@ -362,7 +362,7 @@ class swiftletsTests: XCTestCase {
         let writeTest:[[String]] = [
             ["#", "A", "B", "C", "D"],
             ["1", "A,1", "B,1", "C,1", "D,1"],
-            ["2", "A\"2", "B\"2", "C\"2", "D\"2"],
+            ["2", "A\"2\"", "B\"2\"", "C\"2\"", "D\"2\""],
             ["3", "A3", "B3", "C3", "D3"],
             ["4", "A4", "B4", "C4", "D4"],
             ]
@@ -378,19 +378,30 @@ class swiftletsTests: XCTestCase {
         XCTAssertEqual(stringData.hexRepresentation(), "666F6F626172")
     }
 
-    func testDate() {
+    func testDateTime() {
         //extended precision 8601
-        let testString:String = "1965-11-13T13:07:36.639Z"
-        guard let testDate:Date = DateFormatter.tryParseISO8601LikeDateString(testString) else {
+        let dateString:String = "1965-11-13T13:07:36.639Z"
+        guard let date8601:Date = DateFormatter.tryParseISO8601LikeDateString(dateString) else {
             XCTFail()
             return
         }
-        XCTAssertEqual(testDate, Date(timeIntervalSince1970: -130391543.36100006))
+        XCTAssertEqual(date8601, Date(timeIntervalSince1970: -130391543.36100006))
 
-        //approximate duration string, test assumes system locale is english
-        let tomorrow:Date = Date(timeIntervalSinceNow: (60.0 * 60.0 * 24.0) + 30.0);
-        let approximate:String = tomorrow.timeIntervalSinceNow.approximateDurationLocalizedDescription()
-        XCTAssertEqual(approximate, "About 1 day")
+        //Test overloaded TimeInterval initializers
+        let milliTest = TimeInterval(milliseconds: 101.0);
+        XCTAssertEqual(milliTest, 0.101);
+        XCTAssertEqual(milliTest.microseconds.truncate(to: 1), 101000.0);
+
+        let minuteTest = TimeInterval(days: 100.0);
+        XCTAssertEqual(minuteTest, 8640000.0);
+        XCTAssertEqual(minuteTest.hours, 2400.0);
+
+        //create variable used below for relative/approximate time representations using
+        // overloaded TimeInterval constructors
+        let testDate: Date = Date();
+        let tomorrow:Date = Date(timeInterval: TimeInterval(days: 1), since: testDate);
+        let tomorrowInterval: TimeInterval = tomorrow.timeIntervalSince(testDate);
+        XCTAssert(tomorrowInterval.hours == 24);
 
         //relative date string, test assumes system locale is english
         guard let relativity:String = DateFormatter.relativeDateTimeString(from: tomorrow,
@@ -400,6 +411,10 @@ class swiftletsTests: XCTestCase {
                                                                         return
         }
         XCTAssertEqual(relativity, "Tomorrow")
+
+        //approximate duration string, test assumes system locale is english
+        let approximate:String = tomorrow.timeIntervalSince(testDate).approximateDurationLocalizedDescription()
+        XCTAssertEqual(approximate, "About 1 day")
     }
     
     //MARK: - Utility
