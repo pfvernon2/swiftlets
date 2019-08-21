@@ -83,94 +83,114 @@ extension CGSize {
 }
 
 extension TimeInterval {
-    init(picoseconds:Double) {
-        self.init(nanoseconds: picoseconds / 1000.0);
+
+    enum period: Double {
+        typealias RawValue = Double
+
+        case pico = 0.000000000001
+        case nano = 0.000000001
+        case micro = 0.000001
+        case milli = 0.001
+        case minute = 60.0
+        case hour = 3600.0
+        case day = 86400.0
+
+        //convert seconds to period:
+        //  example: 60 seconds = 1 minute
+        func periodForSeconds(_ seconds: Double) -> Double {
+            return seconds / rawValue
+        }
+
+        //convert period to seconds:
+        //  example: 1 minute = 60 seconds
+        func secondsForPeriod(_ period: Double) -> Double {
+            return rawValue * period
+        }
     }
 
-    init(nanoseconds:Double) {
-        self.init(microseconds: nanoseconds / 1000.0);
-    }
+    init(days: Double = 0.0,
+         hours: Double = 0.0,
+         minutes: Double = 0.0,
+         seconds: Double = 0.0,
+         milliseconds: Double = 0.0,
+         microseconds: Double = 0.0,
+         nanoseconds: Double = 0.0,
+         picoseconds: Double = 0.0) {
+        var accumulator: Double = 0.0
 
-    init(microseconds:Double) {
-        self.init(milliseconds: microseconds / 1000.0);
-    }
+        accumulator += period.day.secondsForPeriod(days)
+        accumulator += period.hour.secondsForPeriod(hours)
+        accumulator += period.minute.secondsForPeriod(minutes)
+        accumulator += seconds
 
-    init(milliseconds:Double) {
-        self = milliseconds / 1000.0;
-    }
+        accumulator += period.milli.secondsForPeriod(milliseconds)
+        accumulator += period.micro.secondsForPeriod(microseconds)
+        accumulator += period.nano.secondsForPeriod(nanoseconds)
+        accumulator += period.pico.secondsForPeriod(picoseconds)
 
-    init(minutes:Double) {
-        self = minutes * 60.0;
-    }
-
-    init(hours:Double) {
-        self.init(minutes: hours * 60.0);
-    }
-
-    init(days:Double) {
-        self.init(hours: days * 24.0);
+        self.init(accumulator)
     }
 
     var picoseconds: Double {
         get {
-            return nanoseconds * 1000.0
+            return period.pico.periodForSeconds(self)
         }
         set (newValue) {
-           self.nanoseconds = newValue / 1000.0
+            self = period.pico.secondsForPeriod(newValue)
         }
     }
     
     var nanoseconds: Double {
         get {
-            return microseconds * 1000.0
+            return period.nano.periodForSeconds(self)
         }
         set (newValue) {
-            self.microseconds = newValue / 1000.0
+            self = period.nano.secondsForPeriod(newValue)
         }
     }
     
     var microseconds: Double {
         get {
-            return milliseconds * 1000.0
+            return period.micro.periodForSeconds(self)
         }
         set (newValue) {
-            self.milliseconds = newValue / 1000.0
+            self = period.micro.secondsForPeriod(newValue)
         }
     }
     
     var milliseconds: Double {
         get {
-            return self * 1000.0
+            return period.milli.periodForSeconds(self)
         }
         set (newValue) {
-            self = newValue / 1000.0
+            self = period.milli.secondsForPeriod(newValue)
         }
     }
     
     var minutes: Double {
         get {
-            return self/60.0
+            return period.minute.periodForSeconds(self)
         }
         set (newValue) {
-            self = newValue * 60.0
+            self = period.minute.secondsForPeriod(newValue)
         }
     }
     
     var hours: Double {
         get {
-            return minutes/60.0
+            return period.hour.periodForSeconds(self)
         }
         set (newValue) {
-            self.minutes = newValue * 60.0
+            self = period.hour.secondsForPeriod(newValue)
         }
     }
     
     var days: Double {
         get {
-            return hours/24.0
+            return period.day.periodForSeconds(self)
         }
         set (newValue) {
-            self.hours = newValue * 24.0
+            self = period.day.secondsForPeriod(newValue)
         }
     }
     
@@ -295,6 +315,10 @@ extension Double {
     
     public static var τ: Double {
         return .pi * 2.0
+    }
+
+    func truncate(to places: Int) -> Double {
+        return Double(Int(pow(10, Double(places)) * self)) / pow(10, Double(places))
     }
 }
 
