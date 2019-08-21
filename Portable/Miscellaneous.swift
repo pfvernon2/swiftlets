@@ -83,6 +83,34 @@ extension CGSize {
 }
 
 extension TimeInterval {
+    init(picoseconds:Double) {
+        self.init(nanoseconds: picoseconds / 1000.0);
+    }
+
+    init(nanoseconds:Double) {
+        self.init(microseconds: nanoseconds / 1000.0);
+    }
+
+    init(microseconds:Double) {
+        self.init(milliseconds: microseconds / 1000.0);
+    }
+
+    init(milliseconds:Double) {
+        self = milliseconds / 1000.0;
+    }
+
+    init(minutes:Double) {
+        self = minutes * 60.0;
+    }
+
+    init(hours:Double) {
+        self.init(minutes: hours * 60.0);
+    }
+
+    init(days:Double) {
+        self.init(hours: days * 24.0);
+    }
+
     var picoseconds: Double {
         get {
             return nanoseconds * 1000.0
@@ -147,7 +175,8 @@ extension TimeInterval {
     }
     
     /**
-     Returns a localized human readable description of the time interval.
+     Returns a localized human readable description of the time interval. This is roughly
+     equivalent to the way in which iTunes displays aggregate track lengths.
      
      - note: The result is limited to Days, Hours, and Minutes and includes a localized indication of approximation.
      
