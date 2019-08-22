@@ -166,7 +166,16 @@ extension TimeInterval {
             self = period.milli.secondsForPeriod(newValue)
         }
     }
-    
+
+    var seconds: Double {
+        get {
+            return self
+        }
+        set (newValue) {
+            self = newValue
+        }
+    }
+
     var minutes: Double {
         get {
             return period.minute.periodForSeconds(self)
@@ -193,28 +202,27 @@ extension TimeInterval {
             self = period.day.secondsForPeriod(newValue)
         }
     }
-    
+
     /**
-     Returns a localized human readable description of the time interval. This is roughly
-     equivalent to the way in which iTunes displays aggregate track lengths.
-     
-     - note: The result is limited to Days, Hours, and Minutes and includes a localized indication of approximation.
-     
-     Examples:
-     * About 14 minutes
-     * About 1 hour, 7 minutes
-     */
-    func approximateDurationLocalizedDescription() -> String {
+    Returns a localized human readable description of the time interval.
+
+    - note: The result is limited to Days, Hours, and Minutes and optionally includes a localized indication of approximation.
+
+    Examples:
+    * 14 minutes
+    * About 1 hour, 7 minutes
+    */
+    func durationLocalizedDescription(approximation: Bool = false) -> String {
         let start = Date()
         let end = Date(timeInterval: self, since: start)
-        
+
         let formatter = DateComponentsFormatter()
         formatter.unitsStyle = .full
-        formatter.includesApproximationPhrase = true
+        formatter.includesApproximationPhrase = approximation
         formatter.includesTimeRemainingPhrase = false
         formatter.allowedUnits = [.day, .hour, .minute]
         formatter.maximumUnitCount = 2
-        
+
         return formatter.string(from: start, to: end) ?? String()
     }
 }

@@ -121,7 +121,7 @@ extension MKRoute {
      * About 1 hour, 7 minutes
      */
     var expectedTravelTimeLocalizedDescription:String {
-        return expectedTravelTime.approximateDurationLocalizedDescription()
+        return expectedTravelTime.durationLocalizedDescription(approximation: true)
     }
 }
 

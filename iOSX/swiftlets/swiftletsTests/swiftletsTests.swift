@@ -413,8 +413,12 @@ class swiftletsTests: XCTestCase {
         XCTAssertEqual(relativity, "Tomorrow")
 
         //approximate duration string, test assumes system locale is english
-        let approximate:String = tomorrow.timeIntervalSince(testDate).approximateDurationLocalizedDescription()
+        let approximate:String = tomorrow.timeIntervalSince(testDate).durationLocalizedDescription(approximation: true)
         XCTAssertEqual(approximate, "About 1 day")
+
+        //duration string, test assumes system locale is english
+        let localization:String = tomorrow.timeIntervalSince(testDate).durationLocalizedDescription()
+        XCTAssertEqual(localization, "1 day")
     }
     
     //MARK: - Utility
