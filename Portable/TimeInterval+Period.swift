@@ -48,7 +48,7 @@ extension TimeInterval {
          microseconds: Double = 0.0,
          nanoseconds: Double = 0.0,
          picoseconds: Double = 0.0) {
-        var accumulator: Double = 0.0
+        var accumulator: TimeInterval = 0.0
 
         accumulator += TimePeriod.day.intervalForPeriod(days)
         accumulator += TimePeriod.hour.intervalForPeriod(hours)
