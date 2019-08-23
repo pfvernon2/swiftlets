@@ -39,8 +39,7 @@ extension TimeInterval {
 
     ///Convenience initializer for creating TimeInterval from
     /// commonly used time periods.
-    /// - note: The values passed here are cumulative. Passing
-    /// multiple values here is valid/expected.
+    /// - note: The values passed are cumulative.
     init(days: Double = 0.0,
          hours: Double = 0.0,
          minutes: Double = 0.0,
