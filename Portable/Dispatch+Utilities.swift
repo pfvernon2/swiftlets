@@ -9,7 +9,7 @@
 import Foundation
 
 public extension DispatchQueue {
-    ///DispatchTime converstion from TimeInterval with microsecond precision.
+    ///DispatchTime conversion from TimeInterval with microsecond precision.
     private func dispatchTimeFromNow(seconds: TimeInterval) -> DispatchTime {
         let microseconds:Int = Int(seconds * 1000000.0)
         let dispatchOffset:DispatchTime = .now() + .microseconds(microseconds)
@@ -222,7 +222,7 @@ open class DispatchGuard {
          return
      }
 
-     //safely fetch data here without re-entrancy or unnecessary re-fecth issues
+     //safely fetch data here without re-entrancy or unnecessary re-fetch issues
  }
  ```
  */
