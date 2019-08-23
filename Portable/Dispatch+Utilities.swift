@@ -53,11 +53,13 @@ public extension DispatchQueue {
 }
 
 /**
- Reader Writer queue with first-in priority semantics. Reads occur concurrently and writes serially.
+ Reader Writer pattern with first-in priority semantics. Reads occur concurrently and writes serially.
  
- Execution is based on first-in semantics of the queue, i.e. previously queued read operations will be exhausted before the queued write operation occurs and subsequently queued read operations will be held off until the write completes.
- 
- - note: Queued read operations may cause unexpected race conditions. If you must ensure that the data read is as fresh as possible at the time it's read you may want to consider using the DispatchWriterReader class. The DispatchWriterReader class ensures that reads return the most recent data based on their execution time as apposed to their queue order.
+ Execution of both read and write is based on first-in semantics of a queue. That is, all reads and writes will occur in the order in which they are added to the queue. Eventhough the reads are happening concurrenlty the queued write operations will not occur until they reach the top of the queue.
+
+ This pattern is useful in cases where you want to access data in a fashion consistent with the order of the requests. For example a case where you wanted to update your user interface before a potentially invalidating write operation.
+
+ If, however, you wish to ensure that writes happen as quickly as possible and/or that any data read is as current as possible, then you may want to consider using the DispatchWriterReader class. The DispatchWriterReader class ensures that reads return the most recent data based on their execution time as apposed to their queue order.
  */
 open class DispatchReaderWriter {
     private var concurrentQueue:DispatchQueue = DispatchQueue(label: "com.cyberdev.Dispatch.readerWriter", attributes: .concurrent)
@@ -72,9 +74,11 @@ open class DispatchReaderWriter {
 }
 
 /**
- This class is similar to a reader writer queue but with write priority semantics. Reads occur concurrently and writes serially.
+ This is similar to a reader writer pattern but has write priority semantics. Reads occur concurrently and writes serially.
  
- Execution is based on write priotity at execution time rather than the first-in semantics of the reader writter queue, i.e. queued reads, that have not begun executing, will be held off until all queued writes occur. This is useful in situations where race conditions at execution time must be minimized. While this may be useful, or even critical, for some operations please be aware that it can result in long delays, or even starvation, on read.
+ Execution is based on write priotity at execution time rather than the first-in semantics of an operation queue. In this case all pending reads will be held off until all pending writes have completed.
+
+ This pattern is useful in situations where race conditions at execution time must be minimized. While this may be useful, or even critical, for some operations please be aware that it can result in long delays, or even starvation, on read.
  
  - note: This object incurs significantly more overhead than the DispatchReaderWriter class. Its usefulness is likely limited to cases where it is crucial to minimize race conditions when accessing the data.
  */
@@ -168,15 +172,15 @@ open class writerReaderType<T> {
  let dataGuard:DispatchGuard = DispatchGuard()
  
  func refreshData() {
- guard dataGuard.enter() else {
- return
- }
+     guard dataGuard.enter() else {
+       return
+     }
  
- defer {
- dataGuard.exit()
- }
+     defer {
+       dataGuard.exit()
+     }
  
- //safely fetch data here without re-entrancy or unnecessary re-fecth issues
+     //safely fetch data here without re-entrancy or unnecessary re-fecth issues
  }
  
  ```
