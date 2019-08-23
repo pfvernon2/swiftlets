@@ -10,30 +10,30 @@ import QuartzCore
 
 extension CGRect {
     var center:CGPoint {
-        return CGPoint(x: self.midX, y: self.midY)
+        CGPoint(x: self.midX, y: self.midY)
     }
     
     static func rectCenteredOn(center:CGPoint, radius:CGFloat) -> CGRect {
-        return CGRect(x: floor(center.x - radius),
-                      y: floor(center.y - radius),
-                      width: floor(radius*2.0),
-                      height: floor(radius*2.0))
+        CGRect(x: floor(center.x - radius),
+               y: floor(center.y - radius),
+               width: floor(radius*2.0),
+               height: floor(radius*2.0))
     }
     
     var top:CGFloat {
-        return self.origin.y - self.size.height
+        self.origin.y - self.size.height
     }
     
     var bottom:CGFloat {
-        return self.origin.y
+        self.origin.y
     }
     
     var left:CGFloat {
-        return self.origin.x
+        self.origin.x
     }
     
     var right:CGFloat {
-        return self.origin.x + self.size.width
+        self.origin.x + self.size.width
     }
 }
 
@@ -74,156 +74,11 @@ extension CGPoint {
 
 extension CGSize {
     func maxDimension() -> CGFloat {
-        return width > height ? width : height
+        width > height ? width : height
     }
     
     func minDimension() -> CGFloat {
-        return width < height ? width : height
-    }
-}
-
-extension TimeInterval {
-
-    enum period: Double {
-        typealias RawValue = Double
-
-        case pico = 0.000000000001
-        case nano = 0.000000001
-        case micro = 0.000001
-        case milli = 0.001
-        case minute = 60.0
-        case hour = 3600.0
-        case day = 86400.0
-
-        //convert seconds to period:
-        //  example: 60 seconds = 1 minute
-        func periodForSeconds(_ seconds: Double) -> Double {
-            return seconds / rawValue
-        }
-
-        //convert period to seconds:
-        //  example: 1 minute = 60 seconds
-        func secondsForPeriod(_ period: Double) -> Double {
-            return rawValue * period
-        }
-    }
-
-    init(days: Double = 0.0,
-         hours: Double = 0.0,
-         minutes: Double = 0.0,
-         seconds: Double = 0.0,
-         milliseconds: Double = 0.0,
-         microseconds: Double = 0.0,
-         nanoseconds: Double = 0.0,
-         picoseconds: Double = 0.0) {
-        var accumulator: Double = 0.0
-
-        accumulator += period.day.secondsForPeriod(days)
-        accumulator += period.hour.secondsForPeriod(hours)
-        accumulator += period.minute.secondsForPeriod(minutes)
-        accumulator += seconds
-
-        accumulator += period.milli.secondsForPeriod(milliseconds)
-        accumulator += period.micro.secondsForPeriod(microseconds)
-        accumulator += period.nano.secondsForPeriod(nanoseconds)
-        accumulator += period.pico.secondsForPeriod(picoseconds)
-
-        self.init(accumulator)
-    }
-
-    var picoseconds: Double {
-        get {
-            return period.pico.periodForSeconds(self)
-        }
-        set (newValue) {
-            self = period.pico.secondsForPeriod(newValue)
-        }
-    }
-    
-    var nanoseconds: Double {
-        get {
-            return period.nano.periodForSeconds(self)
-        }
-        set (newValue) {
-            self = period.nano.secondsForPeriod(newValue)
-        }
-    }
-    
-    var microseconds: Double {
-        get {
-            return period.micro.periodForSeconds(self)
-        }
-        set (newValue) {
-            self = period.micro.secondsForPeriod(newValue)
-        }
-    }
-    
-    var milliseconds: Double {
-        get {
-            return period.milli.periodForSeconds(self)
-        }
-        set (newValue) {
-            self = period.milli.secondsForPeriod(newValue)
-        }
-    }
-
-    var seconds: Double {
-        get {
-            return self
-        }
-        set (newValue) {
-            self = newValue
-        }
-    }
-
-    var minutes: Double {
-        get {
-            return period.minute.periodForSeconds(self)
-        }
-        set (newValue) {
-            self = period.minute.secondsForPeriod(newValue)
-        }
-    }
-    
-    var hours: Double {
-        get {
-            return period.hour.periodForSeconds(self)
-        }
-        set (newValue) {
-            self = period.hour.secondsForPeriod(newValue)
-        }
-    }
-    
-    var days: Double {
-        get {
-            return period.day.periodForSeconds(self)
-        }
-        set (newValue) {
-            self = period.day.secondsForPeriod(newValue)
-        }
-    }
-
-    /**
-    Returns a localized human readable description of the time interval.
-
-    - note: The result is limited to Days, Hours, and Minutes and optionally includes a localized indication of approximation.
-
-    Examples:
-    * 14 minutes
-    * About 1 hour, 7 minutes
-    */
-    func durationLocalizedDescription(approximation: Bool = false) -> String {
-        let start = Date()
-        let end = Date(timeInterval: self, since: start)
-
-        let formatter = DateComponentsFormatter()
-        formatter.unitsStyle = .full
-        formatter.includesApproximationPhrase = approximation
-        formatter.includesTimeRemainingPhrase = false
-        formatter.allowedUnits = [.day, .hour, .minute]
-        formatter.maximumUnitCount = 2
-
-        return formatter.string(from: start, to: end) ?? String()
+        width < height ? width : height
     }
 }
 
@@ -242,7 +97,7 @@ extension UserDefaults {
 extension CGAffineTransform {
     ///returns the current rotation of the transform in radians
     func rotationInRadians() -> Double {
-        return Double(atan2f(Float(self.b), Float(self.a)))
+        Double(atan2f(Float(self.b), Float(self.a)))
     }
     
     ///returns the current rotation of the transform in degrees 0.0 - 360.0
@@ -278,7 +133,7 @@ class WrappingIndexingGenerator<C: Collection>: IteratorProtocol {
 
 extension FileManager {
     var documentsDirectoryPath:String? {
-        return FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.path
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.path
     }
 
     func fileExistsInDocuments(atPath path:String) -> Bool {
@@ -302,7 +157,7 @@ extension FileManager {
     }
 
     open var temporaryFile: URL {
-        return temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        temporaryDirectory.appendingPathComponent(UUID().uuidString)
     }
 }
 
@@ -318,15 +173,15 @@ extension NotificationCenter {
 
 extension Double {
     public static var π: Double {
-        return .pi
+        .pi
     }
     
     public static var τ: Double {
-        return .pi * 2.0
+        .pi * 2.0
     }
 
     func truncate(to places: Int) -> Double {
-        return Double(Int(pow(10, Double(places)) * self)) / pow(10, Double(places))
+        Double(Int(pow(10, Double(places)) * self)) / pow(10, Double(places))
     }
 }
 
@@ -334,7 +189,7 @@ fileprivate var bitsPerByte: Int = 8
 extension FixedWidthInteger {
     ///Utility to get number of bytes in the integer
     public var byteWidth: Int {
-        return bitWidth/bitsPerByte
+        bitWidth/bitsPerByte
     }
 
     ///subscript access to bytes in big endian, i.e. network, byte order
@@ -351,7 +206,7 @@ extension FixedWidthInteger {
     //Should be a sequence extension?
     public var bytes:[UInt8] {
         var bytes: [UInt8] = []
-
+        
         for i in 0..<byteWidth {
             //force unwrap guarded by byteWidth limit
             bytes.append(self[i]!)
