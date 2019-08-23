@@ -54,11 +54,11 @@ public extension String {
         result.truncateHead(maxCharacterCount, replacement: replacement)
         return result
     }
-
+    
     mutating func strip(charactersInSet characterSet:CharacterSet) {
         self = self.components(separatedBy: characterSet).joined()
     }
-
+    
     func stringByStripping(charactersInSet characterSet:CharacterSet) -> String {
         var result = self
         result.strip(charactersInSet: characterSet)
@@ -88,30 +88,30 @@ public extension String {
         result.trimPrefix(prefix)
         return result
     }
-
+    
     func isAllDigits() -> Bool {
-        return containsOnly(CharacterSet.decimalDigits)
+        containsOnly(CharacterSet.decimalDigits)
     }
-
+    
     func isAllHexDigits() -> Bool {
-        return containsOnly(CharacterSet.hexCharacters)
+        containsOnly(CharacterSet.hexCharacters)
     }
-
+    
     func containsOnly(_ charset: CharacterSet) -> Bool {
         guard let _:Range = rangeOfCharacter(from: charset.inverted) else {
             return true
         }
-
+        
         return false
     }
-
+    
     func isLikeZipCode() -> Bool {
         //trivial case
         if self.count == 5 && self.isAllDigits() {
             return true
         }
-        
-        //zip+4
+            
+            //zip+4
         else if self.count == 10 {
             let plusFours: [String] = self.split(separator: "-").map { String($0) }
             return plusFours.count == 2
@@ -121,16 +121,16 @@ public extension String {
         
         return false
     }
-
+    
     func isLikeEmailAddress() -> Bool {
         //Per Apple recommendation WWDC16 - https://developer.apple.com/videos/play/wwdc2016/714/
-        return self.contains("@")
+        self.contains("@")
     }
-
+    
     func isLikeIPAddress() -> Bool {
-        return isLikeIPV4Address() || isLikeIPV6Address();
+        isLikeIPV4Address() || isLikeIPV6Address();
     }
-
+    
     //exactly four set of integers, in the range 0...255, separated by periods
     func isLikeIPV4Address() -> Bool {
         //tokenize on period, omit empty components for quick exclusion
@@ -138,7 +138,7 @@ public extension String {
         guard components.count == 4 else {
             return false
         }
-
+        
         //test components for valid numbers in the range 0...255
         if let _ = components.first(where: {UInt8($0) == nil}) {
             return false
@@ -146,7 +146,7 @@ public extension String {
         
         return true
     }
-
+    
     //set of up to eight (16 bit) hex values in the range 0...65535 separated by colons
     // edge cases:
     //  components with leading zeros may have only a two digit hex value
@@ -159,32 +159,31 @@ public extension String {
         guard components.count <= 8 else {
             return false
         }
-
+        
         //test for multiple empty components
-        let filtered = components.filter({!$0.isEmpty})
-        guard components.count - filtered.count <= 1 else {
+        guard components.filter({$0.isEmpty}).count <= 1 else {
             return false
         }
-
-        //test remaining components for valid hex values in the range 0...65535
-        if let _ = filtered.first(where: {UInt16($0, radix: 16) == nil}) {
+        
+        //test non-empty components for valid hex values in the range 0...65535
+        if let _ = components.filter({!$0.isEmpty}).first(where: {UInt16($0, radix: 16) == nil}) {
             return false
         }
-
+        
         return true
     }
-
+    
     var isNotEmpty:Bool {
-        return !isEmpty
+        !isEmpty
     }
-
+    
     func convertNSRange(range:NSRange) -> Range<String.Index>? {
         guard range.location != NSNotFound,
-        let utfStart = utf16.index(utf16.startIndex, offsetBy: range.location, limitedBy: utf16.endIndex),
-        let utfEnd = utf16.index(utfStart, offsetBy:range.length, limitedBy: utf16.endIndex),
-        let start = String.Index(utfStart, within: self),
-        let end = String.Index(utfEnd, within: self) else {
-            return nil
+            let utfStart = utf16.index(utf16.startIndex, offsetBy: range.location, limitedBy: utf16.endIndex),
+            let utfEnd = utf16.index(utfStart, offsetBy:range.length, limitedBy: utf16.endIndex),
+            let start = String.Index(utfStart, within: self),
+            let end = String.Index(utfEnd, within: self) else {
+                return nil
         }
         
         return start ..< end
@@ -200,19 +199,19 @@ extension FourCharCode: ExpressibleByStringLiteral {
         }
         self = value.utf16.reduce(0, {$0 << 8 + FourCharCode($1)});
     }
-
+    
     public init(extendedGraphemeClusterLiteral value: String) {
         self = FourCharCode(stringLiteral: value)
     }
-
+    
     public init(unicodeScalarLiteral value: String) {
         self = FourCharCode(stringLiteral: value)
     }
-
+    
     public init(_ value: String) {
         self = FourCharCode(stringLiteral: value)
     }
-
+    
     public var string: String? {
         //convert to bytes ensuring correct endianess
         let bytes: [UInt8] = [

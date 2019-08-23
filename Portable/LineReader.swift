@@ -39,7 +39,7 @@ class LineReader {
     init?(url: URL) {
         guard url.isFileURL,
             let fileRef = fopen(url.path, "r") else {
-            return nil
+                return nil
         }
         
         self.file = fileRef
@@ -67,8 +67,8 @@ class LineReader {
 
 extension LineReader: Sequence {
     func  makeIterator() -> AnyIterator<String> {
-        return AnyIterator<String> {
-            return self.nextLine
+        AnyIterator<String> {
+            self.nextLine
         }
     }
 }

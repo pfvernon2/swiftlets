@@ -25,7 +25,7 @@ class FormInputTextField: UITextField, FormInputElement {
         //You may want to create your own subclass or
         // to perform appropriate validation of the
         // contents of the text field.
-        return (text?.isEmpty) ?? false
+        (text?.isEmpty) ?? false
     }
 
     override init(frame: CGRect) {
@@ -42,7 +42,7 @@ class FormInputSwitch: UISwitch, FormInputElement {
     // FormInputElement
     var isRequired: Bool = false
     var isComplete: Bool {
-        return true
+        true
     }
 
     override init(frame: CGRect) {
@@ -77,7 +77,7 @@ protocol FormInputManager {
 
 extension FormInputManager {
     var formComplete: Bool {
-        return formInputElements.contains{$0.isRequired && !$0.isComplete}
+        formInputElements.contains{$0.isRequired && !$0.isComplete}
     }
 
     func nextTabbedTextField(after field: FormInputTextField? = nil) -> FormInputTextField? {
@@ -110,11 +110,11 @@ extension FormInputManager {
 
     //Text input field handling
     private var activeFormInputTextFields:[FormInputTextField] {
-        return activeFormControls.compactMap {$0 as? FormInputTextField}
+        activeFormControls.compactMap {$0 as? FormInputTextField}
     }
 
     private var incompleteFormInputTextFields:[FormInputTextField] {
-        return activeFormInputTextFields.filter {$0.isRequired && !$0.isComplete}
+        activeFormInputTextFields.filter {$0.isRequired && !$0.isComplete}
     }
 
     func setReturnKeyType(for field: FormInputTextField) {

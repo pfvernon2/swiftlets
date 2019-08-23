@@ -64,9 +64,9 @@ public extension URLRequest {
                                                                 isFinal:Bool = false) -> Bool {
         guard let bits = image.representations.first as? NSBitmapImageRep,
             let scaledImageData = bits.representation(using: .jpeg, properties: [:]) else {
-            return false
+                return false
         }
-
+        
         return appendFormSection(withBoundary: boundary,
                                  mimeType: "image/jpeg",
                                  name: name ?? "data",
@@ -75,7 +75,7 @@ public extension URLRequest {
                                  isFinal: isFinal)
     }
     #endif
-
+    
     /**
      Appends a form section to a URLRequest body.
      

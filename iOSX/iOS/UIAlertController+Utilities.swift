@@ -16,12 +16,11 @@ extension UIAlertController {
      
      The titles for the OK and Cancel buttons are defined as NSLocalizedStrings for ease of localization.
      
-     - parameters:
-         - title: title of the alert
-         - message: message of the alert
-         - preferredStyle: style of the alert
-         - okHandler: completion block for the OK action. If not supplied then no OK button will be added to the alert.
-         - cancelHandler: completion block for the Cancel action. If not supplied then no OK button will be added to the alert.
+     - parameters title: title of the alert
+     - parameters message: message of the alert
+     - parameters preferredStyle: style of the alert
+     - parameters okHandler: completion block for the OK action. If not supplied then no OK button will be added to the alert.
+     - parameters cancelHandler: completion block for the Cancel action. If not supplied then no OK button will be added to the alert.
      
      - returns: A UIAlertController
      
@@ -39,7 +38,7 @@ extension UIAlertController {
             let cancelAction:UIAlertAction = UIAlertAction(title: NSLocalizedString("Cancel", comment: "UIAlertController Cancel control"), style: .cancel, handler: cancelHandler)
             result.addAction(cancelAction)
         }
-
+        
         return result
     }
     

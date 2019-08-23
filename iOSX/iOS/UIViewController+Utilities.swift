@@ -10,7 +10,7 @@ import UIKit
 
 extension UIViewController {
     class func topMostViewController() -> UIViewController? {
-        return UIViewController.topViewControllerForRoot(UIApplication.shared.keyWindow?.rootViewController)
+        UIViewController.topViewControllerForRoot(UIApplication.shared.keyWindow?.rootViewController)
     }
     
     class func topViewControllerForRoot(_ rootViewController:UIViewController?) -> UIViewController? {
@@ -30,7 +30,7 @@ extension UIViewController {
         case is UITabBarController:
             let tabBarController:UITabBarController = presented as! UITabBarController
             return UIViewController.topViewControllerForRoot(tabBarController.selectedViewController)
-
+            
         default:
             return UIViewController.topViewControllerForRoot(presented)
         }

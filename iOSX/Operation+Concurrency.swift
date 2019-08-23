@@ -50,7 +50,7 @@ open class SynchronousOperation: Operation {
     private var _state = OperationState.ready
     private var state: OperationState {
         get {
-            return stateQueue.sync { _state }
+            stateQueue.sync { _state }
         }
         
         set {
@@ -63,15 +63,15 @@ open class SynchronousOperation: Operation {
     // MARK: Required Operation overrides
     
     public final override var isReady: Bool {
-        return state == .ready && super.isReady
+        state == .ready && super.isReady
     }
     
     public final override var isExecuting: Bool {
-        return state == .executing
+        state == .executing
     }
     
     public final override var isFinished: Bool {
-        return state == .finished
+        state == .finished
     }
     
     // MARK: - KVO
@@ -138,6 +138,6 @@ open class SynchronousOperation: Operation {
  */
 open class AsynchronousOperation: SynchronousOperation {
     public final override var isAsynchronous: Bool {
-        return true
+        true
     }
 }

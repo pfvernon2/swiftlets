@@ -25,7 +25,7 @@ fileprivate let recordDelimiterSequence:String = String(recordDelimiter)
 /// in memory while being parsed. Once parsed the initial load of data from the file will be released.
 class CSVHelper {
     ///Reads contents of file URL to an array of string arrays
-	static func read(contentsOfURL url: URL, useEncoding encoding: String.Encoding = String.Encoding.utf8) -> [[String]] {
+    static func read(contentsOfURL url: URL, useEncoding encoding: String.Encoding = String.Encoding.utf8) -> [[String]] {
         guard var characterData:String = try? String(contentsOfFile: url.path, encoding: encoding) else {
             return []
         }
@@ -35,70 +35,70 @@ class CSVHelper {
             characterData.append(recordDelimiter)
         }
         
-		var table:[[String]] = []
-		
-		var quoted:Bool = false
-		var testEscaped:Bool = false
-		var testRecordEnd:Bool = false
-		var field:String = ""
-		var record:[String] = []
+        var table:[[String]] = []
+
+        var quoted:Bool = false
+        var testEscaped:Bool = false
+        var testRecordEnd:Bool = false
+        var field:String = ""
+        var record:[String] = []
         characterData.forEach { current in
-			if testEscaped && current != quoteCharacter {
-				testEscaped = false
-				quoted = false
-			}
-			
-			//check for escape sequence start
-			if current == quoteCharacter && quoted && !testEscaped {
-				testEscaped = true
-				return
-			}
-				
-            //check for quote sequence start
-			else if current == quoteCharacter && !testEscaped {
-				quoted = !quoted
-			}
-				
-            //if not quoted check for record delimiter(s)
-            // supporting bare CR & LF, not required by RFC4180 but common
-			else if !quoted && (current == bareReturn || current == bareLinefeed) {
-				testRecordEnd = true
+            if testEscaped && current != quoteCharacter {
+                testEscaped = false
+                quoted = false
+            }
+
+            //check for escape sequence start
+            if current == quoteCharacter && quoted && !testEscaped {
+                testEscaped = true
                 return
-			}
+            }
+
+                //check for quote sequence start
+            else if current == quoteCharacter && !testEscaped {
+                quoted = !quoted
+            }
+
+                //if not quoted check for record delimiter(s)
+                // supporting bare CR & LF, not required by RFC4180 but common
+            else if !quoted && (current == bareReturn || current == bareLinefeed) {
+                testRecordEnd = true
+                return
+            }
                 
-            //if outside of quoted section and at end of record then: add last field to record,
-            // add record to table, prepare to parse next record
-			else if !quoted && (current == recordDelimiter || testRecordEnd) {
-				record.append(field)
-				table.append(record)
-				record = []
-				field = ""
-				if testRecordEnd {
-					field.append(current)
-				}
-			}
-				
-            //if not quoted check for field delimiter
-			else if !quoted && current == fieldDelimiter {
-				record.append(field)
-				field = ""
-			}
-				
-            //add character to current field
-			else {
-				field.append(current)
-			}
-			
-			testEscaped = false
-			testRecordEnd = false
-		}
-		
-		return table
-	}
+                //if outside of quoted section and at end of record then: add last field to record,
+                // add record to table, prepare to parse next record
+            else if !quoted && (current == recordDelimiter || testRecordEnd) {
+                record.append(field)
+                table.append(record)
+                record = []
+                field = ""
+                if testRecordEnd {
+                    field.append(current)
+                }
+            }
+
+                //if not quoted check for field delimiter
+            else if !quoted && current == fieldDelimiter {
+                record.append(field)
+                field = ""
+            }
+
+                //add character to current field
+            else {
+                field.append(current)
+            }
+
+            testEscaped = false
+            testRecordEnd = false
+        }
+
+        return table
+    }
 
     ///Write table data to file.
     /// - note: Data is streamed to file on a per record basis thus there should be minimal impact on memory.
-	static func write(_ table: [[String]], toFile url: URL, useEncoding encoding: String.Encoding = String.Encoding.utf8) {
+    static func write(_ table: [[String]], toFile url: URL, useEncoding encoding: String.Encoding = String.Encoding.utf8) {
         guard let stream = OutputStream(url: url, append: true) else {
             return
         }
@@ -111,7 +111,7 @@ class CSVHelper {
         table.forEach { (record) in
             stream.write(encode(record: record))
         }
-	}
+    }
     
     static fileprivate func encode(record: [String]) -> String {
         let escapedRecord:[String] = record.map { (field) -> String in

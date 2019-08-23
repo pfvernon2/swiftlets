@@ -10,9 +10,9 @@ import UIKit
 import QuartzCore
 
 @IBDesignable class RoundedCornerView: UIView {
-
+    
     @IBInspectable var passthroughTouches:Bool = false
-
+    
     @IBInspectable var borderColor:UIColor? = nil {
         didSet {
             if let borderColor = borderColor {
@@ -28,27 +28,27 @@ import QuartzCore
             layer.borderWidth = borderWidth
         }
     }
-
+    
     @IBInspectable var cornerRadius:CGFloat {
         set (radius) {
             self.layer.cornerRadius = radius
             self.layer.masksToBounds = radius > 0.0
         }
         get {
-            return self.layer.cornerRadius
+            self.layer.cornerRadius
         }
     }
-
+    
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
         self.cornerRadius = 3.0
     }
-
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         self.cornerRadius = 3.0
     }
-
+    
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
         let hitView:UIView? = super.hitTest(point, with: event)
         if self.passthroughTouches {
@@ -62,19 +62,19 @@ import QuartzCore
 @IBDesignable class RoundImageView: UIImageView {
     
     let circlePathLayer = CAShapeLayer()
-
+    
     @IBInspectable var borderColor:UIColor = UIColor.black {
         didSet {
             layer.borderColor = borderColor.cgColor
         }
     }
-
+    
     @IBInspectable var borderWidth:CGFloat = 2.0 {
         didSet {
             layer.borderWidth = borderWidth
         }
     }
-
+    
     func makeRound() {
         let minDimension:CGFloat = min(self.bounds.width, self.bounds.height)
         
@@ -110,7 +110,7 @@ import QuartzCore
 }
 
 @IBDesignable class RoundedCornerTextView: UITextView {
-
+    
     @IBInspectable var borderColor:UIColor? = nil {
         didSet {
             if let borderColor = borderColor {
@@ -120,28 +120,28 @@ import QuartzCore
             }
         }
     }
-
+    
     @IBInspectable var borderWidth:CGFloat = 0.0 {
         didSet {
             layer.borderWidth = borderWidth
         }
     }
-
+    
     @IBInspectable var cornerRadius:CGFloat {
         set (radius) {
             self.layer.cornerRadius = radius
             self.layer.masksToBounds = radius > 0.0
         }
         get {
-            return self.layer.cornerRadius
+            self.layer.cornerRadius
         }
     }
-
+    
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
         self.cornerRadius = 3.0
     }
-
+    
     override init(frame: CGRect, textContainer: NSTextContainer?) {
         super.init(frame: frame, textContainer: textContainer)
         self.cornerRadius = 3.0

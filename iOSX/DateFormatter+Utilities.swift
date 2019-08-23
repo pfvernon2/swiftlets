@@ -17,17 +17,16 @@ extension DateFormatter {
         case java, windows
         
         static var allCases: [ISO8601ExtendedPrecision] {
-            return [seconds, milliseconds, microseconds]
+            [seconds, milliseconds, microseconds]
         }
     }
     
     /**
      Creates a date formatter for working with the ISO8601 date format.
-
-     - parameters:
-         - precision: (optional) see ISO8601ExtendedPrecision
+     
+     - Parameter  precision: (optional) see ISO8601ExtendedPrecision
      - returns: NSDateFormatter
-
+     
      - note: As of iOS10 a system ISO 8601 formatter is availble. This class is (now) primarily
      useful for cases where you are dealing with formats specifying extended precision
      in the time field.
@@ -46,11 +45,11 @@ extension DateFormatter {
         case .microseconds, .windows:
             dateFormatterISO8601.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'"
         }
-
+        
         //Create Gregorian calender ignoring user locale calendar
         guard var gregorian:Calendar = NSCalendar(identifier: NSCalendar.Identifier.gregorian) as Calendar?,
             let timezone:TimeZone = NSTimeZone(abbreviation: "UMT") as TimeZone? else {
-            return dateFormatterISO8601;
+                return dateFormatterISO8601;
         }
         gregorian.timeZone = timezone
         dateFormatterISO8601.calendar = gregorian
@@ -124,7 +123,7 @@ extension DateFormatter {
         let relativeDateString:String = relativeDateFormatter.string(from: date)
         let absoluteDateString:String = absoluteDateFormatter.string(from: date)
         let absoluteTimeString:String = absoluteTimeFormatter.string(from: date)
-
+        
         //Utility to append time to date as appropriate for formats specified
         func conditionalAppend(date:String, time:String, separator:String = " ") -> String? {
             switch (date.isEmpty, time.isEmpty) {
@@ -138,7 +137,7 @@ extension DateFormatter {
                 return date + separator + time
             }
         }
-
+        
         //First, check to see if the relativeDateString has a value unique from the absoluteDateString.
         // note: this is a 'hack' to check to see if a language/calendar specific notion of relative date was
         // returned from the system. This may include values such as "Yesterday", "Tomorrow", "Après-après-demain", etc.

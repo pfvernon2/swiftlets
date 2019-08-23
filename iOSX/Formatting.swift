@@ -18,30 +18,14 @@ extension Int {
      ~~~
      */
     func format(_ formatString: String) -> String {
-        return String(format: "%\(formatString)d", self)
+        String(format: "%\(formatString)d", self)
     }    
 }
 
 extension Double {
     /**
      - note: This is *not* localized! Mostly useful for debug output. See NSNumberFormatter
-
-     Examples:
-     ~~~
-    0.12345.format("0.2") -> "0.12"
-    0.12345.format(".4") -> ".1234"
-    0.12345.format("0.0") -> "0"
-     ~~~
-    */
-    func format(_ formatString: String) -> String {
-        return String(format: "%\(formatString)f", self)
-    }
-}
-
-extension Float {
-    /**
-     - note: This is *not* localized! Mostly useful for debug output. See NSNumberFormatter
-
+     
      Examples:
      ~~~
      0.12345.format("0.2") -> "0.12"
@@ -50,12 +34,28 @@ extension Float {
      ~~~
      */
     func format(_ formatString: String) -> String {
-        return String(format: "%\(formatString)f", self)
+        String(format: "%\(formatString)f", self)
+    }
+}
+
+extension Float {
+    /**
+     - note: This is *not* localized! Mostly useful for debug output. See NSNumberFormatter
+     
+     Examples:
+     ~~~
+     0.12345.format("0.2") -> "0.12"
+     0.12345.format(".4") -> ".1234"
+     0.12345.format("0.0") -> "0"
+     ~~~
+     */
+    func format(_ formatString: String) -> String {
+        String(format: "%\(formatString)f", self)
     }
 }
 
 extension CGRect {
     func description() -> String {
-        return "x:\(origin.x), y:\(origin.y), width:\(size.width), height:\(size.height)"
+        "x:\(origin.x), y:\(origin.y), width:\(size.width), height:\(size.height)"
     }
 }

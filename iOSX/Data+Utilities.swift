@@ -11,11 +11,11 @@ import Foundation
 extension Data {
     //Convert data to string with hexadecimal encoding
     func hexRepresentation() -> String {
-        return enumerated().map { (_, element) -> String in
+        enumerated().map { (_, element) -> String in
             String(format: "%02.2X", element)
         }.joined()
     }
-
+    
     //Convert string to data with utf8 encoding and append to current data
     @discardableResult mutating func appendStringAsUTF8(_ string: String) -> Bool {
         guard let data = string.data(using: String.Encoding.utf8, allowLossyConversion: true) else {

@@ -8,23 +8,23 @@
 
 import UIKit
 fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
-  switch (lhs, rhs) {
-  case let (l?, r?):
-    return l < r
-  case (nil, _?):
-    return true
-  default:
-    return false
-  }
+    switch (lhs, rhs) {
+    case let (l?, r?):
+        return l < r
+    case (nil, _?):
+        return true
+    default:
+        return false
+    }
 }
 
 fileprivate func <= <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
-  switch (lhs, rhs) {
-  case let (l?, r?):
-    return l <= r
-  default:
-    return !(rhs < lhs)
-  }
+    switch (lhs, rhs) {
+    case let (l?, r?):
+        return l <= r
+    default:
+        return !(rhs < lhs)
+    }
 }
 
 
@@ -35,8 +35,7 @@ extension UIView {
      
      This is handy for programatically adding views to IB layouts.
      
-     - parameters:
-         - view: The view to make subview
+     -Parameter view: The view to make subview
      */
     func addSubViewAndMakeConform(_ view:UIView) {
         addSubview(view)
@@ -118,30 +117,30 @@ extension UIView {
 
         
         let bottom = NSLayoutConstraint(item:self,
-                                     attribute:.bottom,
-                                     relatedBy:.equal,
-                                     toItem:view,
-                                     attribute:.bottom,
-                                     multiplier:1.0,
-                                     constant:insets.bottom)
+                                        attribute:.bottom,
+                                        relatedBy:.equal,
+                                        toItem:view,
+                                        attribute:.bottom,
+                                        multiplier:1.0,
+                                        constant:insets.bottom)
         self.addConstraint(bottom)
 
         let left = NSLayoutConstraint(item:view,
-                                        attribute:.left,
-                                        relatedBy:.equal,
-                                        toItem:self,
-                                        attribute:.left,
-                                        multiplier:1.0,
-                                        constant:insets.left)
+                                      attribute:.left,
+                                      relatedBy:.equal,
+                                      toItem:self,
+                                      attribute:.left,
+                                      multiplier:1.0,
+                                      constant:insets.left)
         self.addConstraint(left)
         
         let right = NSLayoutConstraint(item:self,
-                                      attribute:.right,
-                                      relatedBy:.equal,
-                                      toItem:view,
-                                      attribute:.right,
-                                      multiplier:1.0,
-                                      constant:insets.right)
+                                       attribute:.right,
+                                       relatedBy:.equal,
+                                       toItem:view,
+                                       attribute:.right,
+                                       multiplier:1.0,
+                                       constant:insets.right)
         self.addConstraint(right)
     }
 
@@ -203,9 +202,13 @@ extension UIView {
     }
     
     func minDimension() -> CGFloat{
-        return min(self.bounds.width, self.bounds.height)
+        min(self.bounds.width, self.bounds.height)
     }
-    
+
+    func maxDimension() -> CGFloat{
+        max(self.bounds.width, self.bounds.height)
+    }
+
     func indexInSuperview() -> Int {
         if let index = self.superview?.subviews.firstIndex(of: self) {
             return index

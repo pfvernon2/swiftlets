@@ -19,12 +19,12 @@ protocol DoubleTapTableViewDelegate: UITableViewDelegate {
 }
 
 /**
-     UITableView subclass and delegate that automatically detects double tap gestures on table view rows
-*/
+ UITableView subclass and delegate that automatically detects double tap gestures on table view rows
+ */
 class DoubleTapTableView: UITableView {
     var doubleTapDelegate: DoubleTapTableViewDelegate? {
         get {
-            return self.delegate as? DoubleTapTableViewDelegate
+            self.delegate as? DoubleTapTableViewDelegate
         }
     }
 

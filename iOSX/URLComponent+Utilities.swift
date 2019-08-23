@@ -138,7 +138,7 @@ public extension URLComponents {
     ///Access path as array of path components
     var pathComponents:HTTPURLPathComponents {
         get {
-            return HTTPURLPathComponents(path: self.path)
+            HTTPURLPathComponents(path: self.path)
         }
         
         set (pathComponents) {
@@ -198,7 +198,7 @@ public extension URLComponents {
             }
             
             let queryItemPairs:[(String,String)] = queryItems.map { (queryItem) -> (String,String) in
-                return (queryItem.name, queryItem.value ?? "")
+                (queryItem.name, queryItem.value ?? "")
             }
             return Dictionary(queryItemPairs)
         }
@@ -244,8 +244,8 @@ public extension URLQueryItem {
     }
     
     static func urlEscapedDescription(queryItems:[URLQueryItem]) -> String? {
-        return queryItems.compactMap { (queryItem) -> String? in
-            return queryItem.urlEscapedDescription()
+        queryItems.compactMap { (queryItem) -> String? in
+            queryItem.urlEscapedDescription()
         }.joined(separator: "&")
     }
 }

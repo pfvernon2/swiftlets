@@ -37,18 +37,18 @@ extension UIImage {
         defer {
             UIGraphicsEndImageContext()
         }
-
+        
         let context:CGContext = UIGraphicsGetCurrentContext()!
         context.clip(to: rect, mask: cgImage)
         context.setFillColor(color.cgColor)
         context.fill(rect)
         
         let masked:UIImage? = UIGraphicsGetImageFromCurrentImageContext()
-
+        
         guard let image = masked?.cgImage else {
             return nil
         }
-
+        
         let flippedImage:UIImage = UIImage(cgImage: image, scale: 1.0, orientation: .downMirrored)
         return flippedImage
     }

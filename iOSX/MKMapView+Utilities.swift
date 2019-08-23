@@ -49,7 +49,7 @@ extension MKMapView {
             closure()
             return
         }
-
+        
         let dropPoint:MKMapPoint = MKMapPoint(viewCoordinate)
         if self.visibleMapRect.contains(dropPoint) {
             let endRect = annotationView.frame
@@ -59,13 +59,13 @@ extension MKMapView {
             annotationView.frame = startRect
             UIView .animate(withDuration: 0.5, animations: {
                 annotationView.frame = endRect
-                },
-                                        completion:
+            },
+                            completion:
                 { (finished) in
                     UIView .animate(withDuration: 0.15, animations: {
                         annotationView.transform = CGAffineTransform(scaleX: 1.0, y: 0.8)
-                        },
-                        completion:
+                    },
+                                    completion:
                         { (finished) in
                             annotationView.transform = CGAffineTransform.identity
                             closure()
@@ -73,14 +73,14 @@ extension MKMapView {
             })
         }
     }
-
+    
     /**
-    Animate the removal of annotations from the map view.
-    The animations closure gives you access to a snapshot view of the annotation for you to perform animations on
-
+     Animate the removal of annotations from the map view.
+     The animations closure gives you access to a snapshot view of the annotation for you to perform animations on
+     
      ```
      mapView.animateRemoval(annotations, duration: 0.5, animations: { (view) in
-        view.alpha = 0.0
+     view.alpha = 0.0
      })
      ```
      */
@@ -92,7 +92,7 @@ extension MKMapView {
                 animationAnnotations.append(annotation)
             }
         }
-
+        
         var snapshots:[UIView] = []
         animationAnnotations.forEach { (annotation) in
             if let annotationView:UIView = view(for: annotation),
@@ -102,18 +102,18 @@ extension MKMapView {
                 annotationView.superview?.insertSubview(snapshotView, aboveSubview: annotationView)
             }
         }
-
+        
         UIView.animate(withDuration: duration, animations: {
             snapshots.forEach({ (view) in
                 animations(view)
             })
-            }) { (success) in
-                snapshots.forEach({ (view) in
-                    view.removeFromSuperview()
-                })
-                completion()
+        }) { (success) in
+            snapshots.forEach({ (view) in
+                view.removeFromSuperview()
+            })
+            completion()
         }
-
+        
         removeAnnotations(annotations)
     }
 }

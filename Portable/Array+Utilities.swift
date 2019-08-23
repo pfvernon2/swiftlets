@@ -14,19 +14,19 @@ import Foundation
 public struct Queue<T>: ExpressibleByArrayLiteral {
     /// backing array store
     public fileprivate(set) var elements: Array<T> = []
-
+    
     /// introduce a new element to the queue in O(1) time
     public mutating func push(_ value: T) { elements.append(value) }
-
+    
     /// remove the front of the queue in O(`count` time
-    public mutating func pop() -> T { return elements.removeFirst() }
-
+    public mutating func pop() -> T { elements.removeFirst() }
+    
     /// test whether the queue is empty
-    public var isEmpty: Bool { return elements.isEmpty }
-
+    public var isEmpty: Bool { elements.isEmpty }
+    
     /// queue size, computed property
-    public var count: Int { return elements.count }
-
+    public var count: Int { elements.count }
+    
     /// offer `ArrayLiteralConvertible` support
     public init(arrayLiteral elements: T...) { self.elements = elements }
 }

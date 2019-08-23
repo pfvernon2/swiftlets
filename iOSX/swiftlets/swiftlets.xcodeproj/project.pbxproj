@@ -55,6 +55,10 @@
 		015A849B20FD50C4006C2583 /* CommandLine+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 015A849A20FD50C4006C2583 /* CommandLine+Utilities.swift */; };
 		015A849C20FD50C4006C2583 /* CommandLine+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 015A849A20FD50C4006C2583 /* CommandLine+Utilities.swift */; };
 		016965851E142D1E00038275 /* UIGraphics+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 016965841E142D1E00038275 /* UIGraphics+Utilities.swift */; };
+		016F8932230F5C7600FF12E1 /* TimeInterval+Period.swift in Sources */ = {isa = PBXBuildFile; fileRef = 016F8931230F5C7600FF12E1 /* TimeInterval+Period.swift */; };
+		016F8933230F5C7600FF12E1 /* TimeInterval+Period.swift in Sources */ = {isa = PBXBuildFile; fileRef = 016F8931230F5C7600FF12E1 /* TimeInterval+Period.swift */; };
+		016F8934230F5C7600FF12E1 /* TimeInterval+Period.swift in Sources */ = {isa = PBXBuildFile; fileRef = 016F8931230F5C7600FF12E1 /* TimeInterval+Period.swift */; };
+		016F8935230F5C7600FF12E1 /* TimeInterval+Period.swift in Sources */ = {isa = PBXBuildFile; fileRef = 016F8931230F5C7600FF12E1 /* TimeInterval+Period.swift */; };
 		018B5A031F034539009F40FB /* URLRequest+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01DB660B1E7AF25600020AB5 /* URLRequest+Utilities.swift */; };
 		018B5A041F03453C009F40FB /* HTTPURLResponse+Utility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0111A0271D2180CD00A9B35E /* HTTPURLResponse+Utility.swift */; };
 		018B5A051F03476E009F40FB /* URLComponent+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 016310861D03660500862035 /* URLComponent+Utilities.swift */; };
@@ -129,6 +133,7 @@
 		015A849A20FD50C4006C2583 /* CommandLine+Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "CommandLine+Utilities.swift"; path = "../../OSX/CommandLine+Utilities.swift"; sourceTree = "<group>"; };
 		016310861D03660500862035 /* URLComponent+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "URLComponent+Utilities.swift"; path = "../../URLComponent+Utilities.swift"; sourceTree = "<group>"; };
 		016965841E142D1E00038275 /* UIGraphics+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIGraphics+Utilities.swift"; path = "../../iOS/UIGraphics+Utilities.swift"; sourceTree = "<group>"; };
+		016F8931230F5C7600FF12E1 /* TimeInterval+Period.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "TimeInterval+Period.swift"; path = "../../../Portable/TimeInterval+Period.swift"; sourceTree = "<group>"; };
 		01A3E9181CFE6FE300BE5AAA /* Miscellaneous.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Miscellaneous.swift; path = ../../../Portable/Miscellaneous.swift; sourceTree = "<group>"; };
 		01ADE31A1D34AD5E005424EF /* UIFont+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIFont+Utilities.swift"; path = "../../UIFont+Utilities.swift"; sourceTree = "<group>"; };
 		01BCDEAB215E927F0059248B /* FormInputManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FormInputManager.swift; path = ../../iOS/FormInputManager.swift; sourceTree = "<group>"; };
@@ -255,6 +260,7 @@
 				01533B031C9DDF2000C6E69D /* UIImage+Scaling.swift */,
 				01533B041C9DDF2000C6E69D /* RoundedCornerView.swift */,
 				01A3E9181CFE6FE300BE5AAA /* Miscellaneous.swift */,
+				016F8931230F5C7600FF12E1 /* TimeInterval+Period.swift */,
 				015A849A20FD50C4006C2583 /* CommandLine+Utilities.swift */,
 				01E6783E1CD5145E00ABE1CB /* Data+Utilities.swift */,
 				01E678521CD531AA00ABE1CB /* UIColor+Utilities.swift */,
@@ -481,6 +487,7 @@
 				0105B2782230426C0069124E /* String+Utilities.swift in Sources */,
 				0105B273223042350069124E /* CommandLine+Utilities.swift in Sources */,
 				0105B29122306EAF0069124E /* URLRequest+Utilities.swift in Sources */,
+				016F8934230F5C7600FF12E1 /* TimeInterval+Period.swift in Sources */,
 				0105B268223041BD0069124E /* Dispatch+Utilities.swift in Sources */,
 				0105B270223041EF0069124E /* CoalescingTimer.swift in Sources */,
 				0105B29022306EAF0069124E /* URLComponent+Utilities.swift in Sources */,
@@ -500,6 +507,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				016F8935230F5C7600FF12E1 /* TimeInterval+Period.swift in Sources */,
 				0105B28E22306E860069124E /* swiftletsTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -516,6 +524,7 @@
 				01ADE31B1D34AD5E005424EF /* UIFont+Utilities.swift in Sources */,
 				01CD89E21CDD0B24000790C2 /* UIAlertController+Utilities.swift in Sources */,
 				01533B081C9DDF2000C6E69D /* DoubleTapTableView.swift in Sources */,
+				016F8932230F5C7600FF12E1 /* TimeInterval+Period.swift in Sources */,
 				01E678511CD5317400ABE1CB /* Formatting.swift in Sources */,
 				018B5A041F03453C009F40FB /* HTTPURLResponse+Utility.swift in Sources */,
 				011C42202013DAF80032EC48 /* AVMetadataIdentifier+id3v2.swift in Sources */,
@@ -558,6 +567,7 @@
 			files = (
 				015A849C20FD50C4006C2583 /* CommandLine+Utilities.swift in Sources */,
 				01533AD81C9DDAE700C6E69D /* swiftletsTests.swift in Sources */,
+				016F8933230F5C7600FF12E1 /* TimeInterval+Period.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

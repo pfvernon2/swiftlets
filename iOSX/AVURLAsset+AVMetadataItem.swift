@@ -16,12 +16,12 @@ public extension AVURLAsset {
     ///Returns first instance of an identifier in the metadata, if any.
     /// This is useful for the vast majority of idenitifiers where you expect only a single instance to appear in the metadata.
     func metadataItem(forIdentifier identifier:AVMetadataIdentifier) -> AVMetadataItem? {
-        return AVMetadataItem.metadataItems(from: metadata, filteredByIdentifier: identifier).first
+        AVMetadataItem.metadataItems(from: metadata, filteredByIdentifier: identifier).first
     }
-
+    
     ///Returns a mapping of identifiers to their values in the metadata, if any
     func metadataItems(forIdentifiers identifiers:[AVMetadataIdentifier]) -> [AVMetadataIdentifier: [AVMetadataItem]] {
-        return identifiers.reduce(into: [AVMetadataIdentifier: [AVMetadataItem]]()) { (result, identifier) in
+        identifiers.reduce(into: [AVMetadataIdentifier: [AVMetadataItem]]()) { (result, identifier) in
             result[identifier] = AVMetadataItem.metadataItems(from: self.metadata, filteredByIdentifier: identifier)
         }
     }
@@ -30,22 +30,22 @@ public extension AVURLAsset {
 // MARK: - AVMetadataKeySpace abstractions
 
 public extension AVURLAsset {
-
+    
     //Commonly accessed common identifiers
     var title: String? {
-        return metadataItem(forIdentifier: .commonIdentifierTitle)?.stringValue
+        metadataItem(forIdentifier: .commonIdentifierTitle)?.stringValue
     }
     
     var artist: String? {
-        return metadataItem(forIdentifier: .commonIdentifierArtist)?.stringValue
+        metadataItem(forIdentifier: .commonIdentifierArtist)?.stringValue
     }
     
     var album: String? {
-        return metadataItem(forIdentifier: .commonIdentifierAlbumName)?.stringValue
+        metadataItem(forIdentifier: .commonIdentifierAlbumName)?.stringValue
     }
     
     var artworkData: Data? {
-        return metadataItem(forIdentifier: .commonIdentifierArtwork)?.dataValue
+        metadataItem(forIdentifier: .commonIdentifierArtwork)?.dataValue
     }
     
     //Commonly accessed un-common identifiers
@@ -58,7 +58,7 @@ public extension AVURLAsset {
         
         return items.first(where: {!$1.isEmpty})?.value.first?.stringValue
     }
-
+    
     ///Returns BPM for iTunes and id3 v2 and later
     var beatsPerMinute: Int? {
         let items = self.metadataItems(forIdentifiers: [.iTunesMetadataBeatsPerMin,

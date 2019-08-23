@@ -17,7 +17,7 @@ extension UIApplication {
         
         UIApplication.shared.open(settingsURL)
     }
-
+    
     public class func appInBackground() -> Bool {
         switch UIApplication.shared.applicationState {
         case .background, .inactive:
@@ -26,16 +26,16 @@ extension UIApplication {
             return false
         }
     }
-
+    
     public class func appVersion() -> String {
         guard let dictionary = Bundle.main.infoDictionary,
             let version = dictionary["CFBundleShortVersionString"] as? String else {
-            return ""
+                return ""
         }
-
+        
         return version
     }
-
+    
     public class func appDescription() -> String {
         guard let dictionary = Bundle.main.infoDictionary,
             let name = dictionary["CFBundleExecutable"] as? String,
@@ -43,7 +43,7 @@ extension UIApplication {
             let build = dictionary["CFBundleVersion"] as? String else {
                 return ""
         }
-
+        
         return "\(name) \(version) (\(build))"
     }
 }

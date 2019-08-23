@@ -59,7 +59,7 @@ public enum HTTPURLReponseStatus {
         //test most common case
         var isOK: Bool {
             get {
-                return self == .ok
+                self == .ok
             }
         }
     }
@@ -142,7 +142,7 @@ public enum HTTPURLReponseStatus {
 
         var isInternalServerError: Bool {
             get {
-                return self == .internalServerError
+                self == .internalServerError
             }
         }
     }
@@ -213,7 +213,7 @@ public enum HTTPURLReponseStatus {
 //Extension of HTTPURLResponse to return custom response status enum
 public extension HTTPURLResponse {
     var status:HTTPURLReponseStatus {
-        return HTTPURLReponseStatus(statusCode: statusCode)
+        HTTPURLReponseStatus(statusCode: statusCode)
     }
 }
 

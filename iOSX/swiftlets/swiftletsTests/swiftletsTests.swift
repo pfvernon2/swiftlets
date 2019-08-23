@@ -158,7 +158,7 @@ class swiftletsTests: XCTestCase {
     }
     
     func testCachedImage() {
-#if os(iOS)
+        #if os(iOS)
         guard let imageURL:URL = URL(string: "http://i.imgur.com/a97SL24.jpg") else {
             XCTAssert(false)
             return
@@ -175,7 +175,7 @@ class swiftletsTests: XCTestCase {
                 self.testGroup.leave()
             }
         }
-#endif
+        #endif
     }
     
     func testWriterReader() {
@@ -280,12 +280,12 @@ class swiftletsTests: XCTestCase {
         XCTAssertEqual(osType.string, "AAPL")
     }
     
-//    func testPerformanceExample() {
-//        // This is an example of a performance test case.
-//        self.measure {
-//            // Put the code you want to measure the time of here.
-//        }
-//    }
+    //    func testPerformanceExample() {
+    //        // This is an example of a performance test case.
+    //        self.measure {
+    //            // Put the code you want to measure the time of here.
+    //        }
+    //    }
     
     
     func testMisc() {
@@ -331,7 +331,7 @@ class swiftletsTests: XCTestCase {
     }
     
     func testColor() {
-#if os(iOS)
+        #if os(iOS)
         let green:String = "00FF00"
         let greenAlpha:String = "#00ff00ff"
         
@@ -353,7 +353,7 @@ class swiftletsTests: XCTestCase {
         XCTAssert(colorComponents![1] == 1.0)
         XCTAssert(colorComponents![2] == 0.0)
         XCTAssert(colorComponents![3] == 1.0)
-#endif
+        #endif
     }
 
     func testCSV() {
@@ -365,7 +365,7 @@ class swiftletsTests: XCTestCase {
             ["2", "A\"2\"", "B\"2\"", "C\"2\"", "D\"2\""],
             ["3", "A3", "B3", "C3", "D3"],
             ["4", "A4", "B4", "C4", "D4"],
-            ]
+        ]
         CSVHelper.write(writeTest, toFile: tempFile)
 
         let readTest = CSVHelper.read(contentsOfURL: tempFile)
@@ -405,10 +405,10 @@ class swiftletsTests: XCTestCase {
 
         //relative date string, test assumes system locale is english
         guard let relativity:String = DateFormatter.relativeDateTimeString(from: tomorrow,
-                                                                     dateStyle: .medium,
-                                                                     timeStyle: .none) else {
-                                                                        XCTFail()
-                                                                        return
+                                                                           dateStyle: .medium,
+                                                                           timeStyle: .none) else {
+                                                                            XCTFail()
+                                                                            return
         }
         XCTAssertEqual(relativity, "Tomorrow")
 

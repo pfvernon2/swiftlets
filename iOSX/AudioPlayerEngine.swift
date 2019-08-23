@@ -34,7 +34,7 @@ public class AudioPlayerEngine {
     internal var engine:AVAudioEngine = AVAudioEngine()
     internal var player:AVAudioPlayerNode = AVAudioPlayerNode()
     internal var audioFile:AVAudioFile?
-
+    
     //seek position for start
     private var seekPosition:AVAudioFramePosition = kTrackHeadFramePosition
     
@@ -49,14 +49,14 @@ public class AudioPlayerEngine {
     private let bufferQueue:DispatchQueue = DispatchQueue(label: "com.cyberdev.AudioPlayerEngine.buffers")
     private let bufferGroup:DispatchGroup = DispatchGroup()
     private var buffersInFlight:Int = 0
-
+    
     //MARK: - Member variables - public
     
     //delegate for start/stop notifications
     weak public var delegate:AudioPlayerEngineWatcher?
-
+    
     private(set) public var trackLength:TimeInterval = 0.0
-
+    
     //playback position in seconds
     public var trackPosition:TimeInterval {
         get {
@@ -85,14 +85,14 @@ public class AudioPlayerEngine {
             let newPosition:AVAudioFramePosition = AVAudioFramePosition(seconds * audioFile.fileFormat.sampleRate)
             
             //if newPosition > audioFile.length then we are scheduling past end of file, allowing this for now as nothing bad happens
-
+            
             let wasPlaying:Bool = self.isPlaying()
             if wasPlaying || isPaused() {
                 _stop()
             }
-
+            
             self.seekPosition = newPosition
-
+            
             if wasPlaying {
                 _play()
             }
@@ -105,7 +105,7 @@ public class AudioPlayerEngine {
             guard self.trackLength > 0.0 else {
                 return 0.0
             }
-
+            
             return Float(self.trackPosition/self.trackLength)
         }
         
@@ -118,7 +118,7 @@ public class AudioPlayerEngine {
     }
     
     //MARK: - Initialization
-
+    
     public init() {
         initAudioEngine()
     }
@@ -130,15 +130,15 @@ public class AudioPlayerEngine {
     ///Call this is to setup playback options for your app to allow simulataneous playback with other apps.
     /// This mode allows playback of audio when the ringer (mute) switch is enabled.
     /// Be sure to enable audio in the BackgroundModes settings of your apps Capabilities if necessary.
-#if os(iOS) || os(watchOS)
+    #if os(iOS) || os(watchOS)
     class func initAudioSessionCooperativePlayback() {
         try? AVAudioSession.sharedInstance().setActive(true)
-
+        
         //AVAudioSessionCategoryMultiRoute - AVAudioSessionCategoryPlayback
         try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
     }
-#endif
-
+    #endif
+    
     internal func initAudioEngine () {
         engine.attach(player)
         engine.connect(player, to: engine.mainMixerNode, format: engine.mainMixerNode.outputFormat(forBus: 0))
@@ -159,7 +159,7 @@ public class AudioPlayerEngine {
         if wasPlaying {
             _stop()
         }
-
+        
         self.audioFile = file
         self.trackLength = Double(file.length)/file.processingFormat.sampleRate
         self.seekPosition = kTrackHeadFramePosition
@@ -174,14 +174,14 @@ public class AudioPlayerEngine {
     }
     
     public func isPlaying() -> Bool {
-        return self.bufferQueue.sync {
-            return self.player.isPlaying
+        self.bufferQueue.sync {
+            self.player.isPlaying
         }
     }
     
     public func isPaused() -> Bool {
-        return self.bufferQueue.sync {
-            return self.paused
+        self.bufferQueue.sync {
+            self.paused
         }
     }
     
@@ -206,12 +206,12 @@ public class AudioPlayerEngine {
         
         return result
     }
-
+    
     public func pause() {
         guard isPlaying() else {
             return
         }
-
+        
         _pause()
         
         DispatchQueue.main.async {
@@ -225,7 +225,7 @@ public class AudioPlayerEngine {
         }
         
         let trackProgress:Float = self.trackProgress
-
+        
         //pause stops the buffer recycling so we can tear down the engine in _stop()
         _pause()
         
@@ -253,7 +253,7 @@ public class AudioPlayerEngine {
         guard !self.isPlaying() else {
             return true
         }
-
+        
         //check we are configured to play something
         guard let trackToPlay = self.audioFile, startEngine() else {
             return false
@@ -289,12 +289,12 @@ public class AudioPlayerEngine {
         
         return self.isPlaying()
     }
-
+    
     private func _pause() {
         let trackPosition = self.trackPosition
-
+        
         self.player.pause()
-
+        
         self.bufferQueue.sync {
             self.paused = true
             self.pausedPosition = trackPosition
@@ -311,12 +311,12 @@ public class AudioPlayerEngine {
         }
         
         self.stopEngine()
-
+        
         //wait for buffer queue to drain - blocks calling thread
         // note: must occur after stopEngine() to avoid race condition
         _ = self.bufferGroup.wait(timeout: DispatchTime.distantFuture)
     }
-
+    
     //MARK: - Utility
     
     @discardableResult private func startEngine() -> Bool {
@@ -344,7 +344,7 @@ public class AudioPlayerEngine {
     }
     
     private func currentPlayerTime() -> AVAudioTime? {
-        return self.bufferQueue.sync {
+        self.bufferQueue.sync {
             guard let nodeTime:AVAudioTime = self.player.lastRenderTime else {
                 return nil
             }
@@ -369,7 +369,7 @@ public class AudioPlayerEngine {
     }
     
     @discardableResult private func loadBuffer(buffer:AVAudioPCMBuffer) -> Bool {
-        return self.bufferQueue.sync {
+        self.bufferQueue.sync {
             //Fill buffer with samples/data from file
             guard self.readNextBuffer(buffer: buffer) else {
                 return false
@@ -377,7 +377,7 @@ public class AudioPlayerEngine {
             
             self.bufferGroup.enter()
             self.buffersInFlight += 1
-
+            
             //schedule buffer for playback at end of player queue
             self.player.scheduleBuffer(buffer) { () -> Void in
                 let bufferQueueExhausted:Bool = self.bufferQueue.sync {
@@ -419,10 +419,10 @@ public class AudioPlayerEngine {
             return false
         }
     }
-
+    
     //MARK: - Session notificaiton handling
-
-#if os(iOS) || os(watchOS)
+    
+    #if os(iOS) || os(watchOS)
     private func registerForMediaServerNotifications() {
         NotificationCenter.default.removeObserver(self, name: AVAudioSession.interruptionNotification, object: nil)
         NotificationCenter.default.addObserver(forName: AVAudioSession.interruptionNotification, object: nil, queue: nil) { [weak self] (notification:Notification) in
@@ -439,22 +439,22 @@ public class AudioPlayerEngine {
                 break;
             }
         }
-
+        
         NotificationCenter.default.removeObserver(self, name: AVAudioSession.mediaServicesWereLostNotification, object: nil)
         NotificationCenter.default.addObserver(forName: AVAudioSession.mediaServicesWereLostNotification, object: nil, queue: nil) { /*[weak self]*/ (notification:Notification) in
             //TODO: Reset everything here
         }
-
+        
         NotificationCenter.default.removeObserver(self, name: AVAudioSession.mediaServicesWereResetNotification, object: nil)
         NotificationCenter.default.addObserver(forName: AVAudioSession.mediaServicesWereResetNotification, object: nil, queue: nil) { /*[weak self]*/ (notification:Notification) in
             //TODO: Reset everything here
         }
     }
-#else
+    #else
     private func registerForMediaServerNotifications() {
         //TODO:
     }
-#endif
+    #endif
     
     private func interruptSessionBegin() {
         guard let nodeTime:AVAudioTime = self.player.lastRenderTime,
@@ -507,7 +507,7 @@ fileprivate let kEQGainDetentRange:Float = 0.5
 
 ///AudioPlayerEngine subclass that adds time rate control, four band parametric EQ, and simple output routing
 public class FXAudioPlayerEngine: AudioPlayerEngine {
-
+    
     ///Defines simplified audio routing options supported by this class
     public enum OutputRouting {
         case stereo
@@ -515,7 +515,7 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
         case monoLeft
         case monoRight
     }
-
+    
     ///Defines simplified values for TimePitch overlap parameter which roughly
     /// translates to quality, i.e. reduction in artifacts at the
     /// expense of significant CPU overhead.
@@ -524,17 +524,17 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
         case med = 8.0
         case high = 32.0
     }
-
+    
     //Audio Units
     private let timePitch:AVAudioUnitTimePitch = AVAudioUnitTimePitch()
     private let equalizer:AVAudioUnitEQ = AVAudioUnitEQ(numberOfBands: kNumberOfBands)
     private let routingMixer:AVAudioMixerNode = AVAudioMixerNode()
-
+    
     //MARK: - Member variables - public
     
     public var outputSampleRate:Double {
         get {
-            return self.engine.mainMixerNode.outputFormat(forBus: 0).sampleRate
+            self.engine.mainMixerNode.outputFormat(forBus: 0).sampleRate
         }
     }
     
@@ -563,7 +563,7 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
             case .mono:
                 engine.connect(routingMixer, to: engine.mainMixerNode, format: monoFormat)
                 routingMixer.pan = 0.0
-
+                
             case .monoLeft:
                 engine.connect(routingMixer, to: engine.mainMixerNode, format: monoFormat)
                 routingMixer.pan = -1.0
@@ -581,24 +581,24 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
     ///- note: You may want to read back the value after setting to get actual value of the control.
     public var trackOutputLevelAdjust: Float {
         get {
-            return (engine.mainMixerNode.outputVolume * 2.0) - 1.0
+            (engine.mainMixerNode.outputVolume * 2.0) - 1.0
         }
-
+        
         set(level) {
             var adjustment = level
             switch adjustment {
             case (kOutputLevelDefault - kOutputLevelDetentRange)...(kOutputLevelDefault + kOutputLevelDetentRange):
                 //apply detent if rate at/near center value
                 adjustment = kOutputLevelDefault
-
+                
             default:
                 break
             }
-
+            
             engine.mainMixerNode.outputVolume = (adjustment + 1.0)/2.0
         }
     }
-
+    
     public var timePitchQuality: TimePitchQuality = .med {
         didSet {
             timePitch.overlap = timePitchQuality.rawValue
@@ -611,7 +611,7 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
     ///- note: You may want to read back the value after setting to get actual value of the control.
     public var timePitchRate: Float {
         get {
-            return timePitch.rate
+            timePitch.rate
         }
         
         set(rate) {
@@ -619,11 +619,11 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
             case (kRateCenter - kRateDetentRange)...(kRateCenter + kRateDetentRange):
                 //apply detent if rate at/near center value
                 timePitch.rate = kRateCenter
-
+                
             default:
                 timePitch.rate = rate
             }
-
+            
             //enabling bypass when at center position saves us significant CPU cycles, battery, etc.
             // I presume Apple doesn't do this by default in order better predict/reserve CPU cycles
             // necessary for audio processing. This optimization may need to be made conditional if
@@ -635,7 +635,7 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
     ///Array of EQ filter parameters
     public var equalizerBands: [AudioUnitEQFilterParameters] {
         get {
-            return equalizer.bands.map { (band) -> AudioUnitEQFilterParameters in
+            equalizer.bands.map { (band) -> AudioUnitEQFilterParameters in
                 AudioUnitEQFilterParameters(filter: band)
             }
         }
@@ -670,22 +670,22 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
         
         //configure mixer
         engine.attach(routingMixer)
-
+        
         //disconnect player so we can insert our effects between player and output
         engine.disconnectNodeOutput(player)
         
         //format of processing output = format of input to main mixer
         let outputFormat = engine.mainMixerNode.inputFormat(forBus: 0)
-
+        
         //construct node graph
         engine.connect(player, to: timePitch, format: outputFormat)
         engine.connect(timePitch, to: equalizer, format: outputFormat)
         engine.connect(equalizer, to: routingMixer, format: outputFormat)
         engine.connect(routingMixer, to: engine.mainMixerNode, format: outputFormat)
-
+        
         //configure gain structure
         self.trackOutputLevelAdjust = kOutputLevelDefault
-
+        
         //prepare the engine
         engine.prepare()
     }
@@ -698,7 +698,7 @@ public class FXAudioPlayerEngine: AudioPlayerEngine {
         trackOutputLevelAdjust = kOutputLevelDefault
         timePitchRate = kRateCenter
     }
-
+    
     ///Reset EQ to nominal (flat) values
     public func normalizeEQ() {
         equalizer.bands[0].filterType = .lowShelf
@@ -785,11 +785,11 @@ public class AudioUnitEQFilterParameters: NSCoding {
     }
     
     public var description : String {
-        return "AudioUnitEQFilterParameters:\nfilterType:\(self.filterType)\nfrequency:\(self.frequency)\nbandwidth:\(self.bandwidth)\ngain:\(self.gain)\nbypass:\(self.bypass)"
+        "AudioUnitEQFilterParameters:\nfilterType:\(self.filterType)\nfrequency:\(self.frequency)\nbandwidth:\(self.bandwidth)\ngain:\(self.gain)\nbypass:\(self.bypass)"
     }
     
     public var debugDescription : String {
-        return "AudioUnitEQFilterParameters:\nfilterType:\(self.filterType)\nfrequency:\(self.frequency)\nbandwidth:\(self.bandwidth)\ngain:\(self.gain)\nbypass:\(self.bypass)"
+        "AudioUnitEQFilterParameters:\nfilterType:\(self.filterType)\nfrequency:\(self.frequency)\nbandwidth:\(self.bandwidth)\ngain:\(self.gain)\nbypass:\(self.bypass)"
     }
 }
 

@@ -18,7 +18,7 @@ open class UserDefaultsTextField: UITextField {
             if let oldKey = oldKey {
                 UserDefaults.standard.removeObserver(self, forKeyPath: oldKey)
             }
-
+            
             guard let newKey = userDefaultsKey else {
                 self.text = String()
                 return
@@ -50,7 +50,7 @@ open class UserDefaultsTextField: UITextField {
         
         self.delegate = self
     }
-
+    
     required public init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
         

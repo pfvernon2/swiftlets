@@ -24,11 +24,11 @@ public protocol JSON:Codable {
 extension JSON {
     ///Returns default JSONEncoder. Override for custom configurations
     func jsonEncoder() -> JSONEncoder {
-        return JSONEncoder()
+        JSONEncoder()
     }
     
     func toJSON() -> Data? {
-        return try? jsonEncoder().encode(self)
+        try? jsonEncoder().encode(self)
     }
     
     func toJSONString(prettyPrint:Bool) -> String? {
@@ -50,7 +50,7 @@ extension JSON {
     
     ///Returns default JSONDecoder. Override for custom configurations
     static func jsonDecoder() -> JSONDecoder {
-        return JSONDecoder()
+        JSONDecoder()
     }
     
     static func fromJSON<T:Decodable>(_ data:Data) -> T? {
@@ -99,17 +99,17 @@ public extension URLSessionConfiguration {
         let config:URLSessionConfiguration = URLSessionConfiguration.default
         
         #if os(iOS)
-            let osType:String = "iOS"
+        let osType:String = "iOS"
         #elseif os(tvOS)
-            let osType:String = "tvOS"
+        let osType:String = "tvOS"
         #elseif os(watchOS)
-            let osType:String = "watchOS"
+        let osType:String = "watchOS"
         #elseif os(macOS)
-            let osType:String = "macOS"
+        let osType:String = "macOS"
         #elseif os(Linux)
-            let osType:String = "Linux"
+        let osType:String = "Linux"
         #else
-            let osType:String = "Unknown"
+        let osType:String = "Unknown"
         #endif
         config.httpAdditionalHeaders = ["User-Agent": "\(osType); REST client"]
         
@@ -161,10 +161,10 @@ public extension URLSession {
      */
     @discardableResult func httpGet(with url:URL, headers:[String:String]? = nil, completion:@escaping (Result<Data, JSONSessionErrors>) -> Swift.Void) -> URLSessionDataTask?
     {
-        return httpDataTask(with: url,
-                            method: .get,
-                            headers: headers,
-                            completion: completion)
+        httpDataTask(with: url,
+                     method: .get,
+                     headers: headers,
+                     completion: completion)
     }
 
     //MARK: - Put
@@ -182,14 +182,12 @@ public extension URLSession {
      */
     @discardableResult func httpPut(with url:URL, bodyJSON:JSON? = nil, headers:[String:String]? = nil, completion:@escaping (Result<Data, JSONSessionErrors>) -> Swift.Void) -> URLSessionDataTask?
     {
-        let bodyJSONData:Data? = bodyJSON?.toJSON()
-        
-        return httpDataTask(with: url,
-                            method: .put,
-                            headers: headers,
-                            contentType: .applicationJSON,
-                            body: bodyJSONData,
-                            completion: completion)
+        httpDataTask(with: url,
+                     method: .put,
+                     headers: headers,
+                     contentType: .applicationJSON,
+                     body: bodyJSON?.toJSON(),
+                     completion: completion)
     }
     
     /**
@@ -232,14 +230,12 @@ public extension URLSession {
      */
     @discardableResult func httpPost(with url:URL, bodyJSON:JSON? = nil, headers:[String:String]? = nil, completion:@escaping (Result<Data, JSONSessionErrors>) -> Swift.Void) -> URLSessionDataTask?
     {
-        let bodyJSONData:Data? = bodyJSON?.toJSON()
-        
-        return httpDataTask(with: url,
-                            method: .post,
-                            headers: headers,
-                            contentType: .applicationJSON,
-                            body: bodyJSONData,
-                            completion: completion)
+        httpDataTask(with: url,
+                     method: .post,
+                     headers: headers,
+                     contentType: .applicationJSON,
+                     body: bodyJSON?.toJSON(),
+                     completion: completion)
     }
     
     /**
@@ -281,10 +277,10 @@ public extension URLSession {
      */
     @discardableResult func httpDelete(with url:URL, headers:[String:String]? = nil, completion:@escaping (Result<Data, JSONSessionErrors>) -> Swift.Void) -> URLSessionDataTask?
     {
-        return httpDataTask(with: url,
-                            method: .delete,
-                            headers: headers,
-                            completion: completion)
+        httpDataTask(with: url,
+                     method: .delete,
+                     headers: headers,
+                     completion: completion)
     }
     
     //MARK: - Utility
@@ -444,9 +440,9 @@ fileprivate extension URLQueryItem {
     }
     
     static func REST_urlEscapedDescription(queryItems:[URLQueryItem]) -> String? {
-        return queryItems.compactMap { (queryItem) -> String? in
-            return queryItem.REST_urlEscapedDescription()
-            }.joined(separator: "&")
+        queryItems.compactMap { (queryItem) -> String? in
+            queryItem.REST_urlEscapedDescription()
+        }.joined(separator: "&")
     }
 }
 

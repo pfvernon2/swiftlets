@@ -13,19 +13,19 @@ private let FLAG_TOKEN:String = "-"
 extension CommandLine {
     ///Returns true if the flag is found in the arguments
     public static func flagExists(flag: String) -> Bool {
-        return flagExists(aliases: [flag])
+        flagExists(aliases: [flag])
     }
     
     ///Returns true if any of the flag aliases are found in the arguments
     public static func flagExists(aliases: Set<String>) -> Bool {
-        return flagIndex(aliases: aliases) != nil;
+        flagIndex(aliases: aliases) != nil;
     }
     
     ///Fetch the slice of arguments associated with a flag.
     ///
     ///Returns nil if flag not found
     public static func flagValues(flag: String) -> ArraySlice<String>? {
-        return flagValues(aliases: [flag])
+        flagValues(aliases: [flag])
     }
     
     ///Fetch the slice of arguments associated with a set of flag aliases.
@@ -48,14 +48,14 @@ extension CommandLine {
     ///
     ///This is a utility method to test for unexpected flags on the command line.
     public static func findUnknown(expected: Set<String>) -> Set<String> {
-        return CommandLine.allFlags.subtracting(expected)
+        CommandLine.allFlags.subtracting(expected)
     }
     
     ///Returns the set of flags in the arguments which are not present in the set of required flags
     ///
     ///This is a utility method to test for the presence of required flags on the command line.
     public static func findMissing(required: Set<String>) -> Set<String> {
-        return required.subtracting(CommandLine.allFlags)
+        required.subtracting(CommandLine.allFlags)
     }
     
     ///Returns slice of arguments up to the first flag
@@ -80,12 +80,12 @@ extension CommandLine {
     
     ///Returns the index of the flag in the arguments, nil if not found
     public static func flagIndex(flag: String) -> Int? {
-        return flagIndex(aliases: [flag])
+        flagIndex(aliases: [flag])
     }
     
     ///Returns the index of the first alias found in the arguments, nil if none found
     public static func flagIndex(aliases: Set<String>) -> Int? {
-        return CommandLine.arguments.firstIndex(where:{aliases.contains($0)});
+        CommandLine.arguments.firstIndex(where:{aliases.contains($0)});
     }
     
     ///Returns the set of all flags found in the arguments.
@@ -93,7 +93,7 @@ extension CommandLine {
     ///Order is not guaranteed, duplicates will be removed.
     public static var allFlags: Set<String> {
         get {
-            return Set(CommandLine.arguments.filter({$0.hasPrefix(FLAG_TOKEN)}))
+            Set(CommandLine.arguments.filter({$0.hasPrefix(FLAG_TOKEN)}))
         }
     }
 }

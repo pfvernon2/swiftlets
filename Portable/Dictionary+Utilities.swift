@@ -17,19 +17,19 @@ extension Dictionary {
     }
     
     func mapPairs<OutKey, OutValue>( transform: (Element) throws -> (OutKey, OutValue)) rethrows -> [OutKey: OutValue] {
-        return Dictionary<OutKey, OutValue>(try map(transform))
+        Dictionary<OutKey, OutValue>(try map(transform))
     }
     
     func filterPairs(includeElement: (Element) throws -> Bool) rethrows -> [Key: Value] {
-        return Dictionary(try filter(includeElement))
+        Dictionary(try filter(includeElement))
     }
-
+    
     mutating func union(_ dictionary: Dictionary) {
         dictionary.forEach {
             self.updateValue($0.1, forKey: $0.0)
         }
     }
-
+    
     func dictionaryAsUnionOf(_ dictionary: Dictionary) -> Dictionary {
         var result = dictionary
         result.union(self)

@@ -63,7 +63,7 @@ open class DispatchReaderWriter {
     private var concurrentQueue:DispatchQueue = DispatchQueue(label: "com.cyberdev.Dispatch.readerWriter", attributes: .concurrent)
     
     public func read<T>(execute work: () throws -> T) rethrows -> T {
-        return try self.concurrentQueue.sync(execute: work)
+        try self.concurrentQueue.sync(execute: work)
     }
     
     public func write(execute work: @escaping @convention(block) () -> Swift.Void) {
@@ -85,7 +85,7 @@ open class DispatchWriterReader {
     private var readGroup:DispatchGroup = DispatchGroup()
     
     public func read<T>(execute work: () throws -> T) rethrows -> T {
-        return try self.readQueue.sync {
+        try self.readQueue.sync {
             self.readGroup.enter()
             defer {
                 self.readGroup.leave()
@@ -118,8 +118,8 @@ open class readerWriterType<T> {
     
     public var value:T {
         get {
-            return self.queue.read { () -> T in
-                return self._value
+            self.queue.read { () -> T in
+                self._value
             }
         }
         
@@ -142,8 +142,8 @@ open class writerReaderType<T> {
 
     public var value:T {
         get {
-            return self.queue.read { () -> T in
-                return self._value
+            self.queue.read { () -> T in
+                self._value
             }
         }
         
@@ -168,22 +168,22 @@ open class writerReaderType<T> {
  let dataGuard:DispatchGuard = DispatchGuard()
  
  func refreshData() {
-    guard dataGuard.enter() else {
-        return
-    }
+ guard dataGuard.enter() else {
+ return
+ }
  
-    defer {
-        dataGuard.exit()
-    }
+ defer {
+ dataGuard.exit()
+ }
  
-    //safely fetch data here without re-entrancy or unnecessary re-fecth issues
+ //safely fetch data here without re-entrancy or unnecessary re-fecth issues
  }
  
  ```
  */
 open class DispatchGuard {
     private var semaphore:DispatchSemaphore
-   
+
     //Create a DispatchGuard with the number of threads you want to allow simultaneous access.
     init(value:Int = 1) {
         semaphore = DispatchSemaphore(value: value)
@@ -197,7 +197,7 @@ open class DispatchGuard {
      - Note: If this methods returns true you must call exit() to free the guard statement
      */
     func enter() -> Bool {
-        return semaphore.wait(timeout: .now()) == .success
+        semaphore.wait(timeout: .now()) == .success
     }
     
     ///Exit the guard statement. This call must be balanced with successful calls to enter.
@@ -217,7 +217,7 @@ open class DispatchGuard {
      guard custodian.acquired else {
          return
      }
- 
+
      //safely fetch data here without re-entrancy or unnecessary re-fecth issues
  }
  ```
