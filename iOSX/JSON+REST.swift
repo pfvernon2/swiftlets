@@ -91,11 +91,12 @@ extension Result where Success == Data {
     }
 }
 
-//MARK: - NSURLSession Extensions
+//MARK: - URLSessionConfiguration Extensions
 
 public extension URLSessionConfiguration {
     ///Sensible defaults for a REST style session
-    class func RESTConfiguration(cachePolicy: NSURLRequest.CachePolicy = .reloadIgnoringLocalCacheData) -> URLSessionConfiguration {
+    class func RESTConfiguration(cachePolicy: NSURLRequest.CachePolicy = .reloadIgnoringLocalCacheData,
+                                 timeout: TimeInterval = 60.0) -> URLSessionConfiguration {
         let config:URLSessionConfiguration = URLSessionConfiguration.default
         
         #if os(iOS)
@@ -113,7 +114,7 @@ public extension URLSessionConfiguration {
         #endif
         config.httpAdditionalHeaders = ["User-Agent": "\(osType); REST client"]
         
-        config.timeoutIntervalForRequest = 60.0
+        config.timeoutIntervalForRequest = timeout
         config.requestCachePolicy = cachePolicy
         
         return config
