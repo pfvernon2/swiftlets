@@ -27,21 +27,21 @@ extension UIApplication {
         }
     }
     
-    public class func appVersion() -> String {
+    public class func appVersion() -> String? {
         guard let dictionary = Bundle.main.infoDictionary,
             let version = dictionary["CFBundleShortVersionString"] as? String else {
-                return ""
+                return nil
         }
         
         return version
     }
     
-    public class func appDescription() -> String {
+    public class func appDescription() -> String? {
         guard let dictionary = Bundle.main.infoDictionary,
             let name = dictionary["CFBundleExecutable"] as? String,
             let version = dictionary["CFBundleShortVersionString"] as? String,
             let build = dictionary["CFBundleVersion"] as? String else {
-                return ""
+                return nil
         }
         
         return "\(name) \(version) (\(build))"

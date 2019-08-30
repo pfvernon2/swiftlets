@@ -76,7 +76,7 @@ open class DispatchReaderWriter {
 /**
  This is similar to a reader writer pattern but has write priority semantics. Reads occur concurrently and writes serially.
  
- Execution is based on write priotity at execution time rather than the first-in semantics of an operation queue. In this case all pending reads will be held off until all pending writes have completed.
+ Execution is based on write priotity at execution time. That is, all pending reads will be held off until all pending writes have completed.
 
  This pattern is useful in situations where race conditions at execution time must be minimized. While this may be useful, or even critical, for some operations please be aware that it can result in long delays, or even starvation, on read.
  
@@ -180,7 +180,7 @@ open class writerReaderType<T> {
        dataGuard.exit()
      }
  
-     //safely fetch data here without re-entrancy or unnecessary re-fecth issues
+     //safely fetch data here without re-entrancy or unnecessary re-fetch issues
  }
  
  ```
@@ -223,6 +223,7 @@ open class DispatchGuard {
      }
 
      //safely fetch data here without re-entrancy or unnecessary re-fetch issues
+     // the guard will be automatically released when the function exits
  }
  ```
  */

@@ -114,6 +114,9 @@ class CSVHelper {
     }
     
     static fileprivate func encode(record: [String]) -> String {
+        //Escape quotes in each record as necessary and enquote entire record.
+        // This is a bit of a hack for simplicity. While this is technically legal
+        // most implementations only enquote records when necessary.
         let escapedRecord:[String] = record.map { (field) -> String in
             let escapedField = field.replacingOccurrences(of: quoteSequence,
                                                           with: escapeSequence,

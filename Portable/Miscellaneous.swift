@@ -133,11 +133,11 @@ class WrappingIndexingGenerator<C: Collection>: IteratorProtocol {
 
 extension FileManager {
     var documentsDirectoryPath:String? {
-        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.path
+        urls(for: .documentDirectory, in: .userDomainMask).first?.path
     }
 
     func fileExistsInDocuments(atPath path:String) -> Bool {
-        guard let documentsPath = self.documentsDirectoryPath else {
+        guard let documentsPath = documentsDirectoryPath else {
             return false
         }
         
@@ -147,7 +147,7 @@ extension FileManager {
     }
     
     func removeItemInDocuments(atPath path:String) throws {
-        guard let documentsPath = self.documentsDirectoryPath else {
+        guard let documentsPath = documentsDirectoryPath else {
             return
         }
         
