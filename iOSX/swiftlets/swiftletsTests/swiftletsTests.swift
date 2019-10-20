@@ -328,6 +328,17 @@ class swiftletsTests: XCTestCase {
         XCTAssertEqual(bigInteger.byteWidth, 8)
         XCTAssertEqual(bigInteger.bytes, [0, 1, 2, 3, 4, 5, 6, 7])
         XCTAssertEqual(bigInteger[6], 0x06)
+        
+        //test magnitude conversions
+        XCTAssertEqual(DecimalMagnitude.kilo.toMagnitude(1000.0), 1.0)
+        XCTAssertEqual(DecimalMagnitude.kilo.fromMagnitude(1.0), 1000.0)
+        XCTAssertEqual(DecimalMagnitude.kilo.toMagnitude(1000.0, fromMagnitude: DecimalMagnitude.milli), 0.001)
+        XCTAssertEqual(DecimalMagnitude.kilo.fromMagnitude(1.0, toMagnitude: DecimalMagnitude.milli), 1000000.0)
+
+        XCTAssertEqual(BinaryMagnitude.kibi.toMagnitude(1024.0), 1.0)
+        XCTAssertEqual(BinaryMagnitude.kibi.fromMagnitude(1.0), 1024.0)
+        XCTAssertEqual(BinaryMagnitude.kibi.toMagnitude(1.0, fromMagnitude: BinaryMagnitude.mebi), 1024.0)
+        XCTAssertEqual(BinaryMagnitude.mebi.fromMagnitude(1.0, toMagnitude: BinaryMagnitude.kibi), 1024.0)
     }
     
     func testColor() {

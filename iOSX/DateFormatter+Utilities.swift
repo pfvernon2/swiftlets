@@ -176,3 +176,19 @@ extension DateFormatter {
         }
     }
 }
+
+class Timestamp {
+    static var dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS "
+        return formatter
+    }()
+    
+    static var now: String {
+        dateFormatter.string(from: Date())
+    }
+    
+    class func then(_ date: Date) -> String {
+        return dateFormatter.string(from: date)
+    }
+}

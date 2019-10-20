@@ -22,16 +22,16 @@ enum TimePeriod: Double {
     case hour = 3600.0
     case day = 86400.0
 
-    //convert time inteval to time period:
-    //  example: 66 seconds = 1.1 minutes
+    //convert TimeInterval to TimePeriod:
+    //  66 seconds = 1.1 minutes
     func periodForInterval(_ interval: TimeInterval) -> Double {
-        return interval / rawValue
+        interval / rawValue
     }
 
-    //convert time period to time interval:
-    //  example: 1.1 minutes = 66 seconds
+    //convert TimePeriod to TimeInterval:
+    //  1.1 minutes = 66 seconds
     func intervalForPeriod(_ period: Double) -> TimeInterval {
-        return rawValue * period
+        rawValue * period
     }
 }
 
