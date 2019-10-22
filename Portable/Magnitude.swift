@@ -37,7 +37,7 @@ enum DecimalMagnitude: Double {
         (units * fromMagnitude.rawValue) / rawValue
     }
 
-    ///Convert time period to time interval.
+    ///Convert value from associated order of magnitude.
     ///  Example: 1.5 kilo-units = 1500 units
     func fromMagnitude(_ units: Double, toMagnitude: DecimalMagnitude = DecimalMagnitude.uni) -> Double {
         rawValue * (units / toMagnitude.rawValue)
@@ -61,7 +61,7 @@ enum BinaryMagnitude: Double {
         (units * fromMagnitude.rawValue) / rawValue
     }
 
-    ///Convert time period to time interval.
+    ///Convert value from associated order of magnitude.
     ///  Example: 1 kibi-units = 1024 units
     func fromMagnitude(_ units: Double, toMagnitude: BinaryMagnitude = BinaryMagnitude.uni) -> Double {
         rawValue * (units / toMagnitude.rawValue)
