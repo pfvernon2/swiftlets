@@ -270,7 +270,7 @@ class swiftletsTests: XCTestCase {
         XCTAssertFalse(String("1.1..1").isLikeIPV4Address())
         XCTAssertFalse(String("1.1.1.512").isLikeIPV4Address())
 
-        XCTAssert(String("2001:0000:3238:DFE1:63:0000:0000:FEFB").isLikeIPV6Address())
+    XCTAssert(String("2001:0000:3238:DFE1:63:0000:0000:FEFB").isLikeIPV6Address())
         XCTAssert(String("2001:0:3238:DFE1:63::FEFB").isLikeIPV6Address())
         XCTAssertFalse(String("FE80::F000::F000").isLikeIPV6Address())
         XCTAssertFalse(String("FE80:F000::BAR0").isLikeIPV6Address())
@@ -328,19 +328,90 @@ class swiftletsTests: XCTestCase {
         XCTAssertEqual(bigInteger.byteWidth, 8)
         XCTAssertEqual(bigInteger.bytes, [0, 1, 2, 3, 4, 5, 6, 7])
         XCTAssertEqual(bigInteger[6], 0x06)
-        
-        //test magnitude conversions
+    }
+
+    func testMagnitude() {
+        //DecimalMagnitude
         XCTAssertEqual(DecimalMagnitude.kilo.toMagnitude(1000.0), 1.0)
         XCTAssertEqual(DecimalMagnitude.kilo.fromMagnitude(1.0), 1000.0)
         XCTAssertEqual(DecimalMagnitude.kilo.toMagnitude(1000.0, fromMagnitude: DecimalMagnitude.milli), 0.001)
         XCTAssertEqual(DecimalMagnitude.kilo.fromMagnitude(1.0, toMagnitude: DecimalMagnitude.milli), 1000000.0)
 
+        let yoctoTest1 = DecimalMagnitude.toNearestMagnitude(0.00000000000000000000000002)
+        XCTAssertTrue(yoctoTest1.1 == DecimalMagnitude.yocto)
+        XCTAssertTrue(yoctoTest1.0.truncate(to: 2) == 0.02)
+
+        let yoctoTest2 = DecimalMagnitude.toNearestMagnitude(-0.000000000000000000000002)
+        XCTAssertTrue(yoctoTest2.1 == DecimalMagnitude.yocto)
+        XCTAssertTrue(yoctoTest2.0.truncate(to: 2) == -2.0)
+
+        let yoctoTest3 = DecimalMagnitude.toNearestMagnitude(0.00000000000000000000002)
+        XCTAssertTrue(yoctoTest3.1 == DecimalMagnitude.yocto)
+        XCTAssertTrue(yoctoTest3.0.truncate(to: 2) == 20.0)
+
+        let milliTest = DecimalMagnitude.toNearestMagnitude(-0.002)
+        XCTAssertTrue(milliTest.1 == DecimalMagnitude.milli)
+        XCTAssertTrue(milliTest.0 == -2.0)
+
+        let uniTest = DecimalMagnitude.toNearestMagnitude(5.0)
+        XCTAssertTrue(uniTest.1 == DecimalMagnitude.uni)
+        XCTAssertTrue(uniTest.0 == 5.0)
+
+        let decaTest1 = DecimalMagnitude.toNearestMagnitude(10.0)
+        XCTAssertTrue(decaTest1.1 == DecimalMagnitude.deca)
+        XCTAssertTrue(decaTest1.0 == 1.0)
+
+        let decaTest2 = DecimalMagnitude.toNearestMagnitude(11.0)
+        XCTAssertTrue(decaTest2.1 == DecimalMagnitude.deca)
+        XCTAssertTrue(decaTest2.0 == 1.1)
+
+        let decaTest3 = DecimalMagnitude.toNearestMagnitude(-99.0)
+        XCTAssertTrue(decaTest3.1 == DecimalMagnitude.deca)
+        XCTAssertTrue(decaTest3.0 == -9.9)
+
+        let hectoTest1 = DecimalMagnitude.toNearestMagnitude(100.0)
+        XCTAssertTrue(hectoTest1.1 == DecimalMagnitude.hecto)
+        XCTAssertTrue(hectoTest1.0 == 1.0)
+
+        let hectoTest2 = DecimalMagnitude.toNearestMagnitude(101.01)
+        XCTAssertTrue(hectoTest2.1 == DecimalMagnitude.hecto)
+        XCTAssertTrue(hectoTest2.0 == 1.0101)
+
+        let kiloTest = DecimalMagnitude.toNearestMagnitude(1500.0)
+        XCTAssertTrue(kiloTest.1 == DecimalMagnitude.kilo)
+        XCTAssertTrue(kiloTest.0 == 1.5)
+
+        let kiloTest2 = DecimalMagnitude.toNearestMagnitude(-15000.0)
+        XCTAssertTrue(kiloTest2.1 == DecimalMagnitude.kilo)
+        XCTAssertTrue(kiloTest2.0 == -15.0)
+
+        let megaTest1 = DecimalMagnitude.toNearestMagnitude(1000000.0)
+        XCTAssertTrue(megaTest1.1 == DecimalMagnitude.mega)
+        XCTAssertTrue(megaTest1.0 == 1.0)
+
+        let megaTest2 = DecimalMagnitude.toNearestMagnitude(-2000000.1)
+        XCTAssertTrue(megaTest2.1 == DecimalMagnitude.mega)
+        XCTAssertTrue(megaTest2.0.truncate(to: 7) == -2.0000001)
+
+        let yotaTest = DecimalMagnitude.toNearestMagnitude(100000000000000000000000000.0)
+        XCTAssertTrue(yotaTest.1 == DecimalMagnitude.yota)
+        XCTAssertTrue(yotaTest.0.truncate(to: 7) == 100.0)
+
+        //BinaryMagnitude
         XCTAssertEqual(BinaryMagnitude.kibi.toMagnitude(1024.0), 1.0)
         XCTAssertEqual(BinaryMagnitude.kibi.fromMagnitude(1.0), 1024.0)
         XCTAssertEqual(BinaryMagnitude.kibi.toMagnitude(1.0, fromMagnitude: BinaryMagnitude.mebi), 1024.0)
         XCTAssertEqual(BinaryMagnitude.mebi.fromMagnitude(1.0, toMagnitude: BinaryMagnitude.kibi), 1024.0)
+
+        let kibiTest = BinaryMagnitude.toNearestMagnitude(1024.0)
+        XCTAssertTrue(kibiTest.1 == BinaryMagnitude.kibi)
+        XCTAssertTrue(kibiTest.0 == 1.0)
+
+        let gibiTest = BinaryMagnitude.toNearestMagnitude(-100 * 1073741824.0)
+        XCTAssertTrue(gibiTest.1 == BinaryMagnitude.gibi)
+        XCTAssertTrue(gibiTest.0 == -100.0)
     }
-    
+
     func testColor() {
         #if os(iOS)
         let green:String = "00FF00"
