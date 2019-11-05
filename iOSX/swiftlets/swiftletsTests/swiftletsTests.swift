@@ -410,12 +410,17 @@ class swiftletsTests: XCTestCase {
         let gibiTest = BinaryMagnitude.toNearestMagnitude(-100 * 1073741824.0)
         XCTAssertTrue(gibiTest.1 == BinaryMagnitude.gibi)
         XCTAssertTrue(gibiTest.0 == -100.0)
+
+        let yobiTest = BinaryMagnitude.toNearestMagnitude(2 * 1208925819614629174706176.0)
+        XCTAssertTrue(yobiTest.1 == BinaryMagnitude.yobi)
+        XCTAssertTrue(yobiTest.0 == 2.0)
+
     }
 
     func testColor() {
         #if os(iOS)
-        let green:String = "00FF00"
-        let greenAlpha:String = "#00ff00ff"
+        let green:String = "#00FF00"
+        let greenAlpha:String = "00ff00ff"
         
         let greenColor:UIColor? = green.colorForHex()
         XCTAssertNotNil(greenColor)
