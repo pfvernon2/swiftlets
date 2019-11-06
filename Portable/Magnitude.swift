@@ -1,5 +1,5 @@
 //
-//  DataMagnitude.swift
+//  Magnitude.swift
 //  swiftlets
 //
 //  Created by Frank Vernon on 10/20/19.
@@ -8,9 +8,8 @@
 
 import Foundation
 
-//MARK: - DecimalMagnitude
-
-enum DecimalMagnitude: Double, CaseIterable {
+///Enum of ISO prefixes for decimal (base 10) orders of magnitude
+enum DecimalMagnitude: Double {
     case yocto = 1.0e-24
     case zepto = 1.0e-21
     case atto  = 1.0e-18
@@ -32,7 +31,37 @@ enum DecimalMagnitude: Double, CaseIterable {
     case exa   = 1.0e18
     case zeta  = 1.0e21
     case yota  = 1.0e24
+}
 
+///Enum of IEC and IEEE 1541 prefixes for binary (base 2) orders of magnitude
+enum BinaryMagnitude: Double {
+    case uni  = 0x01p0
+    case kibi = 0x01p10
+    case mebi = 0x01p20
+    case gibi = 0x01p30
+    case tebi = 0x01p40
+    case pebi = 0x01p50
+    case exbi = 0x01p60
+    case zebi = 0x01p70
+    case yobi = 0x01p80
+}
+
+
+//Generic protocol for converting values to and from orders of magnitude
+protocol magnitude: CaseIterable {
+    associatedtype T
+
+    func toMagnitude(_ units: Double, fromMagnitude: T) -> Double
+    func fromMagnitude(_ units: Double, toMagnitude: T) -> Double
+
+    static func magnitude(_ units: Double) -> T
+    static func toNearestMagnitude(_ units: Double) -> (Double, T)
+    static func allMagnitudes() -> [Int]
+
+    var symbol: String { get }
+}
+
+extension DecimalMagnitude: magnitude {
     ///Convert value to associated order of magnitude.
     ///
     ///  Examples:
@@ -85,25 +114,20 @@ enum DecimalMagnitude: Double, CaseIterable {
         return (mag.toMagnitude(units), mag)
     }
 
-    //Get magnitude values associated with allCases
-    private static func allMagnitudes() -> [Int] {
+    internal static func allMagnitudes() -> [Int] {
         allCases.map {Int(log10($0.rawValue))}
+    }
+
+    var symbol:String {
+        let symbols = ["y", "z", "a", "f", "p", "n", "µ", "m", "c", "d", "", "㍲", "h", "k", "M", "G", "T", "P", "E", "Z", "Y"]
+        return symbols[DecimalMagnitude.allCases.firstIndex(of: self)!]
     }
 }
 
 //MARK: - BinaryMagnitude
 
-enum BinaryMagnitude: Double, CaseIterable {
-    case uni  = 0x01p0
-    case kibi = 0x01p10
-    case mebi = 0x01p20
-    case gibi = 0x01p30
-    case tebi = 0x01p40
-    case pebi = 0x01p50
-    case exbi = 0x01p60
-    case zebi = 0x01p70
-    case yobi = 0x01p80
 
+extension BinaryMagnitude: magnitude {
     ///Convert value to associated order of magnitude.
     ///
     ///  Example:
@@ -153,8 +177,12 @@ enum BinaryMagnitude: Double, CaseIterable {
         return (mag.toMagnitude(units), mag)
     }
 
-    //Get magnitude values associated with allCases
-    private static func allMagnitudes() -> [Int] {
+    internal static func allMagnitudes() -> [Int] {
         allCases.map {Int(log10($0.rawValue))}
+    }
+
+    var symbol:String {
+        let symbols = ["", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi", "Yi"]
+        return symbols[BinaryMagnitude.allCases.firstIndex(of: self)!]
     }
 }
