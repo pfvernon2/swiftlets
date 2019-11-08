@@ -8,8 +8,16 @@
 
 import Foundation
 
+protocol OrderOfMagnitude: CaseIterable {
+    //An array of the powers of the magnitudes
+    static func powers() -> [Int]
+
+    //Textual symbols of the magnitudes
+    var symbol:String {get}
+}
+
 ///Enum of ISO prefixes for decimal (base 10) orders of magnitude
-enum DecimalMagnitude: Double {
+enum DecimalMagnitude: Double, OrderOfMagnitude {
     case yocto = 1.0e-24
     case zepto = 1.0e-21
     case atto  = 1.0e-18
@@ -31,10 +39,19 @@ enum DecimalMagnitude: Double {
     case exa   = 1.0e18
     case zeta  = 1.0e21
     case yota  = 1.0e24
+
+    static func powers() -> [Int] {
+        allCases.map {Int(log10($0.rawValue))}
+    }
+
+    var symbol:String {
+        let symbols = ["y", "z", "a", "f", "p", "n", "µ", "m", "c", "d", "", "㍲", "h", "k", "M", "G", "T", "P", "E", "Z", "Y"]
+        return symbols[DecimalMagnitude.allCases.firstIndex(of: self)!]
+    }
 }
 
 ///Enum of IEC and IEEE 1541 prefixes for binary (base 2) orders of magnitude
-enum BinaryMagnitude: Double {
+enum BinaryMagnitude: Double, OrderOfMagnitude {
     case uni  = 0x01p0
     case kibi = 0x01p10
     case mebi = 0x01p20
@@ -44,11 +61,19 @@ enum BinaryMagnitude: Double {
     case exbi = 0x01p60
     case zebi = 0x01p70
     case yobi = 0x01p80
+
+    static func powers() -> [Int] {
+        allCases.map {Int(log10($0.rawValue))}
+    }
+
+    var symbol:String {
+        let symbols = ["", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi", "Yi"]
+        return symbols[BinaryMagnitude.allCases.firstIndex(of: self)!]
+    }
 }
 
-
 //Generic protocol for converting values to and from orders of magnitude
-protocol magnitude: CaseIterable {
+protocol MagnitudeConversion {
     associatedtype T
 
     func toMagnitude(_ units: Double, fromMagnitude: T) -> Double
@@ -56,12 +81,9 @@ protocol magnitude: CaseIterable {
 
     static func magnitude(_ units: Double) -> T
     static func toNearestMagnitude(_ units: Double) -> (Double, T)
-    static func allMagnitudes() -> [Int]
-
-    var symbol: String { get }
 }
 
-extension DecimalMagnitude: magnitude {
+extension DecimalMagnitude: MagnitudeConversion {
     ///Convert value to associated order of magnitude.
     ///
     ///  Examples:
@@ -93,7 +115,7 @@ extension DecimalMagnitude: magnitude {
 
         //get index of case <= magnitude...
         // clamp to upper/lower bounds for values outside range
-        var index: Int? = allMagnitudes().lastIndex(where: {$0 <= mag})
+        var index: Int? = powers().lastIndex(where: {$0 <= mag})
         if index == nil {
             index = units.magnitude < 1.0 ? 0 : (allCases.count - 1)
         }
@@ -113,21 +135,9 @@ extension DecimalMagnitude: magnitude {
         let mag = magnitude(units)
         return (mag.toMagnitude(units), mag)
     }
-
-    internal static func allMagnitudes() -> [Int] {
-        allCases.map {Int(log10($0.rawValue))}
-    }
-
-    var symbol:String {
-        let symbols = ["y", "z", "a", "f", "p", "n", "µ", "m", "c", "d", "", "㍲", "h", "k", "M", "G", "T", "P", "E", "Z", "Y"]
-        return symbols[DecimalMagnitude.allCases.firstIndex(of: self)!]
-    }
 }
 
-//MARK: - BinaryMagnitude
-
-
-extension BinaryMagnitude: magnitude {
+extension BinaryMagnitude: MagnitudeConversion {
     ///Convert value to associated order of magnitude.
     ///
     ///  Example:
@@ -156,7 +166,7 @@ extension BinaryMagnitude: magnitude {
 
         //get index of case <= magnitude...
         // clamp to upper/lower bounds for values outside range
-        var index: Int? = allMagnitudes().lastIndex(where: {$0 <= mag})
+        var index: Int? = powers().lastIndex(where: {$0 <= mag})
         if index == nil {
             index = units.magnitude < 1.0 ? 0 : (allCases.count - 1)
         }
@@ -175,14 +185,5 @@ extension BinaryMagnitude: magnitude {
     static func toNearestMagnitude(_ units: Double) -> (Double, BinaryMagnitude) {
         let mag = magnitude(units)
         return (mag.toMagnitude(units), mag)
-    }
-
-    internal static func allMagnitudes() -> [Int] {
-        allCases.map {Int(log10($0.rawValue))}
-    }
-
-    var symbol:String {
-        let symbols = ["", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi", "Yi"]
-        return symbols[BinaryMagnitude.allCases.firstIndex(of: self)!]
     }
 }
