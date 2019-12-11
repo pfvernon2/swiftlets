@@ -215,3 +215,24 @@ extension FixedWidthInteger {
         return bytes
     }
 }
+
+extension CaseIterable where Self: Equatable {
+    ///return index of current case in allCases
+    func caseIndex() -> Self.AllCases.Index {
+        //force unwrap protected by logical requirement that self
+        // be in the array of allCases
+        Self.allCases.firstIndex(of: self)!
+    }
+}
+
+extension Comparable {
+    func clamped(to limits: ClosedRange<Self>) -> Self {
+        return min(max(self, limits.lowerBound), limits.upperBound)
+    }
+}
+
+extension Strideable where Stride: SignedInteger {
+    func clamped(to limits: CountableClosedRange<Self>) -> Self {
+        return min(max(self, limits.lowerBound), limits.upperBound)
+    }
+}

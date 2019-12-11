@@ -64,11 +64,13 @@ public class AudioPlayerEngine {
             if let playerTime:AVAudioTime = currentPlayerTime() {
                 return TimeInterval(playerTime.sampleTime) / playerTime.sampleRate
             }
-                //paused
+                
+            //paused
             else if isPaused() {
                 return self.pausedPosition
             }
-                //stopped
+                
+            //stopped
             else if let currentAudioFile = self.audioFile {
                 return TimeInterval(self.seekPosition/AVAudioFramePosition(currentAudioFile.fileFormat.sampleRate))
             }
@@ -110,9 +112,8 @@ public class AudioPlayerEngine {
         }
         
         set(position) {
-            //avoid position going negative
-            let positionFloor = max(position, 0.0)
-            let offsetSeconds:TimeInterval = self.trackLength * TimeInterval(positionFloor)
+            let clamped = position.clamped(to: 0.0...1.0)
+            let offsetSeconds:TimeInterval = self.trackLength * TimeInterval(clamped)
             self.trackPosition = offsetSeconds
         }
     }
