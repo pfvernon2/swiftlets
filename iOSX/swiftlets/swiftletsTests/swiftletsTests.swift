@@ -332,8 +332,8 @@ class swiftletsTests: XCTestCase {
 
     func testMagnitude() {
         //DecimalMagnitude
-        XCTAssertEqual(DecimalMagnitude.kilo.toMagnitude(1000.0), 1.0)
-        XCTAssertEqual(DecimalMagnitude.kilo.fromMagnitude(1.0), 1000.0)
+        XCTAssertEqual(DecimalMagnitude.kilo.toMagnitude(1000.0, fromMagnitude: .uni), 1.0)
+        XCTAssertEqual(DecimalMagnitude.kilo.fromMagnitude(1.0, toMagnitude: .uni), 1000.0)
         XCTAssertEqual(DecimalMagnitude.kilo.toMagnitude(1000.0, fromMagnitude: DecimalMagnitude.milli), 0.001)
         XCTAssertEqual(DecimalMagnitude.kilo.fromMagnitude(1.0, toMagnitude: DecimalMagnitude.milli), 1000000.0)
 
@@ -412,8 +412,8 @@ class swiftletsTests: XCTestCase {
         XCTAssertEqual(yotaTest.0.truncate(to: 7), 100.0)
 
         //BinaryMagnitude
-        XCTAssertEqual(BinaryMagnitude.kibi.toMagnitude(1024.0), 1.0)
-        XCTAssertEqual(BinaryMagnitude.kibi.fromMagnitude(1.0), 1024.0)
+        XCTAssertEqual(BinaryMagnitude.kibi.toMagnitude(1024.0, fromMagnitude: .uni), 1.0)
+        XCTAssertEqual(BinaryMagnitude.kibi.fromMagnitude(1.0, toMagnitude: .uni), 1024.0)
         XCTAssertEqual(BinaryMagnitude.kibi.toMagnitude(1.0, fromMagnitude: BinaryMagnitude.mebi), 1024.0)
         XCTAssertEqual(BinaryMagnitude.mebi.fromMagnitude(1.0, toMagnitude: BinaryMagnitude.kibi), 1024.0)
 
