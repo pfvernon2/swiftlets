@@ -8,6 +8,9 @@
 
 import Foundation
 
+///Types that conform to OrderOfMagnitude are typically enumerations
+/// that associate a power with a symbolic representation.
+/// For example ISO prefixes for decimal (base 10) orders of magnitude: 1.0e3 = k
 protocol OrderOfMagnitude: CaseIterable {
     //An array of the powers of the magnitudes
     static var powers: [Int] {get}
@@ -19,29 +22,25 @@ protocol OrderOfMagnitude: CaseIterable {
     var symbol:String {get}
 }
 
-extension OrderOfMagnitude where Self: Equatable, Self: RawRepresentable, Self: CaseIterable {
+extension OrderOfMagnitude where Self: Equatable, Self: RawRepresentable {
     static var powers: [Int] {
-        //force unwrap here is sketchy, need better solution
         allCases.map {Int(log10($0.rawValue as! Double))}
     }
 
     var symbol: String {
         get {
-            //force unwrap here is sketchy, need better solution
-            Self.symbols[caseIndex() as! Int]
+            Self.symbols[caseIndex()]
         }
     }
 
-    func caseIndex() -> Self.AllCases.Index {
+    func caseIndex() -> Int {
         //force unwrap protected by logical requirement that self be in the array of allCases
-        Self.allCases.firstIndex(of: self)!
+        Self.allCases.firstIndex(of: self) as! Int
     }
 }
 
 ///Enum of ISO prefixes for decimal (base 10) orders of magnitude
 enum DecimalMagnitude: Double, OrderOfMagnitude {
-    typealias T = DecimalMagnitude
-
     case yocto = 1.0e-24
     case zepto = 1.0e-21
     case atto  = 1.0e-18
@@ -73,8 +72,6 @@ enum DecimalMagnitude: Double, OrderOfMagnitude {
 
 ///Enum of IEC and IEEE 1541 prefixes for binary (base 2) orders of magnitude
 enum BinaryMagnitude: Double, OrderOfMagnitude {
-    typealias T = BinaryMagnitude
-
     case uni  = 0x01p0
     case kibi = 0x01p10
     case mebi = 0x01p20
@@ -91,35 +88,23 @@ enum BinaryMagnitude: Double, OrderOfMagnitude {
     }
 }
 
-//Generic protocol for converting values to and from orders of magnitude
+//Protocol for converting values to and from orders of magnitude
 protocol MagnitudeConversion {
     associatedtype T: OrderOfMagnitude
 
-    func toMagnitude(_ units: Double, fromMagnitude: T) -> Double
-    func fromMagnitude(_ units: Double, toMagnitude: T) -> Double
-
-    static func magnitude(_ units: Double) -> T
-    static func toNearestMagnitude(_ units: Double) -> (Double, T)
-}
-
-extension MagnitudeConversion where Self: Equatable, Self: RawRepresentable, Self: CaseIterable, T: RawRepresentable, T: CaseIterable {
     ///Convert value to associated order of magnitude.
     ///
     ///  Examples:
     ///  * 1500 units = 1.5 kilo-units
     ///  * 1500 kilo-units = 1.5 mega-units
-    func toMagnitude(_ units: Double, fromMagnitude: T) -> Double {
-        (units * (fromMagnitude.rawValue as! Double)) / (rawValue as! Double)
-    }
+    func toMagnitude(_ units: Double, fromMagnitude: T) -> Double
 
     ///Convert value from associated order of magnitude.
     ///
     ///  Examples:
     ///  * 1.5 kilo-units = 1500 units
     ///  * 1.5 mega-units = 1500 kilo-units
-    func fromMagnitude(_ units: Double, toMagnitude: T) -> Double {
-        (rawValue as! Double) * (units / (toMagnitude.rawValue as! Double))
-    }
+    func fromMagnitude(_ units: Double, toMagnitude: T) -> Double
 
     ///Get nearest magnitude enum for given value
     ///
@@ -128,30 +113,49 @@ extension MagnitudeConversion where Self: Equatable, Self: RawRepresentable, Sel
     ///  * 1000.0 = .kilo
     ///  * 15000.0 = .kilo
     ///  * 1000000000000000000000000.0 = .yota
+    static func magnitude(_ units: Double) -> T
+
+    ///Get value converted to nearest OrderOfMagnitude
+    ///
+    ///  Examples:
+    ///  * 0.001 = (1.0, .milli)
+    ///  * 1000.0 = (1.0, .kilo)
+    ///  * 1024.0 = (1.0, .kibi)
+    ///  * 4194304.0 = (4.0, .mebi)
+    static func toNearestMagnitude(_ units: Double) -> (Double, T)
+}
+
+extension MagnitudeConversion where Self: Equatable, Self: RawRepresentable, Self: CaseIterable, T: RawRepresentable, T: CaseIterable {
+    func toMagnitude(_ units: Double, fromMagnitude: T) -> Double {
+        (units * (fromMagnitude.rawValue as! Double)) / (rawValue as! Double)
+    }
+
+    func fromMagnitude(_ units: Double, toMagnitude: T) -> Double {
+        (rawValue as! Double) * (units / (toMagnitude.rawValue as! Double))
+    }
+
     static func magnitude(_ units: Double) -> T {
         //get order of magnitude of input
         let mag: Int = Int(floor(log10(units.magnitude)))
 
         //get index of case <= magnitude...
         // clamp to upper/lower bounds for values outside range
-        var index: Int? = T.powers.lastIndex(where: {$0 <= mag})
-        if index == nil {
-            index = units.magnitude < 1.0 ? 0 : (allCases.count - 1)
-        }
+//        var index: Int? = T.powers.lastIndex(where: {$0 <= mag})
+//        if index == nil {
+//            index = units.magnitude < 1.0 ? 0 : (allCases.count - 1)
+//        }
 
-        //force unwrap guarded by test for nil above
-        return T.allCases[index as! T.AllCases.Index]
+        if let index: T.AllCases.Index = T.powers.lastIndex(where: {$0 <= mag}) as? Self.T.AllCases.Index {
+            return T.allCases[index]
+        } else if units.magnitude < 1.0 {
+            return T.allCases.first!
+        } else {
+            return T.allCases[allCases.count - 1 as! Self.T.AllCases.Index]
+        }
     }
 }
 
 extension DecimalMagnitude: MagnitudeConversion {
-    ///Get value converted to nearest DecimalMagnitude
-    ///
-    ///  Examples:
-    ///  * 0.001 = (1.0, .milli)
-    ///  * 1000.0 = (1.0, .kilo)
-    ///  * 15000.0 = (15.0, .kilo)
-    ///  * 100000000000000000000000000.0 = (100.0, .yota)
     static func toNearestMagnitude(_ units: Double) -> (Double, DecimalMagnitude) {
         let mag = magnitude(units)
         return (mag.toMagnitude(units, fromMagnitude: .uni), mag)
@@ -159,13 +163,18 @@ extension DecimalMagnitude: MagnitudeConversion {
 }
 
 extension BinaryMagnitude: MagnitudeConversion {
-    ///Get value converted to nearest BinaryMagnitude
-    ///
-    ///  Examples:
-    ///  * 1024.0 = (1.0, .kibi)
-    ///  * 4194304.0 = (4.0, .mebi)
     static func toNearestMagnitude(_ units: Double) -> (Double, BinaryMagnitude) {
         let mag = magnitude(units)
         return (mag.toMagnitude(units, fromMagnitude: .uni), mag)
+    }
+}
+
+extension Double {
+    var nearestDecimalMagnitude: (Double, DecimalMagnitude) {
+        DecimalMagnitude.toNearestMagnitude(self)
+    }
+
+    var nearestBinaryMagnitude: (Double, BinaryMagnitude) {
+        BinaryMagnitude.toNearestMagnitude(self)
     }
 }

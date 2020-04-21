@@ -74,7 +74,7 @@ class swiftletsTests: XCTestCase {
         pathComponents.isLeaf = !pathComponents.isLeaf
         XCTAssert(pathComponents.description != pathString)
 
-        pathComponents.append(pathComponents: POSIXPathComponents(path:"//6//"))
+        pathComponents.append(pathComponents: POSIXPathComponents(path:"////6//"))
         XCTAssert(pathComponents.components.count == 6)
         
         //edge case - root directory
@@ -270,7 +270,7 @@ class swiftletsTests: XCTestCase {
         XCTAssertFalse(String("1.1..1").isLikeIPV4Address())
         XCTAssertFalse(String("1.1.1.512").isLikeIPV4Address())
 
-    XCTAssert(String("2001:0000:3238:DFE1:63:0000:0000:FEFB").isLikeIPV6Address())
+        XCTAssert(String("2001:0000:3238:DFE1:63:0000:0000:FEFB").isLikeIPV6Address())
         XCTAssert(String("2001:0:3238:DFE1:63::FEFB").isLikeIPV6Address())
         XCTAssertFalse(String("FE80::F000::F000").isLikeIPV6Address())
         XCTAssertFalse(String("FE80:F000::BAR0").isLikeIPV6Address())
@@ -333,9 +333,9 @@ class swiftletsTests: XCTestCase {
     func testMagnitude() {
         //DecimalMagnitude
         XCTAssertEqual(DecimalMagnitude.kilo.toMagnitude(1000.0, fromMagnitude: .uni), 1.0)
-        XCTAssertEqual(DecimalMagnitude.kilo.fromMagnitude(1.0, toMagnitude: .uni), 1000.0)
+        XCTAssertEqual(DecimalMagnitude.kilo.fromMagnitude(1.23, toMagnitude: .uni), 1230.0)
         XCTAssertEqual(DecimalMagnitude.kilo.toMagnitude(1000.0, fromMagnitude: .milli), 0.001)
-        XCTAssertEqual(DecimalMagnitude.kilo.fromMagnitude(1.0, toMagnitude: .milli), 1000000.0)
+        XCTAssertEqual(DecimalMagnitude.kilo.fromMagnitude(1.23, toMagnitude: .milli), 1230000.0)
 
         let yoctoTest1 = DecimalMagnitude.toNearestMagnitude(0.00000000000000000000000002)
         XCTAssertEqual(yoctoTest1.1, .yocto)
@@ -431,6 +431,12 @@ class swiftletsTests: XCTestCase {
         XCTAssertEqual(yobiTest.1, .yobi)
         XCTAssertEqual(yobiTest.1.symbol, "Yi")
         XCTAssertEqual(yobiTest.0, 2.0)
+
+        //Extension on Double
+        XCTAssertEqual(1000.0.nearestDecimalMagnitude.0, 1.0)
+        XCTAssertEqual(1000.0.nearestDecimalMagnitude.1, .kilo)
+        XCTAssertEqual(1024.0.nearestBinaryMagnitude.0, 1.0)
+        XCTAssertEqual(1024.0.nearestBinaryMagnitude.1, .kibi)
     }
 
     func testColor() {
