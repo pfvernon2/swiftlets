@@ -131,19 +131,19 @@ public extension URLSession {
         case unknown
     }
     
-    enum HTTPHeaders:String {
+    enum HTTPHeaders: String {
         case accept = "Accept"
         case contentType = "Content-Type"
     }
     
-    private enum HTTPMethods:String {
+    private enum HTTPMethods: String {
         case get = "GET"
         case post = "POST"
         case put = "PUT"
         case delete = "DELETE"
     }
     
-    private enum HTTPContentType:String {
+    private enum HTTPContentType: String {
         case applicationJSON = "application/json"
         case formURLEncoded = "application/x-www-form-urlencoded"
     }

@@ -16,12 +16,12 @@ public extension DispatchQueue {
         return dispatchOffset
     }
     
-    ///asyncAfter with TimeInterval semanics, i.e. microsecond precision out to 10,000 years.
+    ///asyncAfter with TimeInterval semantics, i.e. microsecond precision out to 10,000 years.
     func asyncAfter(secondsFromNow seconds: TimeInterval, execute work: @escaping @convention(block) () -> Swift.Void) {
         asyncAfter(deadline: dispatchTimeFromNow(seconds: seconds), execute: work)
     }
     
-    ///asyncAfter with TimeInterval semanics, i.e. microsecond precision out to 10,000 years.
+    ///asyncAfter with TimeInterval semantics, i.e. microsecond precision out to 10,000 years.
     func asyncAfter(secondsFromNow seconds: TimeInterval, execute: DispatchWorkItem) {
         asyncAfter(deadline: dispatchTimeFromNow(seconds: seconds), execute: execute)
     }
@@ -29,8 +29,8 @@ public extension DispatchQueue {
     private static var _onceTracker = [String]()
     
     /**
-     Executes a block of code, associated with a unique identifier, only once. This method is thread safe and will
-     only execute the code once even when called concurrently.
+     Executes a block of code, associated with a unique identifier, only once for the current run of the application.
+     This method is thread safe and will only execute the code once even when called concurrently.
      
      - parameter identifier: A unique identifier such as a reverse DNS style name (com.domain.appIdentifier), or a GUID
      - parameter closure: Block of code to execute only once
@@ -55,7 +55,7 @@ public extension DispatchQueue {
 /**
  Reader Writer pattern with first-in priority semantics. Reads occur concurrently and writes serially.
  
- Execution of both read and write is based on first-in semantics of a queue. That is, all reads and writes will occur in the order in which they are added to the queue. Eventhough the reads are happening concurrenlty the queued write operations will not occur until they reach the top of the queue.
+ Execution of both read and write is based on first-in semantics of a queue. That is, all reads and writes will occur in the order in which they are added to the queue.
 
  This pattern is useful in cases where you want to access data in a fashion consistent with the order of the requests. For example a case where you wanted to update your user interface before a potentially invalidating write operation.
 
@@ -76,7 +76,7 @@ open class DispatchReaderWriter {
 /**
  This is similar to a reader writer pattern but has write priority semantics. Reads occur concurrently and writes serially.
  
- Execution is based on write priotity at execution time. That is, all pending reads will be held off until all pending writes have completed.
+ Execution is based on write priotity at execution time. That is, when a write is enqueued all currently executing reads will be allow to complete, however, all pending reads (i.e. reads which have not yet been scheduled) will be held off until all pending writes have completed. Thus if a sequence of writes are enqueued all reads will be held off until the sequence of writes complete.
 
  This pattern is useful in situations where race conditions at execution time must be minimized. While this may be useful, or even critical, for some operations please be aware that it can result in long delays, or even starvation, on read.
  
