@@ -9,11 +9,18 @@
 import Foundation
 
 extension Data {
-    //Convert data to string with hexadecimal encoding
+    ///Hex representation of the bytes in upper case hex characters
+    ///
+    /// - Note: You can call lowercased() on the result if you prefer lowercase.
     func hexRepresentation() -> String {
-        enumerated().map { (_, element) -> String in
-            String(format: "%02.2X", element)
-        }.joined()
+        let hexDigits = Array("0123456789ABCDEF".utf16)
+        var chars: [unichar] = []
+        chars.reserveCapacity(2 * count)
+        for byte in self {
+            chars.append(hexDigits[Int(byte / 16)])
+            chars.append(hexDigits[Int(byte % 16)])
+        }
+        return String(utf16CodeUnits: chars, count: chars.count)
     }
     
     //Convert string to data with utf8 encoding and append to current data
@@ -23,5 +30,15 @@ extension Data {
         }
         append(data)
         return true
+    }
+}
+
+//MARK: - Hashing
+
+import CryptoKit
+
+extension Data {
+    func sha256() -> String {
+        return SHA256.hash(data: self).description
     }
 }

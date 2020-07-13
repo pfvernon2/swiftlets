@@ -12,7 +12,7 @@ import Foundation
 
 ///Protocol representing a path string with a uniform seperator as an array of indivdual string components.
 /// Use of the protocol normalizes paths to their canonical form, i.e. it removes extraneous path seperators and empty paths.
-public protocol pathComponents:CustomStringConvertible {
+public protocol pathComponents: CustomStringConvertible {
     ///The seperator to be used between elements in the path, for example "/"
     var seperator:Character { get set }
     
@@ -104,6 +104,20 @@ public struct POSIXPathComponents: pathComponents {
     public var isAbsolute: Bool = true
     
     public init() {}
+}
+
+public extension URL {
+    func fileName(withExtension: Bool = false) -> String? {
+        guard self.isFileURL else {
+            return nil
+        }
+        
+        if withExtension {
+            return lastPathComponent
+        } else {
+            return deletingPathExtension().lastPathComponent
+        }
+    }
 }
 
 public typealias HTTPURLPathComponents = POSIXPathComponents

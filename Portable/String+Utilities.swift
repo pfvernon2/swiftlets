@@ -94,15 +94,11 @@ public extension String {
     }
     
     func isAllHexDigits() -> Bool {
-        containsOnly(CharacterSet.hexCharacters)
+        self.uppercased().containsOnly(CharacterSet.hexCharacters)
     }
     
     func containsOnly(_ charset: CharacterSet) -> Bool {
-        guard let _:Range = rangeOfCharacter(from: charset.inverted) else {
-            return true
-        }
-        
-        return false
+        rangeOfCharacter(from: charset.inverted) == nil
     }
     
     func isLikeZipCode() -> Bool {
@@ -188,6 +184,10 @@ public extension String {
         
         return start ..< end
     }
+    
+    var lines: [String] {
+        return self.components(separatedBy: "\n")
+    }
 }
 
 ///Convert four char codes to/from strings
@@ -225,5 +225,5 @@ extension FourCharCode: ExpressibleByStringLiteral {
 }
 
 extension CharacterSet {
-    public static var hexCharacters: CharacterSet { return CharacterSet(charactersIn: "1234567890abcdefABCDEF") }
+    public static var hexCharacters: CharacterSet = { CharacterSet(charactersIn: "1234567890ABCDEF") }()
 }

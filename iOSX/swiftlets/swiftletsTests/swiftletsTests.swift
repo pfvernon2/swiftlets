@@ -275,6 +275,10 @@ class swiftletsTests: XCTestCase {
         XCTAssertFalse(String("FE80::F000::F000").isLikeIPV6Address())
         XCTAssertFalse(String("FE80:F000::BAR0").isLikeIPV6Address())
 
+        XCTAssert(String("DEADBEEF").isAllHexDigits())
+        XCTAssert(String("0ddba11").isAllHexDigits())
+        XCTAssertFalse(String("XXXX").isAllHexDigits())
+        
         let osType:FourCharCode = "AAPL"
         XCTAssertEqual(osType, 0x4141504C)
         XCTAssertEqual(osType.string, "AAPL")

@@ -8,10 +8,13 @@
 
 import Foundation
 
-//Enumeration to abstract converting TimeInterval to commonly used
-// time periods.
-enum TimePeriod: Double {
-    typealias RawValue = Double
+///Enum of TimeInterval (i.e. seconds) to various calendar units.
+/// This useful for getting rough order of magnitude for a TimeInterval value.
+/// - note: Calendaring is very complicated. Use DateComponents if you need
+/// to reliably break things down. This is useful for primarily for determining order of magnitude
+/// and should not be used for date calculations.
+public enum TimePeriod: Double {
+    public typealias RawValue = Double
 
     case picoSecond = 0.000000000001
     case nanoSecond = 0.000000001
@@ -21,22 +24,45 @@ enum TimePeriod: Double {
     case minute = 60.0
     case hour = 3600.0
     case day = 86400.0
+    case week = 604800.0
+    case month = 2419200.0
+    case year = 31449600.0 //Gregorian calendar year
+    case leapYear = 31536000.0 //Gregorian calendar leap year
 
-    //convert TimeInterval to TimePeriod:
-    //  66 seconds = 1.1 minutes
+    ///Convert a TimeInterval to a rough order of magnitude of calendar units.
+    init(_ interval: TimeInterval) {
+        switch fabs(interval) {
+        case ..<60.0:
+            self = .second
+        case ..<3600.0:
+            self = .minute
+        case ..<86400.0:
+            self = .hour
+        case ..<604800.0:
+            self = .day
+        case ..<2419200.0:
+            self = .week
+        case ..<31449600.0:
+            self = .month
+        default:
+            self = .year
+        }
+    }
+
+    ///Convert TimeInterval to TimePeriod:
+    ///  66 seconds = 1.1 minutes
     func periodForInterval(_ interval: TimeInterval) -> Double {
         interval / rawValue
     }
 
-    //convert TimePeriod to TimeInterval:
-    //  1.1 minutes = 66 seconds
+    ///Convert TimePeriod to TimeInterval:
+    ///  1.1 minutes = 66 seconds
     func intervalForPeriod(_ period: Double) -> TimeInterval {
         rawValue * period
     }
 }
 
-extension TimeInterval {
-
+public extension TimeInterval {
     ///Convenience initializer for creating TimeInterval from
     /// commonly used time periods.
     /// - note: The values passed are cumulative.
@@ -157,5 +183,38 @@ extension TimeInterval {
         formatter.maximumUnitCount = 2
 
         return formatter.string(from: start, to: end) ?? String()
+    }
+    
+    /**
+     Returns a localized description of the time interval.
+
+     - note: The result is limited to Days, Hours, and Minutes.
+     */
+    func localizedDescription(style: DateComponentsFormatter.UnitsStyle = .positional) -> String {
+        let formatter = DateComponentsFormatter()
+        formatter.allowedUnits = [.day, .hour, .minute, .second]
+        formatter.unitsStyle = style
+        return formatter.string(from: self) ?? String()
+    }
+    
+    ///Non-localized version of the time interval suitable for display as a music/video track time. This is similar to the way the music app displays track times.
+    ///
+    ///Examples:
+    ///* 2d:4h:3m:30s = 52:03:30
+    ///* 4h:3m:30s = 4:03:30
+    ///* 3m:30s = 3:30
+    ///* 30s = 0:30
+    func trackTimeDescription() -> String {
+        //Deconstruct TimeInterval into hours:mins:seconds
+        //Not using DateComponents as I want hours to be the max value represented.
+        let hours = floor(self/TimePeriod.hour.rawValue)
+        let minutes = floor((self - (hours * TimePeriod.hour.rawValue))/TimePeriod.minute.rawValue)
+        let seconds = floor(self - ((minutes * TimePeriod.minute.rawValue) + (hours * TimePeriod.hour.rawValue)))
+
+        if hours > 0.0 {
+            return String(format: "%d:%0.2d:%0.2d", Int(hours), Int(minutes), Int(seconds))
+        } else {
+            return String(format: "%0.1d:%0.2d", Int(minutes), Int(seconds))
+        }
     }
 }

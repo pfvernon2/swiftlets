@@ -169,7 +169,7 @@ open class writerReaderType<T> {
  to reenter an operation that is already in flight, for example.
  
  ```
- let dataGuard:DispatchGuard = DispatchGuard()
+ let dataGuard: DispatchGuard = DispatchGuard()
  
  func refreshData() {
      guard dataGuard.enter() else {
@@ -189,7 +189,7 @@ open class DispatchGuard {
     private var semaphore:DispatchSemaphore
 
     //Create a DispatchGuard with the number of threads you want to allow simultaneous access.
-    init(value:Int = 1) {
+    public init(value:Int = 1) {
         semaphore = DispatchSemaphore(value: value)
     }
     
@@ -200,12 +200,12 @@ open class DispatchGuard {
      
      - Note: If this methods returns true you must call exit() to free the guard statement
      */
-    func enter() -> Bool {
+    public func enter() -> Bool {
         semaphore.wait(timeout: .now()) == .success
     }
     
     ///Exit the guard statement. This call must be balanced with successful calls to enter.
-    func exit() {
+    public func exit() {
         semaphore.signal()
     }
 }
@@ -231,7 +231,7 @@ open class DispatchGuardCustodian {
     fileprivate var dispatchGuard:DispatchGuard
     fileprivate(set) public var acquired:Bool
     
-    init(_ dispatchGuard:DispatchGuard) {
+    public init(_ dispatchGuard:DispatchGuard) {
         self.dispatchGuard = dispatchGuard
         self.acquired = self.dispatchGuard.enter()
     }

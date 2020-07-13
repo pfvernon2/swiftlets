@@ -11,7 +11,7 @@ import Foundation
 ///Types that conform to OrderOfMagnitude are typically enumerations
 /// that associate a power with a symbolic representation.
 /// For example ISO prefixes for decimal (base 10) orders of magnitude: 1.0e3 = k
-protocol OrderOfMagnitude: CaseIterable {
+public protocol OrderOfMagnitude: CaseIterable {
     //An array of the powers of the magnitudes
     static var powers: [Int] {get}
 
@@ -22,7 +22,7 @@ protocol OrderOfMagnitude: CaseIterable {
     var symbol:String {get}
 }
 
-extension OrderOfMagnitude where Self: Equatable, Self: RawRepresentable {
+public extension OrderOfMagnitude where Self: Equatable, Self: RawRepresentable {
     static var powers: [Int] {
         allCases.map {Int(log10($0.rawValue as! Double))}
     }
@@ -40,7 +40,7 @@ extension OrderOfMagnitude where Self: Equatable, Self: RawRepresentable {
 }
 
 ///Enum of ISO prefixes for decimal (base 10) orders of magnitude
-enum DecimalMagnitude: Double, OrderOfMagnitude {
+public enum DecimalMagnitude: Double, OrderOfMagnitude {
     case yocto = 1.0e-24
     case zepto = 1.0e-21
     case atto  = 1.0e-18
@@ -63,7 +63,7 @@ enum DecimalMagnitude: Double, OrderOfMagnitude {
     case zeta  = 1.0e21
     case yota  = 1.0e24
 
-    static var symbols: [String] {
+    public static var symbols: [String] {
         ["y", "z", "a", "f", "p", "n", "µ", "m", "c", "d",
          "",
          "㍲", "h", "k", "M", "G", "T", "P", "E", "Z", "Y"]
@@ -71,7 +71,7 @@ enum DecimalMagnitude: Double, OrderOfMagnitude {
 }
 
 ///Enum of IEC and IEEE 1541 prefixes for binary (base 2) orders of magnitude
-enum BinaryMagnitude: Double, OrderOfMagnitude {
+public enum BinaryMagnitude: Double, OrderOfMagnitude {
     case uni  = 0x01p0
     case kibi = 0x01p10
     case mebi = 0x01p20
@@ -82,14 +82,14 @@ enum BinaryMagnitude: Double, OrderOfMagnitude {
     case zebi = 0x01p70
     case yobi = 0x01p80
 
-    static var symbols: [String] {
+    public static var symbols: [String] {
         ["",
          "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi", "Yi"]
     }
 }
 
 //Protocol for converting values to and from orders of magnitude
-protocol MagnitudeConversion {
+public protocol MagnitudeConversion {
     associatedtype T: OrderOfMagnitude
 
     ///Convert value to associated order of magnitude.
@@ -126,15 +126,15 @@ protocol MagnitudeConversion {
 }
 
 extension MagnitudeConversion where Self: Equatable, Self: RawRepresentable, Self: CaseIterable, T: RawRepresentable, T: CaseIterable {
-    func toMagnitude(_ units: Double, fromMagnitude: T) -> Double {
+    public func toMagnitude(_ units: Double, fromMagnitude: T) -> Double {
         (units * (fromMagnitude.rawValue as! Double)) / (rawValue as! Double)
     }
 
-    func fromMagnitude(_ units: Double, toMagnitude: T) -> Double {
+    public func fromMagnitude(_ units: Double, toMagnitude: T) -> Double {
         (rawValue as! Double) * (units / (toMagnitude.rawValue as! Double))
     }
 
-    static func magnitude(_ units: Double) -> T {
+    public static func magnitude(_ units: Double) -> T {
         //get order of magnitude of input
         let mag: Int = Int(floor(log10(units.magnitude)))
 
@@ -156,20 +156,20 @@ extension MagnitudeConversion where Self: Equatable, Self: RawRepresentable, Sel
 }
 
 extension DecimalMagnitude: MagnitudeConversion {
-    static func toNearestMagnitude(_ units: Double) -> (Double, DecimalMagnitude) {
+    public static func toNearestMagnitude(_ units: Double) -> (Double, DecimalMagnitude) {
         let mag = magnitude(units)
         return (mag.toMagnitude(units, fromMagnitude: .uni), mag)
     }
 }
 
 extension BinaryMagnitude: MagnitudeConversion {
-    static func toNearestMagnitude(_ units: Double) -> (Double, BinaryMagnitude) {
+    public static func toNearestMagnitude(_ units: Double) -> (Double, BinaryMagnitude) {
         let mag = magnitude(units)
         return (mag.toMagnitude(units, fromMagnitude: .uni), mag)
     }
 }
 
-extension Double {
+public extension Double {
     var nearestDecimalMagnitude: (Double, DecimalMagnitude) {
         DecimalMagnitude.toNearestMagnitude(self)
     }

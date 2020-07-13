@@ -17,42 +17,46 @@ to be performed in a batched or coalesced fashion, for example when the device b
  - Note: The wrapper ensures all operations occur on main queue.
  
 ````
- var delayedOperationTimer:CoalescingTimer = CoalescingTimer()
+ var delayedOperationTimer:CoalescingTimer? = nil
 
+ override func awakeFromNib() {
+     //Create a timer to save current state 1 second after the user completes
+     // their touch operation.
+     delayedOperationTimer = CoalescingTimer(duration:1.0) { (CoalescingTimer) in
+         //Save state
+     }
+}
+ 
  override func touchesEnded(touches: NSSet!, withEvent event: UIEvent!) {
-    //Start a timer to save current state 1 second after the user completes
-    // their touch operation.
-    delayedOperationTimer.start(duration:1.0) { (CoalescingTimer) in
-        //Save state
-    }
+     //User ends operation so restart the timer.
+     delayedOperationTimer?.prime()
  }
 
  override func touchesBegan(touches: NSSet!, withEvent event: UIEvent!) {
     //User begins new operation so restart the timer.
-    // If a timer not previously started this is a no-op.
-    delayedOperationTimer.restart()
+    delayedOperationTimer?.restart()
  }
  
  override func touchesMoved(touches: NSSet!, withEvent event: UIEvent!) {
     //User still moving so restart the timer.
-    // If a timer not previously started this is a no-op.
-    delayedOperationTimer.restart()
+    delayedOperationTimer?.restart()
  }
 
  ````
 */
 open class CoalescingTimer {
-    fileprivate var closure: (_ timer:CoalescingTimer) -> () = { (CoalescingTimer) in }
     fileprivate var timer:Timer?
-    fileprivate var repeats:Bool = false
-    fileprivate var tolerance:Float = 0.1
-    fileprivate var duration:TimeInterval? {
+    fileprivate var duration:TimeInterval {
         didSet {
             if running {
                 restart()
             }
         }
     }
+    fileprivate var repeats:Bool = false
+    fileprivate var tolerance:Float = 0.1
+    fileprivate var closure: (_ timer:CoalescingTimer) -> () = { (CoalescingTimer) in }
+    fileprivate weak var queue:DispatchQueue? = DispatchQueue.main
     
     open var running:Bool {
         get {
@@ -69,43 +73,65 @@ open class CoalescingTimer {
     }
     
     /**
-     Start a timer with closure. Currently running timers are stoped without firing.
+     Create a timer with closure.
      
      - Parameter duration: The duration in seconds between start and when the closure is invoked.
      - Parameter repeats: Indicate if timer should repeat. Defaults to false
      - Parameter tolerance: The percentage of time after the scheduled fire date that the timer may fire. Defaults to 0.1. Range 0.0...1.0. Using a non-zero tolerance value when timing accuracy is not crucial allows the OS to better optimize for power and CPU usage.
-     - Parameter handler: The closure to be invoked when the timer fires.
+     - Parameter queue: The DispatchQueue to invoke the closure on.
+     - Parameter closure: The closure to be invoked when the timer fires.
     */
-    open func start(duration: TimeInterval, repeats: Bool = false, tolerance:Float = 0.1, queue:DispatchQueue = DispatchQueue.main, closure: @escaping (CoalescingTimer)->()) {
+    public init(duration: TimeInterval, repeats: Bool = false, tolerance:Float = 0.1, queue:DispatchQueue = DispatchQueue.main, closure: @escaping (CoalescingTimer)->()) {
+        self.closure = closure
+        self.duration = duration
+        self.repeats = repeats
+        self.queue = queue
+    }
+    
+    /**
+     Start the timer if not running.
+    */
+    open func prime() {
         DispatchQueue.main.async { () -> Void in
-            self._stop()
-            self.closure = closure
-            self.duration = duration
-            self.repeats = repeats
-            
-            self.timer = Timer.scheduledTimer(withTimeInterval: duration, repeats: repeats) { (timer) in
-                queue.async {
-                    self.closure(self)
-                }
+            if self.timer == nil {
+                self.start()
             }
-            
-            self.timer?.tolerance = duration * TimeInterval(tolerance)
+            else if let timer = self.timer, !timer.isValid {
+                self.start()
+            }
         }
     }
     
     /**
-     Restart a previously running timer. Noop if timer was not previously started.
+     Start the timer. Currently running timers are stoped without firing.
+    */
+    open func start() {
+        DispatchQueue.main.async { () -> Void in
+            self._stop()
+
+            self.timer = Timer.scheduledTimer(withTimeInterval: self.duration, repeats: self.repeats) { (timer) in
+                self.queue?.async {
+                    self.closure(self)
+                }
+            }
+            
+            self.timer?.tolerance = self.duration * TimeInterval(self.tolerance)
+        }
+    }
+    
+    /**
+     Restart a previously running timer or no-op if not running
      */
     open func restart() {
         DispatchQueue.main.async { () -> Void in
-            guard let timer = self.timer, let duration = self.duration else {
+            guard let timer = self.timer else {
                 return
             }
                         
             if timer.isValid {
-                timer.fireDate = Date(timeIntervalSinceNow: duration)
+                timer.fireDate = Date(timeIntervalSinceNow: self.duration)
             } else {
-                self.start(duration: duration, repeats: self.repeats, tolerance: self.tolerance, closure: self.closure)
+                self.start()
             }
         }
     }
@@ -121,13 +147,14 @@ open class CoalescingTimer {
     
     /**
      Forces timer to fire immediately without interrupting regular fire scheduling.
-     If the timer is non-repeating it is automatically invalidated after fiing.
+     If the timer is non-repeating it is invalidated after fiing.
      */
     open func fire() {
         DispatchQueue.main.async {() -> Void in
-            if let timer = self.timer, timer.isValid {
-                timer.fire()
+            guard let timer = self.timer, timer.isValid else {
+                return
             }
+            timer.fire()
         }
     }
 
@@ -137,5 +164,6 @@ open class CoalescingTimer {
             return
         }
         timer.invalidate()
+        self.timer = nil
     }
 }

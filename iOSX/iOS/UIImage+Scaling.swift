@@ -98,14 +98,14 @@ extension UIImage {
         }
         
         // Move the origin to the middle of the image so we will rotate and scale around the center.
-        bitmap.translateBy(x: rotatedSize.width / 2.0, y: rotatedSize.height / 2.0)
+        bitmap.translateBy(x: rotatedSize.width.halved, y: rotatedSize.height.halved)
         
         // Rotate the image context
         bitmap.rotate(by: degreesToRadians(degrees))
         
         // Now, draw the rotated/scaled image into the context
         bitmap.scaleBy(x: flip ? -1.0 : 1.0, y: -1.0)
-        draw(in: CGRect(x: -size.width / 2, y: -size.height / 2, width: size.width, height: size.height))
+        draw(in: CGRect(x: -size.width.halved, y: -size.height.halved, width: size.width, height: size.height))
         
         let newImage:UIImage? = UIGraphicsGetImageFromCurrentImageContext()
         

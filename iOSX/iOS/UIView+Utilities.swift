@@ -7,6 +7,7 @@
 //
 
 import UIKit
+
 fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
     switch (lhs, rhs) {
     case let (l?, r?):
@@ -27,8 +28,9 @@ fileprivate func <= <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
     }
 }
 
+// MARK: - View Positioning
 
-extension UIView {
+public extension UIView {
     
     /**
      Add a subview and make it conform to our size.
@@ -182,6 +184,8 @@ extension UIView {
         }
     }
     
+    ///Replace our current view with a new view with the same constraints.
+    /// Example: Replace a label with a text field to enable editing
     func substitueViewWithView(_ destinationView:UIView) {
         //add new view right behind us
         if let mySuperView = self.superview {
@@ -200,7 +204,10 @@ extension UIView {
             mySuperView.layoutIfNeeded()
         }
     }
-    
+}
+
+// MARK: - View Sizing
+public extension UIView {
     func minDimension() -> CGFloat{
         min(self.bounds.width, self.bounds.height)
     }
@@ -208,13 +215,12 @@ extension UIView {
     func maxDimension() -> CGFloat{
         max(self.bounds.width, self.bounds.height)
     }
+}
 
+// MARK: - View Ordering in SuperView
+public extension UIView {
     func indexInSuperview() -> Int {
-        if let index = self.superview?.subviews.firstIndex(of: self) {
-            return index
-        } else {
-            return -1
-        }
+        self.superview?.subviews.firstIndex(of: self) ?? -1
     }
     
     func moveToFront() {
@@ -256,14 +262,17 @@ extension UIView {
         
         self.superview?.exchangeSubview(at: myIndex, withSubviewAt: otherIndex)
     }
+}
 
+// MARK: - View Animation
+public extension UIView {
     /**
      Identical to UIView.animate(withDuration:) but returns percentage of progress in closure should animation be interrupted.
      Progress will be 1.0 in the event of sucessful completion of the animation, 0.0..<1.0 in the event of cancellation.
 
      - note: The progress is an estimatation based on the start time, end time, and duration of the animation. There is no compensation for any curve that may have been applied.
      */
-    open class func animationProgress(withDuration duration: TimeInterval, delay: TimeInterval, options: UIView.AnimationOptions, animations: @escaping () -> Void, progress: ((_ progress: Double) -> Swift.Void)? = nil) {
+    class func animationProgress(withDuration duration: TimeInterval, delay: TimeInterval, options: UIView.AnimationOptions, animations: @escaping () -> Void, progress: ((_ progress: Double) -> Swift.Void)? = nil) {
         let startTime = Date()
         UIView.animate(withDuration: duration, delay: delay, options: options, animations: animations, completion: { (success) in
             if let progress = progress {
@@ -273,7 +282,15 @@ extension UIView {
     }
     
     // delay = 0.0, options = 0
-    open class func animationProgress(withDuration duration: TimeInterval, animations: @escaping () -> Swift.Void, progress: ((_ progress: Double) -> Swift.Void)? = nil) {
+    class func animationProgress(withDuration duration: TimeInterval, animations: @escaping () -> Swift.Void, progress: ((_ progress: Double) -> Swift.Void)? = nil) {
         animationProgress(withDuration: duration, delay: 0.0, options: UIView.AnimationOptions(rawValue: UInt(0)), animations: animations, progress: progress)
+    }
+}
+
+// MARK: - View Appearance
+public extension UIView {
+    func roundCorners(radius: CGFloat) {
+        layer.cornerRadius = radius;
+        layer.masksToBounds = true;
     }
 }

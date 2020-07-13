@@ -49,7 +49,7 @@ public extension AVURLAsset {
     }
     
     //Commonly accessed un-common identifiers
-    var comment: String? {
+    var comments: String? {
         let items = self.metadataItems(forIdentifiers: [.quickTimeUserDataComment,
                                                         .quickTimeMetadataComment,
                                                         .iTunesMetadataUserComment,
@@ -66,5 +66,24 @@ public extension AVURLAsset {
                                                         .id3V2MetadataBeatsPerMinute])
         
         return items.first(where: {!$1.isEmpty})?.value.first?.numberValue?.intValue
+    }
+    
+    var grouping: String? {
+        metadataItem(forIdentifier: .iTunesMetadataGrouping)?.stringValue
+    }
+    
+    //Assume grouping may be CSV list, parse and return as array with whitespace trimmed
+    var groups: [String]? {
+        guard let grouping = grouping else {
+            return nil
+        }
+        
+        return grouping.components(separatedBy: ",")
+            .map{$0.trimmingCharacters(in: CharacterSet.whitespaces)}
+            .filter{!$0.isEmpty}
+    }
+
+    var playbackDuration: TimeInterval {
+        return duration.seconds
     }
 }

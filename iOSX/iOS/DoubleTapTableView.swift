@@ -13,7 +13,7 @@ import UIKit
 
  This protocol extends UITableViewDelegate so you can easily use this in place of your standard delegate handling.
  */
-protocol DoubleTapTableViewDelegate: UITableViewDelegate {
+public protocol DoubleTapTableViewDelegate: UITableViewDelegate {
     func tableView(tableView: UITableView, didTapRowAtIndexPath indexPath: IndexPath)
     func tableView(tableView: UITableView, didDoubleTapRowAtIndexPath indexPath: IndexPath)
 }
@@ -21,14 +21,15 @@ protocol DoubleTapTableViewDelegate: UITableViewDelegate {
 /**
  UITableView subclass and delegate that automatically detects double tap gestures on table view rows
  */
-class DoubleTapTableView: UITableView {
+public class DoubleTapTableView: UITableView {
+    
     var doubleTapDelegate: DoubleTapTableViewDelegate? {
         get {
             self.delegate as? DoubleTapTableViewDelegate
         }
     }
 
-    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+    public override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         touches.forEach { (touch) in
             if let row:IndexPath = indexPathForRow(at: touch.location(in: self)) {
                 switch touch.tapCount {

@@ -9,10 +9,6 @@
 import UIKit
 
 extension UIViewController {
-    class func topMostViewController() -> UIViewController? {
-        UIViewController.topViewControllerForRoot(UIApplication.shared.keyWindow?.rootViewController)
-    }
-    
     class func topViewControllerForRoot(_ rootViewController:UIViewController?) -> UIViewController? {
         guard let rootViewController = rootViewController else {
             return nil
