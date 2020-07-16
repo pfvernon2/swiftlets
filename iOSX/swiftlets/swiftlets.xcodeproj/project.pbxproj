@@ -59,6 +59,7 @@
 		015A849B20FD50C4006C2583 /* CommandLine+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 015A849A20FD50C4006C2583 /* CommandLine+Utilities.swift */; };
 		015A849C20FD50C4006C2583 /* CommandLine+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 015A849A20FD50C4006C2583 /* CommandLine+Utilities.swift */; };
 		015B866B247F1D2600891F97 /* LeftAlignedFlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 015B866A247F1D2600891F97 /* LeftAlignedFlowLayout.swift */; };
+		01636FFC24C0B83C00FF4433 /* AVAudioFile+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01636FFB24C0B83C00FF4433 /* AVAudioFile+Utilities.swift */; };
 		016965851E142D1E00038275 /* UIGraphics+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 016965841E142D1E00038275 /* UIGraphics+Utilities.swift */; };
 		016F8932230F5C7600FF12E1 /* TimeInterval+Period.swift in Sources */ = {isa = PBXBuildFile; fileRef = 016F8931230F5C7600FF12E1 /* TimeInterval+Period.swift */; };
 		016F8933230F5C7600FF12E1 /* TimeInterval+Period.swift in Sources */ = {isa = PBXBuildFile; fileRef = 016F8931230F5C7600FF12E1 /* TimeInterval+Period.swift */; };
@@ -142,6 +143,7 @@
 		015A849A20FD50C4006C2583 /* CommandLine+Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "CommandLine+Utilities.swift"; path = "../../OSX/CommandLine+Utilities.swift"; sourceTree = "<group>"; };
 		015B866A247F1D2600891F97 /* LeftAlignedFlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LeftAlignedFlowLayout.swift; path = ../../iOS/LeftAlignedFlowLayout.swift; sourceTree = "<group>"; };
 		016310861D03660500862035 /* URLComponent+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "URLComponent+Utilities.swift"; path = "../../URLComponent+Utilities.swift"; sourceTree = "<group>"; };
+		01636FFB24C0B83C00FF4433 /* AVAudioFile+Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "AVAudioFile+Utilities.swift"; path = "../../iOS/AVAudioFile+Utilities.swift"; sourceTree = "<group>"; };
 		016965841E142D1E00038275 /* UIGraphics+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIGraphics+Utilities.swift"; path = "../../iOS/UIGraphics+Utilities.swift"; sourceTree = "<group>"; };
 		016F8931230F5C7600FF12E1 /* TimeInterval+Period.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "TimeInterval+Period.swift"; path = "../../../Portable/TimeInterval+Period.swift"; sourceTree = "<group>"; };
 		018C0CDD24BA81B000B4BEAE /* FileMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FileMonitor.swift; path = ../../FileMonitor.swift; sourceTree = "<group>"; };
@@ -222,6 +224,7 @@
 				011C421F2013DAF80032EC48 /* AVMetadataIdentifier+id3v2.swift */,
 				011C42212013DBA80032EC48 /* AVURLAsset+AVMetadataItem.swift */,
 				013D4EEB2454B13B005A15A9 /* MPMediaItem+Util.swift */,
+				01636FFB24C0B83C00FF4433 /* AVAudioFile+Utilities.swift */,
 			);
 			name = MediaPlayer;
 			sourceTree = "<group>";
@@ -572,6 +575,7 @@
 				01E769711CEF85B600866433 /* UIViewController+Utilities.swift in Sources */,
 				018B5A031F034539009F40FB /* URLRequest+Utilities.swift in Sources */,
 				0193D798217D341100754BE8 /* FormInputManager.swift in Sources */,
+				01636FFC24C0B83C00FF4433 /* AVAudioFile+Utilities.swift in Sources */,
 				01382E8A1DC66D5B00B55A9C /* RemoteImageCache.swift in Sources */,
 				012047C11D0C854A00E79510 /* UIApplication+Utilities.swift in Sources */,
 				01E6784E1CD5315D00ABE1CB /* MKMapKit+Utilities.swift in Sources */,
