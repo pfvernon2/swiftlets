@@ -924,22 +924,6 @@ extension AudioPlayer {
     }
 }
 
-///Factory creator for audio player classes
-///
-/// Not all features (EQ, routing, track output level) are supported by all types of players so you need to check with your factory created object
-/// after initialization to see what is available.
-public struct AudioPlayerFactory {
-    ///Create an appropriate audio player based on the media item
-    public static func createPlayer(for mediaItem: MPMediaItem) -> AudioPlayer {
-        if mediaItem.assetURL != nil {
-            return FXAudioPlayerEngine(mediaItem: mediaItem)
-        }
-        else {
-            return MusicPlayer(mediaItem: mediaItem)
-        }
-    }
-}
-
 ///This is a thin wrapper on MPMusicPlayerController to give us interface consistency with AudioPlayer for factory construction
 public class MusicPlayer: AudioPlayer {
     private var player: MPMusicPlayerController
@@ -1035,5 +1019,21 @@ public class MusicPlayer: AudioPlayer {
         
     public func stop() {
         player.stop()
+    }
+}
+
+///Factory creator for audio player classes
+///
+/// Not all features (EQ, routing, track output level) are supported by all types of players so you need to check with your factory created object
+/// after initialization to see what is available.
+public struct AudioPlayerFactory {
+    ///Create an appropriate audio player based on the media item
+    public static func createPlayer(for mediaItem: MPMediaItem) -> AudioPlayer {
+        if mediaItem.assetURL != nil {
+            return FXAudioPlayerEngine(mediaItem: mediaItem)
+        }
+        else {
+            return MusicPlayer(mediaItem: mediaItem)
+        }
     }
 }

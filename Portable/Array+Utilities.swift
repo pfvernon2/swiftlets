@@ -78,6 +78,16 @@ public extension Array {
     }
 }
 
+public extension Array {
+    mutating func appendIfExists(_ newElement: Self.Element?) {
+        guard let newElement = newElement else {
+            return
+        }
+        
+        append(newElement)
+    }
+}
+
 public extension Sequence {
     ///A  more expensive but more accurate version of underestimatedCount
     var exactCount: Int {

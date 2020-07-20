@@ -64,6 +64,10 @@ extension MPMediaItem {
             .map{$0.trimmingCharacters(in: CharacterSet.whitespaces)}
             .filter{!$0.isEmpty} ?? []
     }
+    
+    public var isAsset: Bool {
+        assetURL != nil
+    }
 }
 
 public extension MPMediaItem {
@@ -120,13 +124,18 @@ public extension MPMediaItem {
         }
     }
     
+    ///Export MPMediaItem to specified directory. On completion url of new file is set if successfully exported.
+    /// - note: The combination of iTunes, MPMediaLibrary, iTunes Match, etc. results in inconsistent inclusion of
+    ///         metadata being written to the files. This makes an attempt to pull minimal metadata from the MPMediaItem for
+    ///         inclusion in the metadata written to the exported files but this may (will) result in imperfect preservation
+    ///         of metadata in many cases.
     func exportFromMediaLibrary(to destinationDir: URL, completion: @escaping (URL?)->Swift.Void) {
         guard let assetURL = assetURL else {
             completion(nil)
             return
         }
-        
-        guard let exporter = AVAssetExportSession(asset: AVAsset(url: assetURL),
+        let asset = AVAsset(url: assetURL)
+        guard let exporter = AVAssetExportSession(asset: asset,
                                                   presetName: AVAssetExportPresetAppleM4A) else
         {
             completion(nil)
@@ -139,14 +148,76 @@ public extension MPMediaItem {
             .appendingPathComponent(fileName())
             .appendingPathExtension("m4a")
         
+        //Edge case... it appears sometimes the library does not write metadata into files.
+        // This copies minimal metadata to the exporter if necessary
+        //Using title as proxy as it is uncommon to find a track without a title in metadata
+        if asset.title == nil {
+            var metadata: [AVMetadataItem] = []
+            if let exportMetadata = exporter.metadata {
+                metadata.append(contentsOf: exportMetadata)
+            }
+            metadata.append(contentsOf:  minimalMetaData())
+            exporter.metadata = metadata
+        }
+        
         exporter.exportAsynchronously {
             DispatchQueue.main.async {
-                guard exporter.error == nil else {
+                guard exporter.error == nil, let outputURL = exporter.outputURL else {
                     completion(nil)
                     return
                 }
-                completion(exporter.outputURL)
+                completion(outputURL)
             }
         }
     }
+    
+    //A cherry-picked set of commonly available metadata elements along with things
+    // the user may have added (and thus likely wants.)
+    fileprivate func minimalMetaData() -> [AVMetadataItem] {
+        var result: [AVMetadataItem] = []
+        
+        func addItemToResult(id: AVMetadataIdentifier, space: AVMetadataKeySpace, value: (NSCopying & NSObjectProtocol)?) {
+            guard let value = value else {
+                return
+            }
+            let item = AVMutableMetadataItem()
+            item.locale = NSLocale.current
+            item.keySpace = space
+            item.identifier = id
+            item.value = value
+            
+            result.append(item)
+        }
+        
+        //Common
+        if let title = title, title.isNotEmpty {
+            addItemToResult(id: .commonIdentifierTitle, space: .common, value: title as NSCopying & NSObjectProtocol)
+        }
+
+        if let artist = artist, artist.isNotEmpty {
+            addItemToResult(id: .commonIdentifierArtist, space: .common, value: artist as NSCopying & NSObjectProtocol)
+        }
+        
+        if let albumTitle = albumTitle, albumTitle.isNotEmpty {
+            addItemToResult(id: .commonIdentifierAlbumName, space: .common, value: albumTitle as NSCopying & NSObjectProtocol)
+        }
+
+        //iTunes
+        if let userGrouping = userGrouping, userGrouping.isNotEmpty {
+            addItemToResult(id: .iTunesMetadataGrouping, space: .iTunes, value: userGrouping as NSCopying & NSObjectProtocol)
+        }
+        
+        if let comments = comments, comments.isNotEmpty {
+            addItemToResult(id: .iTunesMetadataUserComment, space: .iTunes, value: comments as NSCopying & NSObjectProtocol)
+        }
+
+        if beatsPerMinute > 0 {
+            let bpm = NSNumber(value: beatsPerMinute)
+            addItemToResult(id: .iTunesMetadataBeatsPerMin, space: .iTunes, value: bpm as NSCopying & NSObjectProtocol)
+        }
+        
+        return result
+    }
 }
+
+

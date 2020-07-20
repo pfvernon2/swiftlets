@@ -48,10 +48,10 @@ public extension AVAudioFile {
         if !displayInDB {
             //convert DB to gain/power and clip at the specified dynamic range
             //TODO: accelerate this?
-            samples = samples.map {
-                let power: Float = pow(10.0, $0/20.0)
-                return min(power, abs(noiseFloor))
-            }
+            samples = samples.map { pow(10.0, $0/20.0) }
+            var floor: Float = 0.0
+            var ceil: Float = abs(noiseFloor)
+            vDSP_vclip(samples, 1, &floor, &ceil, &samples, 1, vDSP_Length(samples.count));
         }
         
         //normalize samples to the height of the image so we fill the image as best we can
@@ -127,6 +127,7 @@ public extension AVAudioFile {
     
     //Somewhat messy routine to manipulate the samples from the file into more manageable form
     // for image rendering. Unlikely to be of use outside this file so marked private for now.
+    // Note that all work is done in place on the array of samples passed in.
     private func decimate(samples: inout [Float], samplesPerPixel: Int, convertToDB: Bool, noiseFloor: Float = kDefaultNoiseFloor) {
         let downSampledLength = samples.count / samplesPerPixel
         let filter = [Float](repeating: 1.0 / Float(samplesPerPixel), count: samplesPerPixel)

@@ -15,6 +15,12 @@ public extension UIBezierPath {
         move(to: CGPoint(x: x, y: y))
         addLine(to: CGPoint(x: x, y: y + height))
     }
+    
+    func addHorizontalLine(x: CGFloat, y: CGFloat, width: CGFloat) {
+        move(to: CGPoint(x: x, y: y))
+        addLine(to: CGPoint(x: x + width, y: y))
+    }
+
 }
 
 public extension CGRect {

@@ -1,5 +1,5 @@
 //
-//  AVURLAsset+AVMetadataItem.swift
+//  AVAsset+AVMetadataItem.swift
 //  swiftlets
 //
 //  Created by Frank Vernon on 1/20/18.
@@ -11,16 +11,16 @@ import MediaPlayer
 
 // MARK: - Generaly useful utilities
 
-public extension AVURLAsset {
+public extension AVAsset {
     
     ///Returns first instance of an identifier in the metadata, if any.
     /// This is useful for the vast majority of idenitifiers where you expect only a single instance to appear in the metadata.
-    func metadataItem(forIdentifier identifier:AVMetadataIdentifier) -> AVMetadataItem? {
+    func metadataItem(forIdentifier identifier: AVMetadataIdentifier) -> AVMetadataItem? {
         AVMetadataItem.metadataItems(from: metadata, filteredByIdentifier: identifier).first
     }
     
     ///Returns a mapping of identifiers to their values in the metadata, if any
-    func metadataItems(forIdentifiers identifiers:[AVMetadataIdentifier]) -> [AVMetadataIdentifier: [AVMetadataItem]] {
+    func metadataItems(forIdentifiers identifiers: [AVMetadataIdentifier]) -> [AVMetadataIdentifier: [AVMetadataItem]] {
         identifiers.reduce(into: [AVMetadataIdentifier: [AVMetadataItem]]()) { (result, identifier) in
             result[identifier] = AVMetadataItem.metadataItems(from: self.metadata, filteredByIdentifier: identifier)
         }
@@ -29,7 +29,7 @@ public extension AVURLAsset {
 
 // MARK: - AVMetadataKeySpace abstractions
 
-public extension AVURLAsset {
+public extension AVAsset {
     
     //Commonly accessed common identifiers
     var title: String? {
@@ -85,5 +85,5 @@ public extension AVURLAsset {
 
     var playbackDuration: TimeInterval {
         return duration.seconds
-    }
+    }    
 }
