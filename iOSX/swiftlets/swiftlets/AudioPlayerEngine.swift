@@ -169,6 +169,11 @@ public class AudioPlayerEngine {
         trackLength = Double(file.length)/file.processingFormat.sampleRate
         seekPosition = kTrackHeadFramePosition
         
+        //ensure output format of player matches format of the file
+        engine.connect(player,
+                       to: engine.mainMixerNode,
+                       format: file.processingFormat)
+        
         registerForMediaServerNotifications()
         
         if wasPlaying {
@@ -732,7 +737,7 @@ public class FXAudioPlayerEngine: AudioPlayerEngine, AudioPlayer {
     }
 }
 
-//Requird to make AVAudioUnitEQFilterType automagically codable
+//Required to make AVAudioUnitEQFilterType automagically codable
 extension AVAudioUnitEQFilterType: Codable {
 }
 
