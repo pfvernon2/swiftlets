@@ -61,7 +61,7 @@ extension UIImage {
         let imageView = UIImageView(frame: CGRect(origin: CGPoint(x: 0, y: 0), size: square))
         imageView.contentMode = .scaleAspectFill
         imageView.image = self
-        imageView.layer.cornerRadius = square.width/2
+        imageView.layer.cornerRadius = square.width.halved
         imageView.layer.masksToBounds = true
         UIGraphicsBeginImageContextWithOptions(imageView.bounds.size, false, scale)
         

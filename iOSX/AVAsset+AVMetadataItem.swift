@@ -73,9 +73,9 @@ public extension AVAsset {
     }
     
     //Assume grouping may be CSV list, parse and return as array with whitespace trimmed
-    var groups: [String]? {
+    var groups: [String] {
         guard let grouping = grouping else {
-            return nil
+            return []
         }
         
         return grouping.components(separatedBy: ",")

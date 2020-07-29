@@ -73,7 +73,7 @@ public extension AVAudioFile {
                 let x: CGFloat = CGFloat(index * pixelsPerSample)
                 let y: CGFloat = center - amplitude.halved
                 
-                path.addVerticalLine(x: x, y: y, height: amplitude)
+                path.addVerticalLine(at: CGPoint(x: x, y: y), ofHeight: amplitude)
             }
             path.close()
             

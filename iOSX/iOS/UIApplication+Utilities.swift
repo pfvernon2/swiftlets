@@ -46,5 +46,16 @@ extension UIApplication {
         
         return "\(name) \(version) (\(build))"
     }
+    
+    ///Returns Window Scene for associated Screen
+    public func sceneForScreen(_ screen: UIScreen) -> UIWindowScene? {
+        connectedScenes.first(where: { (scene) -> Bool in
+            guard let windowScene = scene as? UIWindowScene else {
+                return false
+            }
+            
+            return windowScene.screen == screen
+        }) as? UIWindowScene
+    }
 }
 

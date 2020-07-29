@@ -8,6 +8,18 @@
 
 import Foundation
 import MediaPlayer
+import MobileCoreServices
+
+extension AVFileType {
+    /// Reference file extension for UTI string
+    var fileExtension: String? {
+        guard let tag = UTTypeCopyPreferredTagWithClass(self as CFString, kUTTagClassFilenameExtension) else {
+            return nil
+        }
+        
+        return tag.takeRetainedValue() as String
+    }
+}
 
 extension String {
     func sha256() -> String {
@@ -65,7 +77,7 @@ extension MPMediaItem {
             .filter{!$0.isEmpty} ?? []
     }
     
-    public var isAsset: Bool {
+    public var isAVURLAsset: Bool {
         assetURL != nil
     }
 }
@@ -123,18 +135,20 @@ public extension MPMediaItem {
             return UUID().uuidString
         }
     }
-    
+        
     ///Export MPMediaItem to specified directory. On completion url of new file is set if successfully exported.
     /// - note: The combination of iTunes, MPMediaLibrary, iTunes Match, etc. results in inconsistent inclusion of
     ///         metadata being written to the files. This makes an attempt to pull minimal metadata from the MPMediaItem for
     ///         inclusion in the metadata written to the exported files but this may (will) result in imperfect preservation
     ///         of metadata in many cases.
-    func exportFromMediaLibrary(to destinationDir: URL, completion: @escaping (URL?)->Swift.Void) {
+    func exportFromMediaLibrary(to destinationDir: URL, completion: @escaping (URL?)->Swift.Void = { url in }) {
         guard let assetURL = assetURL else {
             completion(nil)
             return
         }
-        let asset = AVAsset(url: assetURL)
+        
+        let asset = AVURLAsset(url: assetURL,
+                               options: [AVURLAssetPreferPreciseDurationAndTimingKey: true])
         guard let exporter = AVAssetExportSession(asset: asset,
                                                   presetName: AVAssetExportPresetAppleM4A) else
         {
@@ -144,19 +158,20 @@ public extension MPMediaItem {
         exporter.shouldOptimizeForNetworkUse = false;
         exporter.outputFileType = AVFileType.m4a
         
-        exporter.outputURL = destinationDir
-            .appendingPathComponent(fileName())
-            .appendingPathExtension("m4a")
+        let destinationURL = FileManager.default.uniqueURL(in: destinationDir,
+                                                           name: fileName(),
+                                                           type: AVFileType.m4a.fileExtension ?? ".m4a")
+        exporter.outputURL = destinationURL
         
-        //Edge case... it appears sometimes the library does not write metadata into files.
-        // This copies minimal metadata to the exporter if necessary
-        //Using title as proxy as it is uncommon to find a track without a title in metadata
+        //It appears sometimes the media library does not write metadata into files.
+        // This copies minimal metadata to the exporter if necessary.
+        //I'm using title as proxy for missing metadata as it is uncommon to find a
+        // MediaLibrary track without a title in metadata
         if asset.title == nil {
-            var metadata: [AVMetadataItem] = []
+            var metadata = minimalMetaData()
             if let exportMetadata = exporter.metadata {
                 metadata.append(contentsOf: exportMetadata)
             }
-            metadata.append(contentsOf:  minimalMetaData())
             exporter.metadata = metadata
         }
         
@@ -172,7 +187,7 @@ public extension MPMediaItem {
     }
     
     //A cherry-picked set of commonly available metadata elements along with things
-    // the user may have added (and thus likely wants.)
+    // the user may have added (and thus likely wants to keep.)
     fileprivate func minimalMetaData() -> [AVMetadataItem] {
         var result: [AVMetadataItem] = []
         

@@ -79,7 +79,7 @@ public extension Array {
 }
 
 public extension Array {
-    mutating func appendIfExists(_ newElement: Self.Element?) {
+    mutating func safeAppend(_ newElement: Self.Element?) {
         guard let newElement = newElement else {
             return
         }
@@ -92,5 +92,18 @@ public extension Sequence {
     ///A  more expensive but more accurate version of underestimatedCount
     var exactCount: Int {
         self.reduce(into: 0) { count, _ in count += 1 }
+    }
+}
+
+public extension Set {
+    struct SetDifferences {
+        public var added: Set<Element>
+        public var removed: Set<Element>
+    }
+    
+    func differences(from other: Set<Element>) -> SetDifferences {
+        let added = self.subtracting(other)
+        let removed = other.subtracting(self)
+        return SetDifferences(added: added, removed: removed)
     }
 }

@@ -11,21 +11,33 @@ import CoreServices
 
 public extension UIBezierPath {
     ///Draws a vertical line at the given x, y for the given height
-    func addVerticalLine(x: CGFloat, y: CGFloat, height: CGFloat) {
-        move(to: CGPoint(x: x, y: y))
-        addLine(to: CGPoint(x: x, y: y + height))
+    func addVerticalLine(at point: CGPoint, ofHeight height: CGFloat) {
+        move(to: point)
+        addLine(to: CGPoint(x: point.x, y: point.y + height))
     }
     
-    func addHorizontalLine(x: CGFloat, y: CGFloat, width: CGFloat) {
-        move(to: CGPoint(x: x, y: y))
-        addLine(to: CGPoint(x: x + width, y: y))
+    ///Draws a horizontal line at the given x, y for the given width
+    func addHorizontalLine(at point: CGPoint, ofWidth width: CGFloat) {
+        move(to: point)
+        addLine(to: CGPoint(x: point.x + width, y: point.y))
     }
+}
 
+public extension UIEdgeInsets {
+    init(inset: CGFloat) {
+        self.init(top: inset, left: inset, bottom: inset, right: inset)
+    }
 }
 
 public extension CGRect {
     var center:CGPoint {
-        CGPoint(x: self.midX, y: self.midY)
+        get {
+            CGPoint(x: self.midX, y: self.midY)
+        }
+        set {
+            origin = CGPoint(x: newValue.x - width.halved,
+                             y: newValue.y - height.halved)
+        }
     }
     
     static func rectCenteredOn(center:CGPoint, radius:CGFloat) -> CGRect {
@@ -164,11 +176,11 @@ public class WrappingIndexingGenerator<C: Collection>: IteratorProtocol {
 
 public extension FileManager {
     var documentsDirectory: URL {
-        guard let cacheURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+        guard let docURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
           fatalError("unable to locate system document directory")
         }
         
-        return cacheURL
+        return docURL
     }
     
     var cacheDirectory: URL {
@@ -200,6 +212,30 @@ public extension FileManager {
 
     var temporaryFile: URL {
         temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    }
+    
+    ///Creates a unique file name in the given directory using the Apple convention of appending
+    /// numbers to the end of the file name.
+    func uniqueURL(in dir: URL, name: String, type: String) -> URL {
+        var result = dir.appendingPathComponent(name).appendingPathExtension(type)
+        
+        var attempt = 0
+        while fileExists(atPath: result.path) {
+            attempt += 1
+            result = dir.appendingPathComponent("\(name) \(attempt)").appendingPathExtension(type)
+        }
+        
+        return result
+    }
+}
+
+public extension URL {
+    ///returns tuple of (file name, file extension) or nil if URL is a directory
+    var filenameExtension: (String, String)? {
+        guard !hasDirectoryPath else {
+            return nil
+        }
+        return (deletingPathExtension().lastPathComponent, pathExtension)
     }
 }
 
@@ -397,4 +433,14 @@ public extension Bundle {
         return extensions
     }
 
+}
+
+public extension UIScreen {
+    class var externalDisplays: [UIScreen] {
+       UIScreen.screens.filter { $0 != UIScreen.main }
+    }
+    
+    class var availableDisplays: [UIScreen] {
+        externalDisplays.filter { !$0.isCaptured }
+    }
 }

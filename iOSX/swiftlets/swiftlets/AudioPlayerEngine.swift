@@ -37,6 +37,9 @@ public class AudioPlayerEngine {
     //AVAudioEngine and nodes
     internal var engine: AVAudioEngine = AVAudioEngine()
     internal var player: AVAudioPlayerNode = AVAudioPlayerNode()
+    internal let mixer: AVAudioMixerNode = AVAudioMixerNode()
+    
+    //audio file
     internal var audioFile: AVAudioFile?
     
     //seek position for start
@@ -48,11 +51,8 @@ public class AudioPlayerEngine {
     //state tracking for AVAudioPlayerNode pause
     private var paused: Bool = false
     private var pausedPosition: TimeInterval = 0.0
-    
-    
     private var stopping: Bool = false
 
-    
     //Buffer queue management and thread safety
     private let bufferQueue: DispatchQueue = DispatchQueue(label: "com.cyberdev.AudioPlayerEngine.buffers")
     private var buffersInFlight: Int = 0
@@ -147,19 +147,42 @@ public class AudioPlayerEngine {
     }
     #endif
     
-    internal func initAudioEngine () {
+    internal func initAudioEngine() {
+        //attach nodes
         engine.attach(player)
-        engine.connect(player, to: engine.mainMixerNode, format: engine.mainMixerNode.outputFormat(forBus: 0))
+        engine.attach(mixer)
+        
+        //create node graph
+        // note: use of mixer here allows for better abstraction
+        //       of mapping channels in audio file to the output device
+        engine.connect(player, to: mixer, format: nil)
+        engine.connect(mixer, to: engine.mainMixerNode, format: nil)
+        
         engine.prepare()
         engine.isAutoShutdownEnabled = true
     }
     
+    //ensure output format of player matches format of the file
+    internal func matchFilePlaybackFormat(_ fileFormat: AVAudioFormat) {
+        let mainsFormat = engine.mainMixerNode.outputFormat(forBus: 0)
+        let playbackFormat = AVAudioFormat(commonFormat: mainsFormat.commonFormat,
+                                           sampleRate: fileFormat.sampleRate,
+                                           channels: fileFormat.channelCount,
+                                           interleaved: mainsFormat.isInterleaved)
+        
+        engine.connect(player, to: mixer, format: playbackFormat)
+        
+        //prepare the engine
+        engine.prepare()
+    }
+
     //MARK: Public Methods
     @discardableResult public func setTrack(url: URL) -> Bool {
         guard let file: AVAudioFile = try? AVAudioFile.init(forReading: url) else {
             return false
         }
         
+        //managing playback state
         let wasPlaying: Bool = isPlaying()
         if wasPlaying {
             _stop()
@@ -168,11 +191,8 @@ public class AudioPlayerEngine {
         audioFile = file
         trackLength = Double(file.length)/file.processingFormat.sampleRate
         seekPosition = kTrackHeadFramePosition
-        
-        //ensure output format of player matches format of the file
-        engine.connect(player,
-                       to: engine.mainMixerNode,
-                       format: file.processingFormat)
+                
+        matchFilePlaybackFormat(file.fileFormat)
         
         registerForMediaServerNotifications()
         
@@ -182,7 +202,7 @@ public class AudioPlayerEngine {
         
         return true
     }
-    
+        
     public func isPlaying() -> Bool {
         bufferQueue.sync {
             player.isPlaying
@@ -508,10 +528,21 @@ public class FXAudioPlayerEngine: AudioPlayerEngine, AudioPlayer {
             guard let url = mediaItem?.assetURL else {
                 return
             }
+            asset = nil
             setTrack(url: url)
         }
     }
     
+    public var asset: AVURLAsset? = nil {
+        didSet {
+            guard let asset = asset else {
+                return
+            }
+            mediaItem = nil
+            setTrack(url: asset.url)
+        }
+    }
+
     //Audio Units
     private let timePitch: AVAudioUnitTimePitch = AVAudioUnitTimePitch()
     private let equalizer: AVAudioUnitEQ = AVAudioUnitEQ(numberOfBands: kNumberOfBands)
@@ -632,11 +663,19 @@ public class FXAudioPlayerEngine: AudioPlayerEngine, AudioPlayer {
     public init(mediaItem: MPMediaItem? = nil) {
         super.init()
         self.mediaItem = mediaItem
-        if let url = mediaItem?.assetURL {
+        if let url = self.mediaItem?.assetURL {
             setTrack(url: url)
         }
     }
     
+    public init(asset: AVURLAsset? = nil) {
+        super.init()
+        self.asset = asset
+        if let url = self.asset?.url {
+            setTrack(url: url)
+        }
+    }
+
     override internal func initAudioEngine () {
         //super first so it will setup player, etc.
         super.initAudioEngine()
@@ -655,17 +694,11 @@ public class FXAudioPlayerEngine: AudioPlayerEngine, AudioPlayer {
         //configure mixer
         engine.attach(routingMixer)
         
-        //disconnect player so we can insert our effects between player and output
-        engine.disconnectNodeOutput(player)
-        
-        //format of processing output = format of input to main mixer
-        let outputFormat = engine.mainMixerNode.inputFormat(forBus: 0)
-        
-        //construct node graph
-        engine.connect(player, to: timePitch, format: outputFormat)
-        engine.connect(timePitch, to: equalizer, format: outputFormat)
-        engine.connect(equalizer, to: routingMixer, format: outputFormat)
-        engine.connect(routingMixer, to: engine.mainMixerNode, format: outputFormat)
+        //construct fx node graph... connect to output of the playback mixer
+        engine.connect(mixer, to: timePitch, format: nil)
+        engine.connect(timePitch, to: equalizer, format: nil)
+        engine.connect(equalizer, to: routingMixer, format: nil)
+        engine.connect(routingMixer, to: engine.mainMixerNode, format: nil)
         
         //configure gain structure
         self.trackOutputLevelAdjust = kOutputLevelDefault
@@ -673,7 +706,7 @@ public class FXAudioPlayerEngine: AudioPlayerEngine, AudioPlayer {
         //prepare the engine
         engine.prepare()
     }
-    
+        
     //MARK: Public Methods
     
     ///Reset EQ, track output level, and time pitch effect to nominal values.
@@ -789,6 +822,10 @@ public protocol AudioPlayer {
     var delegate: AudioPlayerDelegate? { get set }
     
     var mediaItem: MPMediaItem? { get set }
+    
+    var asset: AVURLAsset? { get set }
+    
+    var assetURL: URL? {get }
 
     var playbackPosition: TimeInterval { get set }
     
@@ -838,6 +875,18 @@ public protocol AudioPlayer {
 }
 
 extension AudioPlayer {
+    public var assetURL: URL? {
+        get {
+            if asset != nil {
+                return asset?.url
+            } else if mediaItem != nil {
+                return mediaItem?.assetURL
+            }
+            
+            return nil
+        }
+    }
+
     public var playbackDuration: TimeInterval {
         guard let duration = mediaItem?.playbackDuration else {
             return 0.0
@@ -881,41 +930,29 @@ extension AudioPlayer {
         false
     }
     public var outputRouting: AudioPlayerOutputRouting? {
-        get {
-            nil
-        }
-        set {
-        }
+        get { nil }
+        set {}
     }
     
     public var hasOutputLevelAdjust: Bool {
         false
     }
     public var trackOutputLevelAdjust: Float? {
-        get {
-            nil
-        }
-        set {
-        }
+        get { nil }
+        set {}
     }
     
     public var timePitchQuality: AudioPlayerTimePitchQuality? {
-        get {
-            nil
-        }
-        set {
-        }
+        get { nil }
+        set {}
     }
     
     public var hasEQSettings: Bool {
         false
     }
     public var equalizerBands: [AudioPlayerEQFilterParameters] {
-        get {
-            []
-        }
-        set {
-        }
+        get { [] }
+        set {}
     }
     
     public var outputSampleRate: Double? {
@@ -945,6 +982,20 @@ public class MusicPlayer: AudioPlayer {
         }
     }
     
+    public var asset: AVURLAsset? {
+        get {
+            return nil
+        }
+        
+        set {
+            assert(false, "AVURLAsset not supported on MusicPlayer class")
+        }
+    }
+    
+    public var assetURL: URL? {
+        return mediaItem?.assetURL
+    }
+
     public var playbackPosition: TimeInterval {
         get {
             player.currentPlaybackTime
@@ -1040,5 +1091,9 @@ public struct AudioPlayerFactory {
         else {
             return MusicPlayer(mediaItem: mediaItem)
         }
+    }
+    
+    public static func createPlayer(for asset: AVURLAsset) -> AudioPlayer {
+        return FXAudioPlayerEngine(asset: asset)
     }
 }

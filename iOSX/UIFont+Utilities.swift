@@ -34,4 +34,12 @@ public extension UIFont {
 
         return UIFont(descriptor: boldFontDesc, size: pointSize)
     }
+    
+    ///Returns variant of current font that will fit within the given height
+    /// - note: This makes the assumption that font heights scale mostly linearly
+    ///  with respect to point size. That may not always be the case especially
+    ///  at the extremes of point sizes.
+    func fittingHeight(_ height: CGFloat) -> UIFont {
+        withSize(floor(height * (pointSize / lineHeight)))
+    }
 }
