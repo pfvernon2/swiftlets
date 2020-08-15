@@ -21,6 +21,46 @@ public extension UIBezierPath {
         move(to: point)
         addLine(to: CGPoint(x: point.x + width, y: point.y))
     }
+    
+    convenience init(star rect: CGRect, points: Int = 5) {
+        self.init()
+
+        let center = rect.center
+
+        let numberOfPoints: CGFloat = 5.0
+        let numberOfLineSegments = Int(numberOfPoints * 2.0)
+        let theta = .pi / numberOfPoints
+
+        let circumscribedRadius = center.x
+        let outerRadius = circumscribedRadius * 1.039
+        let excessRadius = outerRadius - circumscribedRadius
+        let innerRadius = CGFloat(outerRadius * 0.382)
+
+        let leftEdgePointX = (center.x + cos(4.0 * theta) * outerRadius) + excessRadius
+        let horizontalOffset = leftEdgePointX / 2.0
+
+        // Apply a slight horizontal offset so the star appears to be more
+        // centered visually
+        let offsetCenter = CGPoint(x: center.x - horizontalOffset, y: center.y)
+
+        // Alternate between the outer and inner radii while moving evenly along the
+        // circumference of the circle, connecting each point with a line segment
+        for i in 0..<numberOfLineSegments {
+            let radius = i.isMultiple(of: 2) ? outerRadius : innerRadius
+
+            let pointX = offsetCenter.x + cos(CGFloat(i) * theta) * radius
+            let pointY = offsetCenter.y + sin(CGFloat(i) * theta) * radius
+            let point = CGPoint(x: pointX, y: pointY)
+
+            if i == 0 {
+                move(to: point)
+            } else {
+                addLine(to: point)
+            }
+        }
+
+        close()
+    }
 }
 
 public extension UIEdgeInsets {
@@ -117,11 +157,11 @@ public extension CGPoint {
 
 public extension CGSize {
     func maxDimension() -> CGFloat {
-        width > height ? width : height
+        max(width, height)
     }
     
     func minDimension() -> CGFloat {
-        width < height ? width : height
+        min(width, height)
     }
 }
 
@@ -250,12 +290,16 @@ public extension NotificationCenter {
 }
 
 public extension Double {
+    static var halfPi: Double {
+        .pi / 2.0
+    }
+    
     static var π: Double {
         .pi
     }
     
     static var τ: Double {
-        .pi * 2.0
+        π.doubled
     }
 
     func truncate(to places: Int) -> Double {

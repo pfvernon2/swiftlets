@@ -8,7 +8,7 @@
 
 import UIKit
 
-extension UIViewController {
+public extension UIViewController {
     class func topViewControllerForRoot(_ rootViewController:UIViewController?) -> UIViewController? {
         guard let rootViewController = rootViewController else {
             return nil
@@ -30,5 +30,29 @@ extension UIViewController {
         default:
             return UIViewController.topViewControllerForRoot(presented)
         }
+    }
+    
+    func move(to screen: UIScreen, retry: Int = 2, completion: @escaping (UIWindow?) -> Swift.Void) {
+        guard let windowScene = UIApplication.shared.sceneForScreen(screen) else {
+            if retry > 0 {
+                DispatchQueue.main.asyncAfter(secondsFromNow: 1.0) {
+                    self.move(to :screen, retry: retry - 1, completion: completion)
+                }
+            } else {
+                completion(nil)
+            }
+            return
+        }
+
+        let displayWindow = { () -> UIWindow in
+            let window = UIWindow(frame: screen.bounds)
+            window.rootViewController = self
+            window.windowScene = windowScene
+            window.isHidden = false
+            window.makeKeyAndVisible()
+            return window
+        }()
+        
+        completion(displayWindow)
     }
 }
