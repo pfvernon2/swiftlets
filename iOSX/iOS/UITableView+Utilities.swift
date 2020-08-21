@@ -9,25 +9,42 @@
 import Foundation
 import UIKit
 
-//Protocol to aid in identifying and registering reusable cells
+///Protocol to aid in identifying and registering reusable cells
 public protocol ReuseIdentifiable: class {
     static var reuseIdentifier: String { get }
-    
-    static func register(with table: UITableView)
-    static func register(with collection: UICollectionView)
 }
 
 public extension ReuseIdentifiable {
     static var reuseIdentifier: String {
         String(describing: self)
     }
-    
-    static func register(with table: UITableView) {
-        table.register(self, forCellReuseIdentifier: self.reuseIdentifier)
+}
+
+public extension UITableView {
+    func dequeueReusableCell<C: ReuseIdentifiable>(ofClass cell: C.Type, for indexPath: IndexPath) -> C {
+        guard let cell = dequeueReusableCell(withIdentifier: C.reuseIdentifier, for: indexPath) as? C else {
+            fatalError("UITableViewCell '\(String(describing: C.self))' not found")
+        }
+        
+        return cell
     }
     
-    static func register(with collection: UICollectionView) {
-        collection.register(self, forCellWithReuseIdentifier: self.reuseIdentifier)
+    func registerCell<C: ReuseIdentifiable>(ofClass cell: C.Type) {
+        register(cell, forCellReuseIdentifier: C.reuseIdentifier)
+    }
+}
+
+public extension UICollectionView {
+    func dequeueReusableCell<C: ReuseIdentifiable>(ofClass cell: C.Type, for indexPath: IndexPath) -> C {
+        guard let cell = dequeueReusableCell(withReuseIdentifier: C.reuseIdentifier, for: indexPath) as? C else {
+            fatalError("UICollectionViewCell '\(String(describing: C.self))' not found")
+        }
+        
+        return cell
+    }
+    
+    func registerCell<C: ReuseIdentifiable>(ofClass cell: C.Type) {
+        register(cell, forCellWithReuseIdentifier: C.reuseIdentifier)
     }
 }
 
@@ -43,5 +60,33 @@ public class HiddenTableViewCell: UITableViewCell, ReuseIdentifiable {
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         self.isHidden = true
+    }
+}
+
+public extension UITableView {
+    func sizeHeaderToFit() {
+        guard let header = tableHeaderView else {
+            return
+        }
+        makeFit(header)
+        tableHeaderView = header
+    }
+    
+    func sizeFooterToFit() {
+        guard let footer = tableFooterView else {
+            return
+        }
+        makeFit(footer)
+        tableFooterView = footer
+    }
+    
+    private func makeFit(_ view: UIView) {
+        view.setNeedsLayout()
+        view.layoutIfNeeded()
+        
+        let height = view.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize).height
+        var frame = view.frame
+        frame.size.height = height
+        view.frame = frame
     }
 }

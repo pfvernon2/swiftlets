@@ -163,6 +163,16 @@ public extension CGSize {
     func minDimension() -> CGFloat {
         min(width, height)
     }
+    
+    static var ɸ: CGFloat = 1.61803398874989484820
+    
+    static func goldenRectangleFor(width: CGFloat) -> CGSize {
+        CGSize(width: width, height: ceil(width/ɸ))
+    }
+    
+    static func goldenRectangleFor(height: CGFloat) -> CGSize {
+        CGSize(width: ceil(height * ɸ), height: height)
+    }
 }
 
 public extension UserDefaults {
@@ -191,6 +201,13 @@ extension CGAffineTransform {
         }
         return result
     }
+}
+
+extension CACornerMask {
+    public static var topLeft: CACornerMask = { layerMinXMinYCorner }()
+    public static var lowerLeft: CACornerMask = { layerMinXMaxYCorner }()
+    public static var topRight: CACornerMask = { layerMaxXMinYCorner }()
+    public static var lowerRight: CACornerMask = { layerMaxXMaxYCorner }()
 }
 
 ///Trivial indexing generator that wraps back to startIndex when reaching endIndex
