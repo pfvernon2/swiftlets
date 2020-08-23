@@ -818,7 +818,7 @@ public enum AudioPlayerTimePitchQuality : Float {
 /// after initialization to see what is available.
 /// - note: The MPMediaPlayer concept of a queue is hidden here as well. The assumption is that you want
 ///         full controll over playback and thus assume full responsibility for transitions.
-public protocol AudioPlayer {
+public protocol AudioPlayer: class {
     var delegate: AudioPlayerDelegate? { get set }
     
     var mediaItem: MPMediaItem? { get set }

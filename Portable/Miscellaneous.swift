@@ -92,7 +92,7 @@ public extension CGRect {
     }
     
     var bottom:CGFloat {
-        self.size.height
+        top + self.size.height
     }
     
     var left:CGFloat {
@@ -100,7 +100,7 @@ public extension CGRect {
     }
     
     var right:CGFloat {
-        self.size.width
+        left + self.size.width
     }
     
     var midLeft: CGPoint {
@@ -503,5 +503,11 @@ public extension UIScreen {
     
     class var availableDisplays: [UIScreen] {
         externalDisplays.filter { !$0.isCaptured }
+    }
+}
+
+public extension IndexPath {
+    static var zero: IndexPath {
+        IndexPath(row: 0, section: 0)
     }
 }
