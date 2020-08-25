@@ -41,6 +41,7 @@
 		011914C31D74984D009B578A /* Dispatch+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011914C21D74984D009B578A /* Dispatch+Utilities.swift */; };
 		011C42202013DAF80032EC48 /* AVMetadataIdentifier+id3v2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011C421F2013DAF80032EC48 /* AVMetadataIdentifier+id3v2.swift */; };
 		011C42222013DBA80032EC48 /* AVAsset+AVMetadataItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011C42212013DBA80032EC48 /* AVAsset+AVMetadataItem.swift */; };
+		011F1ABB24F597E9002F30AD /* UICollectionView+Utilties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011F1ABA24F597E9002F30AD /* UICollectionView+Utilties.swift */; };
 		012047C11D0C854A00E79510 /* UIApplication+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 012047C01D0C854A00E79510 /* UIApplication+Utilities.swift */; };
 		0130BE251DBA9203008EEEE4 /* CSVHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0130BE241DBA9203008EEEE4 /* CSVHelper.swift */; };
 		01382E8A1DC66D5B00B55A9C /* RemoteImageCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01382E891DC66D5B00B55A9C /* RemoteImageCache.swift */; };
@@ -122,6 +123,7 @@
 		011914C21D74984D009B578A /* Dispatch+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Dispatch+Utilities.swift"; path = "../../../Portable/Dispatch+Utilities.swift"; sourceTree = "<group>"; };
 		011C421F2013DAF80032EC48 /* AVMetadataIdentifier+id3v2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "AVMetadataIdentifier+id3v2.swift"; path = "../../AVMetadataIdentifier+id3v2.swift"; sourceTree = "<group>"; };
 		011C42212013DBA80032EC48 /* AVAsset+AVMetadataItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "AVAsset+AVMetadataItem.swift"; path = "../../AVAsset+AVMetadataItem.swift"; sourceTree = "<group>"; };
+		011F1ABA24F597E9002F30AD /* UICollectionView+Utilties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "UICollectionView+Utilties.swift"; path = "../../iOS/UICollectionView+Utilties.swift"; sourceTree = "<group>"; };
 		012047C01D0C854A00E79510 /* UIApplication+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIApplication+Utilities.swift"; path = "../../iOS/UIApplication+Utilities.swift"; sourceTree = "<group>"; };
 		0130BE241DBA9203008EEEE4 /* CSVHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CSVHelper.swift; path = ../../../Portable/CSVHelper.swift; sourceTree = "<group>"; };
 		01382E891DC66D5B00B55A9C /* RemoteImageCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = RemoteImageCache.swift; path = ../../RemoteImageCache.swift; sourceTree = "<group>"; };
@@ -269,6 +271,7 @@
 				01533B001C9DDF2000C6E69D /* CoalescingTimer.swift */,
 				011330801D05CC27002DA0F0 /* String+Localization.swift */,
 				0105B27C2230454A0069124E /* UITableView+Utilities.swift */,
+				011F1ABA24F597E9002F30AD /* UICollectionView+Utilties.swift */,
 				01533B011C9DDF2000C6E69D /* DoubleTapTableView.swift */,
 				01533B021C9DDF2000C6E69D /* UIImage+maskColor.swift */,
 				01533B031C9DDF2000C6E69D /* UIImage+Scaling.swift */,
@@ -577,6 +580,7 @@
 				0193D798217D341100754BE8 /* FormInputManager.swift in Sources */,
 				01636FFC24C0B83C00FF4433 /* AVAudioFile+Utilities.swift in Sources */,
 				01382E8A1DC66D5B00B55A9C /* RemoteImageCache.swift in Sources */,
+				011F1ABB24F597E9002F30AD /* UICollectionView+Utilties.swift in Sources */,
 				012047C11D0C854A00E79510 /* UIApplication+Utilities.swift in Sources */,
 				01E6784E1CD5315D00ABE1CB /* MKMapKit+Utilities.swift in Sources */,
 				01533B0B1C9DDF2000C6E69D /* RoundedCornerView.swift in Sources */,

@@ -71,4 +71,3 @@ open class LeftAlignedFlowLayout: UICollectionViewFlowLayout {
         return attributes
     }
 }
-
