@@ -968,17 +968,19 @@ extension AudioPlayer {
 
 ///This is a thin wrapper on MPMusicPlayerController to give us interface consistency with AudioPlayer for factory construction
 public class MusicPlayer: AudioPlayer {
-    private var player: MPMusicPlayerController
+    private var player: MPMusicPlayerController {
+        didSet {
+            player.repeatMode = .none
+            player.shuffleMode = .off
+        }
+    }
+    private var playbackBegun: Bool = false
     
     public weak var delegate: AudioPlayerDelegate?
 
     public var mediaItem: MPMediaItem? = nil {
         didSet {
-            guard let id = mediaItem?.playbackStoreID else {
-                return
-            }
-            player.setQueue(with: [id])
-            player.prepareToPlay()
+            setupPlayer()
         }
     }
     
@@ -1014,37 +1016,39 @@ public class MusicPlayer: AudioPlayer {
     public init(mediaItem: MPMediaItem? = nil) {
         player = MPMusicPlayerController.applicationMusicPlayer
         self.mediaItem = mediaItem
-        if let id = mediaItem?.playbackStoreID {
-            player.setQueue(with: [id])
-            player.prepareToPlay()
-        }
-        player.repeatMode = .none
-        player.shuffleMode = .off
-
+        setupPlayer()
+        
         NotificationCenter.default.addObserver(forName: .MPMusicPlayerControllerPlaybackStateDidChange,
                                                object: player,
                                                queue: .main)
         { [weak self] (notification) in
-            guard let state = self?.player.playbackState else {
-                return
-            }
-            
-            switch state {
-            case .stopped:
-                self?.player.currentPlaybackTime = 0.0
-                self?.delegate?.playbackStopped(trackCompleted: true)
-            case .playing:
-                self?.delegate?.playbackStarted()
-            case .paused:
-                self?.delegate?.playbackPaused()
-            case .interrupted:
-                self?.delegate?.playbackStopped(trackCompleted: false)
-            case .seekingForward:
-                break
-            case .seekingBackward:
-                break
-            @unknown default:
-                break
+            DispatchQueue.main.async {
+                guard let state = self?.player.playbackState else {
+                    return
+                }
+                
+                switch state {
+                case .stopped:
+                    //player sends state change for 'stopped' on queue creation so we
+                    // have to track playback state for our intended usage of track completion
+                    if let started = self?.playbackBegun, started {
+                        //reset media item in queue to prepare for possible replay/repeat
+                        self?.setupPlayer()
+                        self?.delegate?.playbackStopped(trackCompleted: true)
+                    }
+                case .playing:
+                    self?.delegate?.playbackStarted()
+                case .paused:
+                    self?.delegate?.playbackPaused()
+                case .interrupted:
+                    self?.delegate?.playbackStopped(trackCompleted: false)
+                case .seekingForward:
+                    break
+                case .seekingBackward:
+                    break
+                @unknown default:
+                    break
+                }
             }
         }
         
@@ -1057,6 +1061,7 @@ public class MusicPlayer: AudioPlayer {
     
     @discardableResult public func play() -> Bool {
         player.play()
+        playbackBegun = true
         return isPlaying()
     }
     
@@ -1075,6 +1080,15 @@ public class MusicPlayer: AudioPlayer {
         
     public func stop() {
         player.stop()
+    }
+    
+    private func setupPlayer() {
+        guard let id = mediaItem?.playbackStoreID else {
+            return
+        }
+        
+        player.setQueue(with: [id])
+        player.prepareToPlay()
     }
 }
 
