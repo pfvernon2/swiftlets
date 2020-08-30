@@ -15,6 +15,7 @@ public protocol AudioPlayerDelegate: class {
     func playbackStarted()
     func playbackPaused()
     func playbackStopped(trackCompleted: Bool)
+    func playbackRateAdjusted()
 }
 
 //MARK: - Constants
@@ -48,10 +49,11 @@ public class AudioPlayerEngine {
     //indication of external interruption of playback
     private var interrupted: Bool = false
     
-    //state tracking for AVAudioPlayerNode pause
+    //state tracking for AVAudioPlayerNode
     private var paused: Bool = false
     private var pausedPosition: TimeInterval = 0.0
     private var stopping: Bool = false
+    private var reachedEnd: Bool = false
 
     //Buffer queue management and thread safety
     private let bufferQueue: DispatchQueue = DispatchQueue(label: "com.cyberdev.AudioPlayerEngine.buffers")
@@ -69,7 +71,7 @@ public class AudioPlayerEngine {
                 return 0.0
             }
             
-            return Float(playbackPosition/trackLength)
+            return Float(playbackPosition / trackLength).clamped(to: 0.0...1.0)
         }
         
         set (position) {
@@ -89,12 +91,12 @@ public class AudioPlayerEngine {
                 
             //paused
             else if isPaused() {
-                return self.pausedPosition
+                return pausedPosition
             }
-                
+            
             //stopped
-            else if let currentAudioFile = self.audioFile {
-                return TimeInterval(self.seekPosition/AVAudioFramePosition(currentAudioFile.fileFormat.sampleRate))
+            else if let audioFile = audioFile {
+                return TimeInterval(Double(seekPosition) / audioFile.fileFormat.sampleRate)
             }
             
             //not configured
@@ -106,7 +108,7 @@ public class AudioPlayerEngine {
                 return
             }
             
-            let newPosition: AVAudioFramePosition = AVAudioFramePosition(seconds * audioFile.fileFormat.sampleRate)
+            let newPosition = AVAudioFramePosition(seconds * audioFile.fileFormat.sampleRate)
             
             //if newPosition > audioFile.length then we are scheduling past end of file, allowing this for now as nothing bad happens
             
@@ -115,7 +117,7 @@ public class AudioPlayerEngine {
                 _stop()
             }
             
-            self.seekPosition = newPosition
+            seekPosition = newPosition
             
             if wasPlaying {
                 _play()
@@ -255,13 +257,11 @@ public class AudioPlayerEngine {
         guard isPlaying() else {
             return
         }
-        
-        let trackProgress: Float = self.playbackProgress
-        
+                
         _stop()
         
         DispatchQueue.main.async {
-            self.delegate?.playbackStopped(trackCompleted: trackProgress >= 1.0)
+            self.delegate?.playbackStopped(trackCompleted: self.reachedEnd)
         }
     }
         
@@ -378,6 +378,8 @@ public class AudioPlayerEngine {
             return
         }
         
+        reachedEnd = false
+        
         for _ in 1...kMaxBuffersInFlight {
             guard let buffer: AVAudioPCMBuffer = AVAudioPCMBuffer(pcmFormat: audioFile.processingFormat, frameCapacity: kBufferFrameCount) else {
                 return
@@ -417,6 +419,7 @@ public class AudioPlayerEngine {
                 // call stop for engine cleanup
                 guard !bufferQueueDrained else {
                     DispatchQueue.main.async {
+                        self.reachedEnd = true
                         self.stop()
                     }
                     return
@@ -633,6 +636,11 @@ public class FXAudioPlayerEngine: AudioPlayerEngine, AudioPlayer {
             // necessary for audio processing. This optimization may need to be made conditional if
             // we hit similar issues.
             timePitch.bypass = (rate == kRateCenter)
+            
+            
+            DispatchQueue.main.async {
+                self.delegate?.playbackRateAdjusted()
+            }
         }
     }
     
@@ -813,6 +821,13 @@ public enum AudioPlayerTimePitchQuality : Float {
     case high = 32.0
 }
 
+public struct PlaybackPosition {
+    public let position: Float
+    public let current: TimeInterval
+    public let remaining: TimeInterval
+    public let duration: TimeInterval
+}
+
 ///Protocol for our concept of an audio player which abstracts MPMediaPlayer and AVAudioEngine/AVAudioPlayerNode
 /// Not all features (EQ, routing, track output level) are supported by both so you need to check with your factory created object
 /// after initialization to see what is available.
@@ -837,6 +852,8 @@ public protocol AudioPlayer: class {
     ///Adjust the time pitch rate in the range: 0.03125 to 32.0, default is 1.0
     var playbackRate: Float { get set }
 
+    var currentPosition: PlaybackPosition { get }
+    
     var hasOutputRouting: Bool { get }
     var outputRouting: AudioPlayerOutputRouting? { get set }
 
@@ -891,7 +908,21 @@ extension AudioPlayer {
         guard let duration = mediaItem?.playbackDuration else {
             return 0.0
         }
-        return duration / TimeInterval(playbackRate)
+        return ceil(duration / TimeInterval(playbackRate))
+    }
+    
+    public var currentPosition: PlaybackPosition {
+        let progress = playbackProgress.clamped(to: 0.0...1.0)
+        
+        //time adjusted for changes in playback rate
+        let duration = playbackDuration
+        let current: TimeInterval = floor(duration * Double(progress))
+        let remaining: TimeInterval = floor(duration - current)
+        
+        return PlaybackPosition(position: progress,
+                                current: current,
+                                remaining: remaining,
+                                duration: duration)
     }
     
     ///Toggle play/pause as appropriate
@@ -1009,7 +1040,14 @@ public class MusicPlayer: AudioPlayer {
 
     public var playbackRate: Float = 1.0 {
         didSet {
-            player.currentPlaybackRate = playbackRate
+            //currentPlaybackRate == 0 when stopped
+            if player.currentPlaybackRate != 0 {
+                player.currentPlaybackRate = playbackRate
+            }
+            
+            DispatchQueue.main.async {
+                self.delegate?.playbackRateAdjusted()
+            }
         }
     }
     
@@ -1034,6 +1072,7 @@ public class MusicPlayer: AudioPlayer {
                     if let started = self?.playbackBegun, started {
                         //reset media item in queue to prepare for possible replay/repeat
                         self?.setupPlayer()
+                        self?.playbackPosition = 0.0
                         self?.delegate?.playbackStopped(trackCompleted: true)
                     }
                 case .playing:
@@ -1060,7 +1099,8 @@ public class MusicPlayer: AudioPlayer {
     }
     
     @discardableResult public func play() -> Bool {
-        player.play()
+        //setting playback rate has side effect of starting playback
+        player.currentPlaybackRate = playbackRate
         playbackBegun = true
         return isPlaying()
     }
