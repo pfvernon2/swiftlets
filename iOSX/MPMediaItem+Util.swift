@@ -9,6 +9,7 @@
 import Foundation
 import MediaPlayer
 import MobileCoreServices
+import CryptoKit
 
 extension AVFileType {
     /// Reference file extension for UTI string
@@ -27,7 +28,11 @@ extension String {
             return String()
         }
         
-        return data.sha256()
+        let hash = SHA256.hash(data: data)
+        
+        //return hex representation of the bytes without the description prefix
+        //Note: This is significantly faster than doing String(format:) on the hash bytes
+        return String(hash.description.suffix(64))
     }
 }
 
@@ -39,7 +44,7 @@ extension MPMediaItem {
      In my ananlysis, tracklength (in milliseconds) was highly unique but not 100% reliable. Track name,
      artist, and album are also added to the resulting hash to increase uniqueness.
      
-     Rationalle: Track name, artist and album, are likely to change only rarely and most likely
+     Rationale: Track name, artist and album, are likely to change only rarely and most likely
      to change only slightly such as correcting a typo in capitalization or white space. Thus the effort
      to remove whitespace and standardize the case.
     
@@ -53,7 +58,7 @@ extension MPMediaItem {
         let album:String = normalizeString(self.albumTitle)
         let trackLength:String = String(self.playbackDuration)
 
-        //Hash Title:Artist:Album:TrackLength with record seperators
+        //Hash Title|Artist|Album|TrackLength with record seperators to ensure uniqueness of fields
         let hashString = [title, artist, album, trackLength].joined(separator: "\u{1c}")
         return hashString.sha256()
     }

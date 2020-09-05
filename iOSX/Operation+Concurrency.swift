@@ -10,7 +10,7 @@ import Foundation
 
 //MARK: - Operation extension
 
-extension Operation {
+public extension Operation {
     func addDependencies(_ operations:[Operation]) {
         operations.forEach { (operation) in
             self.addDependency(operation)
