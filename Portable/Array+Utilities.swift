@@ -79,6 +79,7 @@ public extension Array {
 }
 
 public extension Array {
+    /// Method to append an optional. If optional is nil append does not occur.
     mutating func safeAppend(_ newElement: Self.Element?) {
         guard let newElement = newElement else {
             return
@@ -87,15 +88,49 @@ public extension Array {
         append(newElement)
     }
     
+    /// Method to convert array into array of arrays with the given number of elements.
+    /// - note: Does not use slices, may result in copies elements.
     func split(by numElements: Int) -> [[Element]] {
         return stride(from: 0, to: count, by: numElements).map {
             Array(self[$0 ..< Swift.min($0 + numElements, count)])
         }
     }
+
+    ///Convenience init to populate array with unique instances of Element.
+    ///
+    /// let foo: [Int] = Array(100) { $0 * 10 } //populates array with ints [0, 10, 20, ...]
+    /// let bar: [IndexPath] = Array(5) { IndexPath(row: $0, section: 0) } //populates array with IndexPaths for rows 0..4 in section 0
+    init(count: Int, repeating: (_ index: Int)->Element) {
+        self.init()
+        append(count: count, closure: repeating)
+    }
+    
+    ///Method to append a run of unique instances of Element to array.
+    ///
+    /// var foo: [Int] = []
+    /// …
+    /// foo.append(10) {$0 * 10} //appends elements: [0, 10, 20, ...]
+    mutating func append(count: Int, closure: (_ index: Int)->Element) {
+        for index in 0..<count {
+            append(closure(index))
+        }
+    }
+    
+    ///Method to remove multiple elements at given indices.
+    ///
+    /// - note: The elements may not be returned in the order specified in the array of indices.
+    ///      Elements are returned in the order the appeared in array.
+    mutating func remove(at indices:[Int]) -> [Element] {
+        var elements: [Element] = []
+        for index in indices.sorted().reversed() {
+            elements.append(remove(at: index))
+        }
+        return elements.reversed()
+    }
 }
 
 public extension Sequence {
-    ///A  more expensive but more accurate version of underestimatedCount
+    ///A  more accurate, but more expensive, version of underestimatedCount
     var exactCount: Int {
         self.reduce(into: 0) { count, _ in count += 1 }
     }
@@ -107,6 +142,9 @@ public extension Set {
         public var removed: Set<Element>
     }
     
+    ///Method to identify differences between two sets in a single operation.
+    ///
+    ///Returns a struct containing sets of the elements that were either added or removed.
     func differences(from other: Set<Element>) -> SetDifferences {
         let added = self.subtracting(other)
         let removed = other.subtracting(self)

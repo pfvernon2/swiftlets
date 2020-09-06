@@ -22,12 +22,7 @@ public protocol DoubleTapTableViewDelegate: UITableViewDelegate {
  UITableView subclass and delegate that automatically detects double tap gestures on table view rows
  */
 public class DoubleTapTableView: UITableView {
-    
-    var doubleTapDelegate: DoubleTapTableViewDelegate? {
-        get {
-            self.delegate as? DoubleTapTableViewDelegate
-        }
-    }
+    public weak var doubleTapDelegate: DoubleTapTableViewDelegate? 
 
     public override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         touches.forEach { (touch) in
