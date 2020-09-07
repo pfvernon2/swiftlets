@@ -99,10 +99,10 @@ public extension Array {
     ///Convenience init to populate array with unique instances of Element.
     ///
     /// let foo: [Int] = Array(100) { $0 * 10 } //populates array with ints [0, 10, 20, ...]
-    /// let bar: [IndexPath] = Array(5) { IndexPath(row: $0, section: 0) } //populates array with IndexPaths for rows 0..4 in section 0
+    /// let bar: [IndexPath] = Array(5) { IndexPath(row: $0, section: 0) } //populates array with IndexPaths for rows 0...4 in section 0
     init(count: Int, repeating: (_ index: Int)->Element) {
         self.init()
-        append(count: count, closure: repeating)
+        append(count: count, repeating: repeating)
     }
     
     ///Method to append a run of unique instances of Element to array.
@@ -110,9 +110,9 @@ public extension Array {
     /// var foo: [Int] = []
     /// …
     /// foo.append(10) {$0 * 10} //appends elements: [0, 10, 20, ...]
-    mutating func append(count: Int, closure: (_ index: Int)->Element) {
+    mutating func append(count: Int, repeating: (_ index: Int)->Element) {
         for index in 0..<count {
-            append(closure(index))
+            append(repeating(index))
         }
     }
     
@@ -126,6 +126,13 @@ public extension Array {
             elements.append(remove(at: index))
         }
         return elements.reversed()
+    }
+    
+    ///Return a slice representing the entire array
+    /// This is useful for obtaining a shallow copy of the array which
+    /// you can iterate while adding/deleting elements to the backing array
+    func fullSlice() -> ArraySlice<Element> {
+        self[0...]
     }
 }
 
