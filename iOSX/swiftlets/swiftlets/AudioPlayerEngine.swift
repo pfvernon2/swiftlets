@@ -629,6 +629,10 @@ public class FXAudioPlayerEngine: AudioPlayerEngine, AudioPlayer {
         }
         
         set(rate) {
+            guard rate != timePitch.rate else {
+                return
+            }
+            
             timePitch.rate = rate
 
             //Enabling bypass when at center position saves us significant CPU cycles, battery, etc.
@@ -636,7 +640,6 @@ public class FXAudioPlayerEngine: AudioPlayerEngine, AudioPlayer {
             // necessary for audio processing. This optimization may need to be made conditional if
             // we hit similar issues.
             timePitch.bypass = (rate == kRateCenter)
-            
             
             DispatchQueue.main.async {
                 self.delegate?.playbackRateAdjusted()
@@ -1001,8 +1004,7 @@ extension AudioPlayer {
 public class MusicPlayer: AudioPlayer {
     private var player: MPMusicPlayerController {
         didSet {
-            player.repeatMode = .none
-            player.shuffleMode = .off
+            setupPlayer()
         }
     }
     private var playbackBegun: Bool = false
@@ -1041,10 +1043,12 @@ public class MusicPlayer: AudioPlayer {
     public var playbackRate: Float = 1.0 {
         didSet {
             //currentPlaybackRate == 0 when stopped
-            if player.currentPlaybackRate != 0 {
-                player.currentPlaybackRate = playbackRate
+            guard player.currentPlaybackRate != 0,
+                  player.currentPlaybackRate != playbackRate else {
+                return
             }
             
+            player.currentPlaybackRate = playbackRate
             DispatchQueue.main.async {
                 self.delegate?.playbackRateAdjusted()
             }
@@ -1052,10 +1056,10 @@ public class MusicPlayer: AudioPlayer {
     }
     
     public init(mediaItem: MPMediaItem? = nil) {
-        player = MPMusicPlayerController.applicationMusicPlayer
         self.mediaItem = mediaItem
+        player = MPMusicPlayerController.cleanApplicationMusicPlayer
         setupPlayer()
-        
+
         NotificationCenter.default.addObserver(forName: .MPMusicPlayerControllerPlaybackStateDidChange,
                                                object: player,
                                                queue: .main)
@@ -1095,6 +1099,8 @@ public class MusicPlayer: AudioPlayer {
     }
 
     deinit {
+        player.setQueue(with: MPMediaItemCollection(items: []))
+        NotificationCenter.default.removeObserver(self)
         player.endGeneratingPlaybackNotifications()
     }
     
@@ -1123,12 +1129,19 @@ public class MusicPlayer: AudioPlayer {
     }
     
     private func setupPlayer() {
-        guard let id = mediaItem?.playbackStoreID else {
-            return
+        player.repeatMode = .none
+        player.shuffleMode = .off
+
+        if let id = mediaItem?.playbackStoreID {
+            player.setQueue(with: [id])
+            player.prepareToPlay() { error in
+                guard let error = error else {
+                    return
+                }
+                
+                print("Error in MPMusicPlayerController.prepareToPlay: \(error)")
+            }
         }
-        
-        player.setQueue(with: [id])
-        player.prepareToPlay()
     }
 }
 
@@ -1149,5 +1162,15 @@ public struct AudioPlayerFactory {
     
     public static func createPlayer(for asset: AVURLAsset) -> AudioPlayer {
         return FXAudioPlayerEngine(asset: asset)
+    }
+}
+
+
+extension MPMusicPlayerController {
+    class var cleanApplicationMusicPlayer: MPMusicPlayerController {
+        let result = applicationMusicPlayer
+        result.setQueue(with: [])
+        result.currentPlaybackTime = 0.0
+        return result
     }
 }
