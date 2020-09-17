@@ -158,3 +158,9 @@ public extension Set {
         return SetDifferences(added: added, removed: removed)
     }
 }
+
+public extension Sequence where Element: StringProtocol {
+    func localizedStandardSort(_ order: ComparisonResult = .orderedAscending) -> [Element] {
+        return sorted { $0.localizedStandardCompare($1) == order }
+    }
+}
