@@ -16,7 +16,11 @@ open class MulticastDelegate <T> {
         delegates.append(DelegateHolder(value: delegate as AnyObject))
     }
     
-    public func remove(delegate: T) {
+    public func remove(delegate: T?) {
+        guard let delegate = delegate else {
+            return
+        }
+        
         let object = delegate as AnyObject
         delegates.removeAll() { $0.value === object }
     }
@@ -26,7 +30,7 @@ open class MulticastDelegate <T> {
         // remove dead delegates at will
         delegates.fullSlice().forEach { (wrapped) in
             guard let delegate = wrapped.value as? T else {
-                remove(delegate: wrapped.value as! T)
+                remove(delegate: wrapped.value as? T)
                 return
             }
             

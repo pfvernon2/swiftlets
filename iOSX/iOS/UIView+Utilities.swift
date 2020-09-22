@@ -289,9 +289,15 @@ public extension UIView {
 
 // MARK: - View Appearance
 public extension UIView {
-    func roundCorners(radius: CGFloat) {
+    func round(cornerRadius radius: CGFloat) {
         layer.cornerRadius = radius;
         layer.masksToBounds = true;
+    }
+
+    func round(corners: CACornerMask, cornerRadius: CGFloat) {
+        layer.cornerRadius = CGFloat(cornerRadius)
+        clipsToBounds = true
+        layer.maskedCorners = corners
     }
 }
 

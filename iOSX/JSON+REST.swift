@@ -21,7 +21,7 @@ public protocol JSON:Codable {
     static func fromJSONString<T:Decodable>(_ string:String) -> T?
 }
 
-extension JSON {
+public extension JSON {
     ///Returns default JSONEncoder. Override for custom configurations
     func jsonEncoder() -> JSONEncoder {
         JSONEncoder()

@@ -134,6 +134,8 @@ public extension Array {
     func fullSlice() -> ArraySlice<Element> {
         self[0...]
     }
+    
+    @inlinable var isNotEmpty: Bool { !isEmpty }    
 }
 
 public extension Sequence {
