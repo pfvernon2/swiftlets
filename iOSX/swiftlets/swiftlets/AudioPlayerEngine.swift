@@ -919,8 +919,8 @@ extension AudioPlayer {
         
         //time adjusted for changes in playback rate
         let duration = playbackDuration
-        let current: TimeInterval = floor(duration * Double(progress))
-        let remaining: TimeInterval = floor(duration - current)
+        let current: TimeInterval = duration * Double(progress)
+        let remaining: TimeInterval = duration - current
         
         return PlaybackPosition(position: progress,
                                 current: current,
