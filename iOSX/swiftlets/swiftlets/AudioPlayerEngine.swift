@@ -1095,6 +1095,15 @@ public class MusicPlayer: AudioPlayer {
             }
         }
         
+        NotificationCenter.default.addObserver(forName: .MPMusicPlayerControllerVolumeDidChange,
+                                               object: player,
+                                               queue: .main)
+        { (notification) in
+            //there is presently no way to determine volume level of the MPMusicPlayerController
+            //so this kind of sucks.
+            NotificationCenter.default.post(name: .SystemVolumeMonitor, userInfo: ["volume":0.0])
+        }
+        
         player.beginGeneratingPlaybackNotifications()
     }
 
@@ -1165,12 +1174,59 @@ public struct AudioPlayerFactory {
     }
 }
 
-
 extension MPMusicPlayerController {
     class var cleanApplicationMusicPlayer: MPMusicPlayerController {
         let result = applicationMusicPlayer
         result.setQueue(with: [])
         result.currentPlaybackTime = 0.0
         return result
+    }
+}
+
+// MARK: - SystemVolumeMonitor
+
+public extension NSNotification.Name {
+    static let SystemVolumeMonitor: NSNotification.Name = NSNotification.Name("com.cyberdev.SystemVolumeMonitor")
+}
+
+//KVO appears to be only way to do this, so here we are.
+public class SystemVolumeMonitor: NSObject {
+    public class func sharedInstance() -> SystemVolumeMonitor {
+        return _sharedInstance
+    }
+
+    private static let _sharedInstance = {
+        SystemVolumeMonitor()
+    }()
+
+    private struct Observation {
+        static let VolumeKey = "outputVolume"
+        static var Context = 0
+    }
+
+    public override init() {
+        super.init()
+        
+        AVAudioSession.sharedInstance().addObserver(self,
+                                                    forKeyPath: Observation.VolumeKey,
+                                                    options: [.initial, .new],
+                                                    context: &Observation.Context)
+    }
+    
+    deinit {
+        AVAudioSession.sharedInstance().removeObserver(self,
+                                                       forKeyPath: Observation.VolumeKey,
+                                                       context: &Observation.Context)
+    }
+    
+    public override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+        if context == &Observation.Context {
+            if keyPath == Observation.VolumeKey,
+               let volume = (change?[NSKeyValueChangeKey.newKey] as? NSNumber)?.floatValue {
+                NotificationCenter.default.post(name: .SystemVolumeMonitor, userInfo: ["volume":volume])
+            }
+        } else {
+            super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
+        }
     }
 }
