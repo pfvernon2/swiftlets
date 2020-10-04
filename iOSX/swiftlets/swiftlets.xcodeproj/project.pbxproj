@@ -43,6 +43,7 @@
 		011C42222013DBA80032EC48 /* AVAsset+AVMetadataItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011C42212013DBA80032EC48 /* AVAsset+AVMetadataItem.swift */; };
 		011F1ABB24F597E9002F30AD /* UICollectionView+Utilties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011F1ABA24F597E9002F30AD /* UICollectionView+Utilties.swift */; };
 		012047C11D0C854A00E79510 /* UIApplication+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 012047C01D0C854A00E79510 /* UIApplication+Utilities.swift */; };
+		012BBB7625277CB800D52523 /* Set+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 012BBB7525277CB800D52523 /* Set+Utilities.swift */; };
 		012ED7F325054D31003818DB /* MulticastDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 012ED7F225054D31003818DB /* MulticastDelegate.swift */; };
 		0130BE251DBA9203008EEEE4 /* CSVHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0130BE241DBA9203008EEEE4 /* CSVHelper.swift */; };
 		01382E8A1DC66D5B00B55A9C /* RemoteImageCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01382E891DC66D5B00B55A9C /* RemoteImageCache.swift */; };
@@ -126,6 +127,7 @@
 		011C42212013DBA80032EC48 /* AVAsset+AVMetadataItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "AVAsset+AVMetadataItem.swift"; path = "../../AVAsset+AVMetadataItem.swift"; sourceTree = "<group>"; };
 		011F1ABA24F597E9002F30AD /* UICollectionView+Utilties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "UICollectionView+Utilties.swift"; path = "../../iOS/UICollectionView+Utilties.swift"; sourceTree = "<group>"; };
 		012047C01D0C854A00E79510 /* UIApplication+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIApplication+Utilities.swift"; path = "../../iOS/UIApplication+Utilities.swift"; sourceTree = "<group>"; };
+		012BBB7525277CB800D52523 /* Set+Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "Set+Utilities.swift"; path = "../../../Portable/Set+Utilities.swift"; sourceTree = "<group>"; };
 		012ED7F225054D31003818DB /* MulticastDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MulticastDelegate.swift; path = ../../../Portable/MulticastDelegate.swift; sourceTree = "<group>"; };
 		0130BE241DBA9203008EEEE4 /* CSVHelper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CSVHelper.swift; path = ../../../Portable/CSVHelper.swift; sourceTree = "<group>"; };
 		01382E891DC66D5B00B55A9C /* RemoteImageCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = RemoteImageCache.swift; path = ../../RemoteImageCache.swift; sourceTree = "<group>"; };
@@ -302,6 +304,7 @@
 				015B866A247F1D2600891F97 /* LeftAlignedFlowLayout.swift */,
 				018C0CDD24BA81B000B4BEAE /* FileMonitor.swift */,
 				012ED7F225054D31003818DB /* MulticastDelegate.swift */,
+				012BBB7525277CB800D52523 /* Set+Utilities.swift */,
 			);
 			path = swiftlets;
 			sourceTree = "<group>";
@@ -565,6 +568,7 @@
 				015710CF1D049C1F0057C1FB /* Array+Utilities.swift in Sources */,
 				015A849B20FD50C4006C2583 /* CommandLine+Utilities.swift in Sources */,
 				015B866B247F1D2600891F97 /* LeftAlignedFlowLayout.swift in Sources */,
+				012BBB7625277CB800D52523 /* Set+Utilities.swift in Sources */,
 				01533B0A1C9DDF2000C6E69D /* UIImage+Scaling.swift in Sources */,
 				0105B27D2230454A0069124E /* UITableView+Utilities.swift in Sources */,
 				018B5A051F03476E009F40FB /* URLComponent+Utilities.swift in Sources */,
