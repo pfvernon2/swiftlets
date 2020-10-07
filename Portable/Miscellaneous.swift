@@ -511,3 +511,9 @@ public extension IndexPath {
         IndexPath(row: 0, section: 0)
     }
 }
+
+public extension UIControl.State {
+    static var all: UIControl.State {
+        [.normal, .highlighted, .disabled, .selected, .focused, .application]
+    }
+}

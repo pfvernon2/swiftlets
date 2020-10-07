@@ -649,7 +649,7 @@ public class FXAudioPlayerEngine: AudioPlayerEngine, AudioPlayer {
     
     ///Playback duration adjusted for playbackRate
     public var playbackDuration: TimeInterval {
-        trackLength / TimeInterval(playbackRate)
+        ceil(trackLength / TimeInterval(playbackRate))
     }
         
     public var hasEQSettings: Bool {

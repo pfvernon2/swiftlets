@@ -89,6 +89,10 @@ public extension String {
         return result
     }
     
+    func stringByTrimmingWhiteSpace() -> String {
+        trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+    
     func isAllDigits() -> Bool {
         containsOnly(CharacterSet.decimalDigits)
     }
