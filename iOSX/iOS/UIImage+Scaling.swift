@@ -112,3 +112,10 @@ extension UIImage {
         return newImage
     }
 }
+
+public extension UIImage {
+    convenience init?(systemName: String, scale: UIImage.SymbolScale) {
+        let config = UIImage.SymbolConfiguration(scale: scale)
+        self.init(systemName: systemName, withConfiguration: config)
+    }
+}
