@@ -204,17 +204,27 @@ public extension TimeInterval {
     ///* 4h:3m:30s = 4:03:30
     ///* 3m:30s = 3:30
     ///* 30s = 0:30
+    ///* -30s = -0:30
     func trackTimeDescription() -> String {
+        let absInterval = abs(self)
+        
         //Deconstruct TimeInterval into hours:mins:seconds
         //Not using DateComponents as I want hours to be the max value represented.
-        let hours = floor(self/TimePeriod.hour.rawValue)
-        let minutes = floor((self - (hours * TimePeriod.hour.rawValue))/TimePeriod.minute.rawValue)
-        let seconds = floor(self - ((minutes * TimePeriod.minute.rawValue) + (hours * TimePeriod.hour.rawValue)))
+        let hours = floor(absInterval/TimePeriod.hour.rawValue)
+        let minutes = floor((absInterval - (hours * TimePeriod.hour.rawValue))/TimePeriod.minute.rawValue)
+        let seconds = floor(absInterval - ((minutes * TimePeriod.minute.rawValue) + (hours * TimePeriod.hour.rawValue)))
 
+        var timeDescription: String
         if hours > 0.0 {
-            return String(format: "%d:%0.2d:%0.2d", Int(hours), Int(minutes), Int(seconds))
+            timeDescription = String(format: "%d:%0.2d:%0.2d", Int(hours), Int(minutes), Int(seconds))
         } else {
-            return String(format: "%0.1d:%0.2d", Int(minutes), Int(seconds))
+            timeDescription = String(format: "%0.1d:%0.2d", Int(minutes), Int(seconds))
         }
+        
+        if self < 0 {
+            timeDescription = "-\(timeDescription)"
+        }
+        
+        return timeDescription
     }
 }
