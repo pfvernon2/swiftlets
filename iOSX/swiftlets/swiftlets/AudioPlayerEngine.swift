@@ -1002,12 +1002,23 @@ extension AudioPlayer {
 
 ///This is a thin wrapper on MPMusicPlayerController to give us interface consistency with AudioPlayer for factory construction
 public class MusicPlayer: AudioPlayer {
-    private var player: MPMusicPlayerController {
-        didSet {
-            setupPlayer()
+    private static var player: MPMusicPlayerController = {
+        let player = MPMusicPlayerController.applicationMusicPlayer
+        player.repeatMode = .none
+        player.shuffleMode = .off
+        player.beginGeneratingPlaybackNotifications()
+        
+        NotificationCenter.default.addObserver(forName: .MPMusicPlayerControllerVolumeDidChange,
+                                               object: player,
+                                               queue: .main)
+        { (notification) in
+            //there is presently no way to determine volume level of the MPMusicPlayerController
+            //so this kind of sucks.
+            NotificationCenter.default.post(name: .SystemVolumeMonitor, userInfo: ["volume":0.0])
         }
-    }
-    private var playbackBegun: Bool = false
+        
+        return player
+    }()
     
     public weak var delegate: AudioPlayerDelegate?
 
@@ -1031,125 +1042,146 @@ public class MusicPlayer: AudioPlayer {
         return mediaItem?.assetURL
     }
 
+    public var playbackState: MPMusicPlaybackState {
+        get {
+            MusicPlayer.player.playbackState
+        }
+    }
+
     public var playbackPosition: TimeInterval {
         get {
-            player.currentPlaybackTime
+            MusicPlayer.player.currentPlaybackTime
         }
         set {
-            player.currentPlaybackTime = newValue
+            MusicPlayer.player.currentPlaybackTime = newValue
         }
     }
 
     public var playbackRate: Float = 1.0 {
         didSet {
             //currentPlaybackRate == 0 when stopped
-            guard player.currentPlaybackRate != 0,
-                  player.currentPlaybackRate != playbackRate else {
+            guard MusicPlayer.player.currentPlaybackRate != 0,
+                  MusicPlayer.player.currentPlaybackRate != playbackRate else {
                 return
             }
             
-            player.currentPlaybackRate = playbackRate
+            MusicPlayer.player.currentPlaybackRate = playbackRate
             DispatchQueue.main.async {
                 self.delegate?.playbackRateAdjusted()
             }
         }
     }
-    
+
     public init(mediaItem: MPMediaItem? = nil) {
         self.mediaItem = mediaItem
-        player = MPMusicPlayerController.cleanApplicationMusicPlayer
-        setupPlayer()
-
-        NotificationCenter.default.addObserver(forName: .MPMusicPlayerControllerPlaybackStateDidChange,
-                                               object: player,
-                                               queue: .main)
-        { [weak self] (notification) in
-            DispatchQueue.main.async {
-                guard let state = self?.player.playbackState else {
-                    return
-                }
+        
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(self.handleStateChange),
+                                               name: .MPMusicPlayerControllerPlaybackStateDidChange,
+                                               object: nil)
                 
-                switch state {
-                case .stopped:
-                    //player sends state change for 'stopped' on queue creation so we
-                    // have to track playback state for our intended usage of track completion
-                    if let started = self?.playbackBegun, started {
-                        //reset media item in queue to prepare for possible replay/repeat
-                        self?.setupPlayer()
-                        self?.playbackPosition = 0.0
-                        self?.delegate?.playbackStopped(trackCompleted: true)
-                    }
-                case .playing:
-                    self?.delegate?.playbackStarted()
-                case .paused:
-                    self?.delegate?.playbackPaused()
-                case .interrupted:
-                    self?.delegate?.playbackStopped(trackCompleted: false)
-                case .seekingForward:
-                    break
-                case .seekingBackward:
-                    break
-                @unknown default:
-                    break
-                }
-            }
-        }
-        
-        NotificationCenter.default.addObserver(forName: .MPMusicPlayerControllerVolumeDidChange,
-                                               object: player,
-                                               queue: .main)
-        { (notification) in
-            //there is presently no way to determine volume level of the MPMusicPlayerController
-            //so this kind of sucks.
-            NotificationCenter.default.post(name: .SystemVolumeMonitor, userInfo: ["volume":0.0])
-        }
-        
-        player.beginGeneratingPlaybackNotifications()
+        setupPlayer()
     }
 
     deinit {
-        player.setQueue(with: MPMediaItemCollection(items: []))
         NotificationCenter.default.removeObserver(self)
-        player.endGeneratingPlaybackNotifications()
     }
     
     @discardableResult public func play() -> Bool {
-        //setting playback rate has side effect of starting playback
-        player.currentPlaybackRate = playbackRate
-        playbackBegun = true
+        MusicPlayer.player.play()
+        MusicPlayer.player.currentPlaybackRate = playbackRate
+        
+        delegate?.playbackStarted()
+
         return isPlaying()
     }
     
     public func isPlaying() -> Bool {
-        player.playbackState == .playing
+        MusicPlayer.player.playbackState == .playing
     }
     
     @discardableResult public func pause() -> Bool {
-        player.pause()
+        MusicPlayer.player.pause()
+        
+        delegate?.playbackPaused()
+
         return isPaused()
     }
     
     public func isPaused() -> Bool {
-        player.playbackState == .paused
+        MusicPlayer.player.playbackState == .paused
     }
         
     public func stop() {
-        player.stop()
+        MusicPlayer.player.stop()
+        
+        delegate?.playbackStopped(trackCompleted: false)
     }
     
     private func setupPlayer() {
-        player.repeatMode = .none
-        player.shuffleMode = .off
+        guard let id = mediaItem?.playbackStoreID else {
+            return
+        }
+        
+        MusicPlayer.player.setQueue(with: [id])
+        
+        //Despite what documentation says this does not appear
+        // to be required and it seems to cause numerous race
+        // conditions and generally unreliable behavior.
+        //I've also never seen the completion fire.
+//        player.prepareToPlay() { error in
+//            if let error = error {
+//                print("Error in \(#function): \(error)")
+//            }
+//        }
+        
+        MusicPlayer.player.currentPlaybackTime = 0.0
+    }
+    
+    @objc private func handleStateChange(notification: Notification) {
+        //As of iOS 14.3 .MPMusicPlayerControllerPlaybackStateDidChange and .playbackState are completely fucked.
+        // I can't tell if it's a race condition between the state change and the notification but this is the behavior
+        // I observe when reading state based on the notification. There is, of course, no state in the notification itself.
+        //
+        // .stopped is NOT called when stop() is invoked
+        // .stopped is called AFTER play() begins on new queue
+        // .paused is called when prepareToPlay() is called (can be at play() time) with player.currentPlaybackTime == nowPlayingItem.playbackDuration
+        // .paused is called when playback is complete with player.currentPlaybackTime > nowPlayingItem.playbackDuration
+        // .paused is called when playback restarts, but after .playing, with player.currentPlaybackTime == 0.0
+        // .paused is called when playback is actually paused with player.currentPlaybackTime == actual playback progress
 
-        if let id = mediaItem?.playbackStoreID {
-            player.setQueue(with: [id])
-            player.prepareToPlay() { error in
-                guard let error = error else {
-                    return
-                }
-                
-                print("Error in MPMusicPlayerController.prepareToPlay: \(error)")
+        //I would prefer to use this for delegate notification but it is unreliable so delegate is now tied to
+        // calls to the play/pause/stop methods. I still need to handle .paused here to know when
+        // track/queue is complete, however.
+        
+        switch playbackState {
+        case .stopped:
+            break
+        case .playing:
+            break
+        case .paused:
+            guard let mediaItemDuration = MusicPlayer.player.nowPlayingItem?.playbackDuration else {
+                return
             }
+            
+            //The only currently reliable notficiation of track/queue completion is
+            // this test for playbackPosition > mediaItemDuration on .paused.
+            if playbackPosition > mediaItemDuration {
+                DispatchQueue.main.async {
+                    self.delegate?.playbackStopped(trackCompleted: true)
+                }
+            }
+            
+        case .interrupted:
+            DispatchQueue.main.async {
+                self.delegate?.playbackStopped(trackCompleted: false)
+            }
+        case .seekingForward:
+            break
+        case .seekingBackward:
+            break
+        @unknown default:
+            break
         }
     }
 }
@@ -1171,15 +1203,6 @@ public struct AudioPlayerFactory {
     
     public static func createPlayer(for asset: AVURLAsset) -> AudioPlayer {
         return FXAudioPlayerEngine(asset: asset)
-    }
-}
-
-extension MPMusicPlayerController {
-    class var cleanApplicationMusicPlayer: MPMusicPlayerController {
-        let result = applicationMusicPlayer
-        result.setQueue(with: [])
-        result.currentPlaybackTime = 0.0
-        return result
     }
 }
 
