@@ -62,11 +62,12 @@ public enum DecimalMagnitude: Double, OrderOfMagnitude {
     case exa   = 1.0e18
     case zeta  = 1.0e21
     case yota  = 1.0e24
+    case hella  = 1.0e27
 
     public static var symbols: [String] {
         ["y", "z", "a", "f", "p", "n", "µ", "m", "c", "d",
          "",
-         "㍲", "h", "k", "M", "G", "T", "P", "E", "Z", "Y"]
+         "㍲", "h", "k", "M", "G", "T", "P", "E", "Z", "Y", "H"]
     }
 }
 
@@ -81,10 +82,11 @@ public enum BinaryMagnitude: Double, OrderOfMagnitude {
     case exbi = 0x01p60
     case zebi = 0x01p70
     case yobi = 0x01p80
+    case hebi = 0x01p90
 
     public static var symbols: [String] {
         ["",
-         "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi", "Yi"]
+         "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi", "Yi", "Hi"]
     }
 }
 
@@ -156,6 +158,7 @@ extension MagnitudeConversion where Self: Equatable, Self: RawRepresentable, Sel
 }
 
 extension DecimalMagnitude: MagnitudeConversion {
+    //Cannot be generic on MagnitudeConversion due to reliance on '.uni'
     public static func toNearestMagnitude(_ units: Double) -> (Double, DecimalMagnitude) {
         let mag = magnitude(units)
         return (mag.toMagnitude(units, fromMagnitude: .uni), mag)
@@ -163,6 +166,7 @@ extension DecimalMagnitude: MagnitudeConversion {
 }
 
 extension BinaryMagnitude: MagnitudeConversion {
+    //Cannot be generic on MagnitudeConversion due to reliance on '.uni'
     public static func toNearestMagnitude(_ units: Double) -> (Double, BinaryMagnitude) {
         let mag = magnitude(units)
         return (mag.toMagnitude(units, fromMagnitude: .uni), mag)

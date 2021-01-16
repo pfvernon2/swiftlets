@@ -415,6 +415,11 @@ class swiftletsTests: XCTestCase {
         XCTAssertEqual(yotaTest.1.symbol, "Y")
         XCTAssertEqual(yotaTest.0.truncate(to: 7), 100.0)
 
+        let hellaTest = DecimalMagnitude.toNearestMagnitude(10000000000000000000000000000.0)
+        XCTAssertEqual(hellaTest.1, .hella)
+        XCTAssertEqual(hellaTest.1.symbol, "H")
+        XCTAssertEqual(hellaTest.0.truncate(to: 9), 10.0)
+
         //BinaryMagnitude
         XCTAssertEqual(BinaryMagnitude.kibi.toMagnitude(1024.0, fromMagnitude: .uni), 1.0)
         XCTAssertEqual(BinaryMagnitude.kibi.fromMagnitude(1.0, toMagnitude: .uni), 1024.0)
