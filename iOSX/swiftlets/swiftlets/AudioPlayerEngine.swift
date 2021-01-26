@@ -1088,7 +1088,10 @@ public class MusicPlayer: AudioPlayer {
     }
     
     @discardableResult public func play() -> Bool {
-        MusicPlayer.player.play()
+        //Setting currentPlaybackRate has side effect of initiating playback.
+        // Attempting to call play() immediately followed by
+        // setting currentPlaybackRate introduces a race condition
+        // that prevents currentPlaybackRate from taking effect.
         MusicPlayer.player.currentPlaybackRate = playbackRate
         
         delegate?.playbackStarted()
@@ -1123,36 +1126,30 @@ public class MusicPlayer: AudioPlayer {
             return
         }
         
+        // This API is apparently very sensitive to order of operation.
+        // The below is the only sequence that appears to operate consistently and reliably
+        // for this use case as of iOS 14.4.
+        // Variations of this order have introduced significant (3-5 second) delays
+        // and blocking of the main thread when invoking prepareToPlay()
+        //
+        // Noli Se Tangere
+
         MusicPlayer.player.setQueue(with: [id])
-        
-        //Despite what documentation says this does not appear
-        // to be required and it seems to cause numerous race
-        // conditions and generally unreliable behavior.
-        //I've also never seen the completion fire.
-//        player.prepareToPlay() { error in
-//            if let error = error {
-//                print("Error in \(#function): \(error)")
-//            }
-//        }
-        
         MusicPlayer.player.currentPlaybackTime = 0.0
+        MusicPlayer.player.repeatMode = .none
+        MusicPlayer.player.shuffleMode = .off
+        MusicPlayer.player.prepareToPlay()
     }
     
     @objc private func handleStateChange(notification: Notification) {
-        //As of iOS 14.3 .MPMusicPlayerControllerPlaybackStateDidChange and .playbackState are completely fucked.
-        // I can't tell if it's a race condition between the state change and the notification but this is the behavior
-        // I observe when reading state based on the notification. There is, of course, no state in the notification itself.
-        //
-        // .stopped is NOT called when stop() is invoked
-        // .stopped is called AFTER play() begins on new queue
-        // .paused is called when prepareToPlay() is called (can be at play() time) with player.currentPlaybackTime == nowPlayingItem.playbackDuration
-        // .paused is called when playback is complete with player.currentPlaybackTime > nowPlayingItem.playbackDuration
-        // .paused is called when playback restarts, but after .playing, with player.currentPlaybackTime == 0.0
-        // .paused is called when playback is actually paused with player.currentPlaybackTime == actual playback progress
-
-        //I would prefer to use this for delegate notification but it is unreliable so delegate is now tied to
-        // calls to the play/pause/stop methods. I still need to handle .paused here to know when
+        //As of iOS 14.3 MPMusicPlayerControllerPlaybackStateDidChange and .playbackState are completely fucked.
+        //I would prefer to use this for delegate notification but it is unreliable so delegate state notification is now tied to
+        // calls to the play/pause/stop methods. I still must handle .paused here to know when
         // track/queue is complete, however.
+        // Addendum:
+        // A great deal of the inconsistency of state reporting appears to be related to the state(s) of .repeatMode and .shuffleMode.
+        // I am now setting these explicitly in setupPlayer() and this seems to have increased the consistency of the state reporting.
+        // The state rules are still completely inscrutable so I am still not going to rely upon them for delegate reporting.
         
         switch playbackState {
         case .stopped:
@@ -1165,7 +1162,7 @@ public class MusicPlayer: AudioPlayer {
             }
             
             //The only currently reliable notficiation of track/queue completion is
-            // this test for playbackPosition > mediaItemDuration on .paused.
+            // to test for playbackPosition > mediaItemDuration on .paused.
             if playbackPosition > mediaItemDuration {
                 DispatchQueue.main.async {
                     self.delegate?.playbackStopped(trackCompleted: true)
