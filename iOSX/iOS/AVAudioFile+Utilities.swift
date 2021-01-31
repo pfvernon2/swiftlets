@@ -32,11 +32,12 @@ public extension AVAudioFile {
         }
         
         //number of pixels required to draw each "sample"
-        //line width = 1 + space between = 1
-        let pixelsPerSample = 2
+        let lineWidth: CGFloat = 1.0
+        let lineSpacing: CGFloat = 1.0
+        let pixelsPerSample = lineWidth + lineSpacing
         
         //Number of samples per pixel for decimation
-        let samplesPerPixel = samples.count / (Int(imageSize.width)/pixelsPerSample)
+        let samplesPerPixel = samples.count / Int(imageSize.width/pixelsPerSample)
 
         //decimate samples to correleate with number of pixels in width of image
         // this optimizes for the number of points we have to draw
@@ -46,8 +47,7 @@ public extension AVAudioFile {
                  noiseFloor: noiseFloor)
         
         if !displayInDB {
-            //convert DB to gain/power and clip at the specified dynamic range
-            //TODO: accelerate this?
+            //convert DB to gain/power and (re-)clip at the specified dynamic range
             samples = samples.map { pow(10.0, $0/20.0) }
             var floor: Float = 0.0
             var ceil: Float = abs(noiseFloor)
@@ -67,17 +67,17 @@ public extension AVAudioFile {
             let center = imageMaxHeight.halved
             let path = UIBezierPath()
             for (index, sample) in samples.enumerated() {
-                //ensure silence is drawn as well
+                let offset = CGFloat(index)
                 let amplitude = max(CGFloat(sample), 1.0)
                 
-                let x: CGFloat = CGFloat(index * pixelsPerSample)
-                let y: CGFloat = center - amplitude.halved
+                let x = offset * pixelsPerSample
+                let y = center - amplitude.halved
                 
                 path.addVerticalLine(at: CGPoint(x: x, y: y), ofHeight: amplitude)
             }
             path.close()
             
-            path.lineWidth = 1.0
+            path.lineWidth = lineWidth
             
             graphColor.setStroke()
             path.stroke()
@@ -139,11 +139,6 @@ public extension AVAudioFile {
             var zero: Float = 1;
             vDSP_vdbcon(samples, 1, &zero, &samples, 1, sampleCount, 1);
             
-            // clip at noise floor
-            var floor: Float = noiseFloor
-            var ceil: Float = 0.0
-            vDSP_vclip(samples, 1, &floor, &ceil, &samples, 1, sampleCount);
-            
             //decimate samples
             vDSP_desamp(samples,
                         vDSP_Stride(samplesPerPixel),
@@ -154,7 +149,11 @@ public extension AVAudioFile {
             //operating in place and trimming buffer is better on memory and slightly faster than duplicating data
             samples.removeLast(samples.count - downSampledLength)
             
+            // clip at noise floor then
             // add noisefloor to make values positive amplitude in db
+            var floor: Float = noiseFloor
+            var ceil: Float = 0.0
+            vDSP_vclip(samples, 1, &floor, &ceil, &samples, 1, vDSP_Length(samples.count));
             vDSP.add(abs(noiseFloor), samples, result: &samples)
         }
         else {
