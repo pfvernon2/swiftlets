@@ -55,4 +55,9 @@ public extension UIViewController {
         
         completion(displayWindow)
     }
+    
+    class func loadVC(vcName: String, fromStoryboard sbName: String) -> UIViewController {
+        let storyboard = UIStoryboard(name: sbName, bundle: nil)
+        return storyboard.instantiateViewController(identifier: vcName)
+    }
 }

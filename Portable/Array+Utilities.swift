@@ -31,6 +31,8 @@ public struct Queue<T>: ExpressibleByArrayLiteral {
     public init(arrayLiteral elements: T...) { self.elements = elements }
 }
 
+//MARK: - Array
+
 public extension Array {
     ///Add element to end of array and pop elment(s) off the front
     /// when specified depth exceeded
@@ -138,12 +140,7 @@ public extension Array {
     @inlinable var isNotEmpty: Bool { !isEmpty }    
 }
 
-public extension Sequence {
-    ///A  more accurate, but more expensive, version of underestimatedCount
-    var exactCount: Int {
-        self.reduce(into: 0) { count, _ in count += 1 }
-    }
-}
+//MARK: - Set
 
 public extension Set {
     struct SetDifferences {
@@ -161,8 +158,143 @@ public extension Set {
     }
 }
 
+//MARK: - Sequence
+
+public extension Sequence {
+    ///A  more accurate, but more expensive, version of underestimatedCount
+    var exactCount: Int {
+        self.reduce(into: .zero) { count, _ in count += 1 }
+    }
+    
+    func sum<T: AdditiveArithmetic>(_ predicate: (Element) -> T) -> T {
+        reduce(.zero) { $0 + predicate($1) }
+    }
+}
+
+public extension Sequence where Element: AdditiveArithmetic {
+    func sum() -> Element {
+        reduce(.zero, +)
+    }
+}
+
 public extension Sequence where Element: StringProtocol {
     func localizedStandardSort(_ order: ComparisonResult = .orderedAscending) -> [Element] {
         return sorted { $0.localizedStandardCompare($1) == order }
+    }
+}
+
+//MARK: - Collection
+
+//Average with predicate for complex types
+public extension Collection {
+    func average<T: BinaryInteger>(_ predicate: (Element) -> T) -> T {
+        isEmpty ? .zero : T(sum(predicate) / T(count))
+    }
+
+    func average<T: BinaryInteger, F: BinaryFloatingPoint>(_ predicate: (Element) -> T) -> F {
+        isEmpty ? .zero : (F(sum(predicate)) / F(count))
+    }
+
+    func average<T: BinaryFloatingPoint>(_ predicate: (Element) -> T) -> T {
+        isEmpty ? .zero : sum(predicate) / T(count)
+    }
+
+    func average(_ predicate: (Element) -> Decimal) -> Decimal {
+        isEmpty ? .zero : sum(predicate) / Decimal(count)
+    }
+}
+
+//Average for primitive types
+public extension Collection where Element: BinaryInteger {
+    func average() -> Element {
+        isEmpty ? .zero : sum() / Element(count)
+    }
+    func average<T: FloatingPoint>() -> T {
+        isEmpty ? .zero : T(sum()) / T(count)
+    }
+}
+
+//Average for primitive types
+public extension Collection where Element: BinaryFloatingPoint {
+    func average() -> Element {
+        isEmpty ? .zero : Element(sum()) / Element(count)
+    }
+}
+
+public extension Collection {
+    ///Extension of index(after:) to allow wrap rather than 'past end' semantics
+    func index(after i: Index, wrap: Bool) -> Index {
+        var next = index(after: i)
+        if wrap && next == endIndex {
+            next = startIndex
+        }
+        return next
+    }
+}
+
+///Trivial indexing generator that wraps back to startIndex when reaching endIndex
+public class WrappingIndexingGenerator<C: Collection>: IteratorProtocol {
+    private var _collection: C
+    private var _index: C.Index
+    
+    public func next() -> C.Iterator.Element? {
+        var item:C.Iterator.Element?
+        if _index == _collection.endIndex {
+            _index = _collection.startIndex
+        }
+        item = _collection[_index]
+        _index = _collection.index(after: _index)
+        return item
+    }
+    
+    init(_ collection: C) {
+        _collection = collection
+        _index = _collection.startIndex
+    }
+}
+
+//MARK: - RangeReplaceableCollection
+
+public extension RangeReplaceableCollection where Self.Indices.Element == Int {
+    ///Extract specified elements while preserving order of elements of indexSet.
+    @discardableResult
+    mutating func extractItems(in indexSet: IndexSet) -> [Self.Element] {
+        precondition(indexSet.isStrictSubset(of: IndexSet(indices)))
+
+        let result: [Self.Element] = {
+            var extracts = [Self.Element]()
+            extracts.reserveCapacity(indexSet.count)
+            indexSet.forEach {
+                extracts.append(self[$0])
+            }
+            return extracts
+        }()
+        
+        //gotta be a better way?
+        indexSet.sorted().reversed().forEach {
+            self.remove(at: $0)
+        }
+
+        return result
+    }
+    
+    ///Move items specified to specified location while preserving order of elements of indexSet.
+    ///If destination is out of range after extractions items are placed at end.
+    mutating func moveItems(from indexSet: IndexSet, to destinationIndex: Index) {
+        precondition(indexSet.isStrictSubset(of: IndexSet(indices)))
+        self.insert(contentsOf: self.extractItems(in: indexSet),
+                    at: Swift.min(destinationIndex, endIndex))
+    }
+    
+    ///Move items specified to back while preserving order of elements of indexSet.
+    mutating func moveItemsToBack(from indexSet: IndexSet) {
+        precondition(indexSet.isStrictSubset(of: IndexSet(indices)))
+        self.append(contentsOf: self.extractItems(in: indexSet))
+    }
+    
+    ///Move items specified to front while preserving order of elements of indexSet.
+    mutating func moveItemsToFront(from indexSet: IndexSet) {
+        precondition(indexSet.isStrictSubset(of: IndexSet(indices)))
+        self.insert(contentsOf: self.extractItems(in: indexSet), at: startIndex)
     }
 }

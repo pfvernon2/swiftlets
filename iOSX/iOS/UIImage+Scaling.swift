@@ -10,7 +10,7 @@ import UIKit
 
 extension UIImage {
     ///Scale image to the size supplied. If screen resolution is desired, pass scale == 0.0
-    func scale(toSize size:CGSize, flip:Bool = false, scale:CGFloat = 1.0) -> UIImage? {
+    func scale(toSize size:CGSize, flip:Bool = false, scale:CGFloat = .unity) -> UIImage? {
         let newRect:CGRect = CGRect(x:0, y:0, width:size.width, height:size.height).integral
         
         UIGraphicsBeginImageContextWithOptions(size, false, scale)

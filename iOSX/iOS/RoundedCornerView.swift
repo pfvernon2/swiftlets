@@ -23,7 +23,7 @@ import QuartzCore
         }
     }
     
-    @IBInspectable var borderWidth:CGFloat = 0.0 {
+    @IBInspectable var borderWidth:CGFloat = .zero {
         didSet {
             layer.borderWidth = borderWidth
         }
@@ -32,7 +32,7 @@ import QuartzCore
     @IBInspectable var cornerRadius:CGFloat {
         set (radius) {
             self.layer.cornerRadius = radius
-            self.layer.masksToBounds = radius > 0.0
+            self.layer.masksToBounds = radius > .zero
         }
         get {
             self.layer.cornerRadius

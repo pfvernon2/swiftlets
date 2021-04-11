@@ -211,7 +211,7 @@ class swiftletsTests: XCTestCase {
         writerReader.write {
             sleep(1)
             print("Write 1")
-            state = true;
+            state = true
         }
     }
     
@@ -302,24 +302,24 @@ class swiftletsTests: XCTestCase {
         let lowerRight: CGPoint = CGPoint(x: 101.0, y: 100.0)
         let nearest: CGPoint = CGPoint(x: 100.0, y: 101.0)
         
-        var temp = testPoint;
-        temp.snap(to: .upperLeft);
+        var temp = testPoint
+        temp.snap(to: .upperLeft)
         XCTAssert(temp == upperLeft)
         
-        temp = testPoint;
-        temp.snap(to: .upperRight);
+        temp = testPoint
+        temp.snap(to: .upperRight)
         XCTAssert(temp == upperRight)
 
-        temp = testPoint;
-        temp.snap(to: .lowerLeft);
+        temp = testPoint
+        temp.snap(to: .lowerLeft)
         XCTAssert(temp == lowerLeft)
 
-        temp = testPoint;
-        temp.snap(to: .lowerRight);
+        temp = testPoint
+        temp.snap(to: .lowerRight)
         XCTAssert(temp == lowerRight)
 
-        temp = testPoint;
-        temp.snap(to: .nearest);
+        temp = testPoint
+        temp.snap(to: .nearest)
         XCTAssert(temp == nearest)
         
         //Test CGSize max/min dimension
@@ -492,7 +492,7 @@ class swiftletsTests: XCTestCase {
 
     func testData() {
         var stringData:Data = Data()
-        stringData.appendStringAsUTF8("foobar");
+        stringData.appendStringAsUTF8("foobar")
         XCTAssertEqual(stringData.hexRepresentation(), "666F6F626172")
     }
 
@@ -506,20 +506,20 @@ class swiftletsTests: XCTestCase {
         XCTAssertEqual(date8601, Date(timeIntervalSince1970: -130391543.36100006))
 
         //Test overloaded TimeInterval initializers
-        let milliTest = TimeInterval(milliseconds: 101.0);
-        XCTAssertEqual(milliTest, 0.101);
-        XCTAssertEqual(milliTest.microseconds.truncate(to: 1), 101000.0);
+        let milliTest = TimeInterval(milliseconds: 101.0)
+        XCTAssertEqual(milliTest, 0.101)
+        XCTAssertEqual(milliTest.microseconds.truncate(to: 1), 101000.0)
 
-        let minuteTest = TimeInterval(days: 100.0);
-        XCTAssertEqual(minuteTest, 8640000.0);
-        XCTAssertEqual(minuteTest.hours, 2400.0);
+        let minuteTest = TimeInterval(days: 100.0)
+        XCTAssertEqual(minuteTest, 8640000.0)
+        XCTAssertEqual(minuteTest.hours, 2400.0)
 
         //create variable used below for relative/approximate time representations using
         // overloaded TimeInterval constructors
-        let testDate: Date = Date();
-        let tomorrow:Date = Date(timeInterval: TimeInterval(days: 1), since: testDate);
-        let tomorrowInterval: TimeInterval = tomorrow.timeIntervalSince(testDate);
-        XCTAssert(tomorrowInterval.hours == 24);
+        let testDate: Date = Date()
+        let tomorrow:Date = Date(timeInterval: TimeInterval(days: 1), since: testDate)
+        let tomorrowInterval: TimeInterval = tomorrow.timeIntervalSince(testDate)
+        XCTAssert(tomorrowInterval.hours == 24)
 
         //relative date string, test assumes system locale is english
         guard let relativity:String = DateFormatter.relativeDateTimeString(from: tomorrow,
@@ -537,6 +537,25 @@ class swiftletsTests: XCTestCase {
         //duration string, test assumes system locale is english
         let localization:String = tomorrow.timeIntervalSince(testDate).durationLocalizedDescription()
         XCTAssertEqual(localization, "1 day")
+        
+        let gregorian = Calendar(identifier: .gregorian)
+        XCTAssert(gregorian.hoursInDay() == 24)
+        XCTAssert(gregorian.daysInWeek() == 7)
+        XCTAssert(gregorian.monthsInYear() == 12)
+        XCTAssert(gregorian.daysInMonth() == 31)
+        XCTAssert(gregorian.daysInMonth(for: gregorian.startOfCurrentYear()) == 31)
+        
+        XCTAssert(gregorian.dayOfWeek(for: Date(timeIntervalSince1970: -130391543.36100006)) == 7)
+        XCTAssert(gregorian.dayOfMonth(for: Date(timeIntervalSince1970: -130391543.36100006)) == 13)
+        XCTAssert(gregorian.month(for: Date(timeIntervalSince1970: -130391543.36100006)) == 11)
+        XCTAssert(gregorian.year(for: Date(timeIntervalSince1970: -130391543.36100006)) == 1965)
+        
+        guard let yesterday: Date = Calendar.current.date(byAdding: DateComponents(day: -1, hour: -12), to: testDate) else {
+            XCTAssert(false)
+            return
+        }
+        XCTAssert(testDate.daysBetween(date: yesterday) == -1.5)
+
     }
     
     //MARK: - Utility

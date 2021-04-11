@@ -163,9 +163,9 @@ public extension MPMediaItem {
         exporter.shouldOptimizeForNetworkUse = false;
         exporter.outputFileType = AVFileType.m4a
         
-        let destinationURL = FileManager.default.uniqueURL(in: destinationDir,
-                                                           name: fileName(),
-                                                           type: AVFileType.m4a.fileExtension ?? ".m4a")
+        let destinationURL = FileManager.default.uniqueFile(in: destinationDir,
+                                                            name: fileName(),
+                                                            type: AVFileType.m4a.fileExtension ?? ".m4a")
         exporter.outputURL = destinationURL
         
         //It appears sometimes the media library does not write metadata into files.

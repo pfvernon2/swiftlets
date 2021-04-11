@@ -51,8 +51,8 @@ class LineReader {
             free(line)
         }
         
-        var linecap:Int = 0
-        guard getline(&line, &linecap, file) > 0, line != nil else {
+        var linecap:Int = .zero
+        guard getline(&line, &linecap, file) > .zero, line != nil else {
             return nil
         }
         

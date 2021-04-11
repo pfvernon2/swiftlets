@@ -49,7 +49,7 @@ public extension AVAudioFile {
         if !displayInDB {
             //convert DB to gain/power and (re-)clip at the specified dynamic range
             samples = samples.map { pow(10.0, $0/20.0) }
-            var floor: Float = 0.0
+            var floor: Float = .zero
             var ceil: Float = abs(noiseFloor)
             vDSP_vclip(samples, 1, &floor, &ceil, &samples, 1, vDSP_Length(samples.count));
         }
@@ -152,7 +152,7 @@ public extension AVAudioFile {
             // clip at noise floor then
             // add noisefloor to make values positive amplitude in db
             var floor: Float = noiseFloor
-            var ceil: Float = 0.0
+            var ceil: Float = .zero
             vDSP_vclip(samples, 1, &floor, &ceil, &samples, 1, vDSP_Length(samples.count));
             vDSP.add(abs(noiseFloor), samples, result: &samples)
         }

@@ -9,7 +9,7 @@
 import Foundation
 import UIKit
 
-extension UIAlertController {
+public extension UIAlertController {
     
     /**
      Creates and returns a UIAlertController with optional OK and Cancel buttons. If handlers are not supplied for the OK or Cancel buttons then the associated actions will not be added to the alert.
@@ -30,7 +30,7 @@ extension UIAlertController {
         let result = UIAlertController(title: title, message: message, preferredStyle: preferredStyle)
         
         if let okHandler = okHandler {
-            let okAction:UIAlertAction = UIAlertAction(title: NSLocalizedString("OK", comment: "UIAlertController OK control"), style: .default, handler: okHandler)
+            let okAction = UIAlertAction(title: NSLocalizedString("OK", comment: "UIAlertController OK control"), style: .default, handler: okHandler)
             result.addAction(okAction)
         }
         

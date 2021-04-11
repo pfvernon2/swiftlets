@@ -104,7 +104,7 @@ extension FormInputManager {
             guard let control:UIControl = $0 as? UIControl else {
                 return false
             }
-            return control.isEnabled && !control.isHidden && control.alpha > 0
+            return control.isEnabled && !control.isHidden && control.alpha > .alphaMin
         }
     }
 

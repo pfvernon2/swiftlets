@@ -23,9 +23,9 @@ fileprivate let recordDelimiterSequence:String = String(recordDelimiter)
 /// While fully 4180 compliant this implementation is simplistic in that it requires the full
 /// contents of the data to reside in memory. In the case of reading from file the data will be duplicated
 /// in memory while being parsed. Once parsed the initial load of data from the file will be released.
-class CSVHelper {
+public class CSVHelper {
     ///Reads contents of file URL to an array of string arrays
-    static func read(contentsOfURL url: URL, useEncoding encoding: String.Encoding = String.Encoding.utf8) -> [[String]] {
+    public static func read(contentsOfURL url: URL, useEncoding encoding: String.Encoding = String.Encoding.utf8) -> [[String]] {
         guard var characterData:String = try? String(contentsOfFile: url.path, encoding: encoding) else {
             return []
         }
@@ -98,7 +98,7 @@ class CSVHelper {
 
     ///Write table data to file.
     /// - note: Data is streamed to file on a per record basis thus there should be minimal impact on memory.
-    static func write(_ table: [[String]], toFile url: URL, useEncoding encoding: String.Encoding = String.Encoding.utf8) {
+    public static func write(_ table: [[String]], toFile url: URL, useEncoding encoding: String.Encoding = String.Encoding.utf8) {
         guard let stream = OutputStream(url: url, append: true) else {
             return
         }

@@ -41,7 +41,7 @@ fileprivate func degreesToRadians(_ degrees: Double) -> Double {
 let kCLLocationDirectionInvalid:CLLocationDirection = -1.0
 extension CLLocationDirection {
     func isValidDirection() -> Bool {
-        self >= 0.0
+        self >= .zero
     }
     
     public enum CLLocationDirectionMotion {

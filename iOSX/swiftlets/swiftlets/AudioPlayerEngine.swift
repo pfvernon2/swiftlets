@@ -51,18 +51,18 @@ public class AudioPlayerEngine {
     
     //state tracking for AVAudioPlayerNode
     private var paused: Bool = false
-    private var pausedPosition: TimeInterval = 0.0
+    private var pausedPosition: TimeInterval = .zero
     private var stopping: Bool = false
     private var reachedEnd: Bool = false
 
     //Buffer queue management and thread safety
     private let bufferQueue: DispatchQueue = DispatchQueue(label: "com.cyberdev.AudioPlayerEngine.buffers")
-    private var buffersInFlight: Int = 0
+    private var buffersInFlight: Int = .zero
     
     //MARK: - Member variables - public
     public weak var delegate: AudioPlayerDelegate?
 
-    private(set) public var trackLength: TimeInterval = 0.0
+    private(set) public var trackLength: TimeInterval = .zero
     
     ///playback postion as percentage 0.0->1.0
     public var playbackProgress: Float {
@@ -297,7 +297,7 @@ public class AudioPlayerEngine {
             //otherwise just start playing at beginning of track
         else {
             //ensure file framePosition at head in case we are re-playing a track
-            trackToPlay.framePosition = 0
+            trackToPlay.framePosition = .zero
             initBuffers()
             
             bufferQueue.sync {
@@ -406,7 +406,7 @@ public class AudioPlayerEngine {
                 
                 self.bufferQueue.sync {
                     self.buffersInFlight -= 1
-                    bufferQueueDrained = self.buffersInFlight == 0
+                    bufferQueueDrained = self.buffersInFlight == .zero
                     stopping = self.stopping
                 }
                 
@@ -513,7 +513,7 @@ public let kRateCenter: Float = 1.0
 public let kRateMax: Float = 32.0
 
 //Track output level constants
-fileprivate let kOutputLevelDefault: Float = 0.0
+fileprivate let kOutputLevelDefault: Float = .zero
 
 //Equalizer constants
 fileprivate let kNumberOfBands: Int = 4
@@ -583,11 +583,11 @@ public class FXAudioPlayerEngine: AudioPlayerEngine, AudioPlayer {
             switch newRouting {
             case .stereo:
                 engine.connect(routingMixer, to: engine.mainMixerNode, format: outputFormat)
-                routingMixer.pan = 0.0
+                routingMixer.pan = .zero
                 
             case .mono:
                 engine.connect(routingMixer, to: engine.mainMixerNode, format: monoFormat)
-                routingMixer.pan = 0.0
+                routingMixer.pan = .zero
                 
             case .monoLeft:
                 engine.connect(routingMixer, to: engine.mainMixerNode, format: monoFormat)
@@ -698,7 +698,7 @@ public class FXAudioPlayerEngine: AudioPlayerEngine, AudioPlayer {
         
         //configure eq
         equalizer.bypass = false
-        equalizer.globalGain = 0.0
+        equalizer.globalGain = .zero
         engine.attach(equalizer)
         resetEQ()
         
@@ -731,24 +731,24 @@ public class FXAudioPlayerEngine: AudioPlayerEngine, AudioPlayer {
     public func resetEQ() {
         equalizer.bands[0].filterType = .lowShelf
         equalizer.bands[0].frequency = kLowShelfInitialFrequency
-        equalizer.bands[0].gain = 0.0
+        equalizer.bands[0].gain = .zero
         equalizer.bands[0].bypass = false
         
         equalizer.bands[1].filterType = .parametric
         equalizer.bands[1].bandwidth = 1.0
         equalizer.bands[1].frequency = kParametricLowInitialFrequency
-        equalizer.bands[1].gain = 0.0
+        equalizer.bands[1].gain = .zero
         equalizer.bands[1].bypass = false
 
         equalizer.bands[2].filterType = .parametric
         equalizer.bands[2].bandwidth = 1.0
         equalizer.bands[2].frequency = kParametricHighInitialFrequency
-        equalizer.bands[2].gain = 0.0
+        equalizer.bands[2].gain = .zero
         equalizer.bands[2].bypass = false
 
         equalizer.bands[3].filterType = .highShelf
         equalizer.bands[3].frequency = kHighShelfInitialFrequency
-        equalizer.bands[3].gain = 0.0
+        equalizer.bands[3].gain = .zero
         equalizer.bands[3].bypass = false
     }
     
@@ -766,11 +766,11 @@ public class FXAudioPlayerEngine: AudioPlayerEngine, AudioPlayer {
     public func setFilter(atIndex filterIndex: Int,
                           frequency: Float,
                           gain: Float,
-                          bandwidth: Float = 0.0) {
+                          bandwidth: Float = .zero) {
         equalizer.bands[filterIndex].frequency = frequency
         
         if abs(gain) <= kEQGainDetentRange {
-            equalizer.bands[filterIndex].gain = 0.0
+            equalizer.bands[filterIndex].gain = .zero
         } else {
             equalizer.bands[filterIndex].gain = gain
         }
@@ -942,8 +942,8 @@ extension AudioPlayer {
     ///playback postion as percentage 0.0->1.0
     public var playbackProgress: Float {
         get {
-            guard let duration = mediaItem?.playbackDuration, duration > 0.0 else {
-                return 0.0
+            guard let duration = mediaItem?.playbackDuration, duration > .zero else {
+                return .zero
             }
             
             return Float(playbackPosition/duration)
@@ -1057,10 +1057,10 @@ public class MusicPlayer: AudioPlayer {
         }
     }
 
-    public var playbackRate: Float = 1.0 {
+    public var playbackRate: Float = .unity {
         didSet {
             //currentPlaybackRate == 0 when stopped
-            guard MusicPlayer.player.currentPlaybackRate != 0,
+            guard MusicPlayer.player.currentPlaybackRate != .zero,
                   MusicPlayer.player.currentPlaybackRate != playbackRate else {
                 return
             }
@@ -1135,7 +1135,7 @@ public class MusicPlayer: AudioPlayer {
         // Noli Se Tangere
 
         MusicPlayer.player.setQueue(with: [id])
-        MusicPlayer.player.currentPlaybackTime = 0.0
+        MusicPlayer.player.currentPlaybackTime = .zero
         MusicPlayer.player.repeatMode = .none
         MusicPlayer.player.shuffleMode = .off
         MusicPlayer.player.prepareToPlay()

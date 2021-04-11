@@ -16,7 +16,7 @@ let kMINIMUM_ZOOM_ARC:CLLocationDegrees = 0.014 //approximately 1 mile (1 degree
 
 extension MKMapView {
     func zoomMapViewToFit(coordinates:[CLLocationCoordinate2D]?) {
-        if annotations.count == 0 {
+        if annotations.count == .zero {
             return
         }
         
@@ -80,7 +80,7 @@ extension MKMapView {
      
      ```
      mapView.animateRemoval(annotations, duration: 0.5, animations: { (view) in
-     view.alpha = 0.0
+     view.alpha = .alphaMin
      })
      ```
      */
