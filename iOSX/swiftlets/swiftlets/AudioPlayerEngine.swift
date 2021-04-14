@@ -1088,15 +1088,22 @@ public class MusicPlayer: AudioPlayer {
     }
     
     @discardableResult public func play() -> Bool {
-        //Setting currentPlaybackRate has side effect of initiating playback.
-        // Attempting to call play() immediately followed by
+        MusicPlayer.player.play()
+        
+        // NOTE: Attempting to call play() immediately before or after
         // setting currentPlaybackRate introduces a race condition
         // that prevents currentPlaybackRate from taking effect.
-        MusicPlayer.player.currentPlaybackRate = playbackRate
+        // This async call seems to solve that issue.
+        DispatchQueue.main.async {
+            MusicPlayer.player.currentPlaybackRate = self.playbackRate
+        }
         
-        delegate?.playbackStarted()
+        let state = isPlaying()
+        if state {
+            delegate?.playbackStarted()
+        }
 
-        return isPlaying()
+        return state
     }
     
     public func isPlaying() -> Bool {
@@ -1149,7 +1156,8 @@ public class MusicPlayer: AudioPlayer {
         // Addendum:
         // A great deal of the inconsistency of state reporting appears to be related to the state(s) of .repeatMode and .shuffleMode.
         // I am now setting these explicitly in setupPlayer() and this seems to have increased the consistency of the state reporting.
-        // The state rules are still completely inscrutable so I am still not going to rely upon them for delegate reporting.
+        // The state rules are still completely inscrutable, and it appears this method can be called multiple times
+        // for a single operation, so I am still not going to rely upon this for delegate notification.
         
         switch playbackState {
         case .stopped:
