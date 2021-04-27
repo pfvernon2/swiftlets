@@ -92,7 +92,7 @@ extension CLLocationDirection {
 
 extension CLLocationDistance {
     func isValidDistance() -> Bool {
-        self != CLLocationDistance.nan
+        !self.isNaN
     }
     
     func toMiles() -> CLLocationDistanceMiles {

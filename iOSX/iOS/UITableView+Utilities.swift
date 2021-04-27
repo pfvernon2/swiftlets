@@ -10,7 +10,7 @@ import Foundation
 import UIKit
 
 ///Protocol to aid in identifying and registering reusable cells
-public protocol ReuseIdentifiable: class {
+public protocol ReuseIdentifiable: AnyObject {
     static var reuseIdentifier: String { get }
 }
 

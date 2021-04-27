@@ -11,7 +11,7 @@ import AVFoundation
 //MARK: - AudioPlayerDelegate
 
 ///Watcher protocol for the AudioPlayerEngine class. All methods guaranteed to be called on main thread.
-public protocol AudioPlayerDelegate: class {
+public protocol AudioPlayerDelegate: AnyObject {
     func playbackStarted()
     func playbackPaused()
     func playbackStopped(trackCompleted: Bool)
@@ -836,7 +836,7 @@ public struct PlaybackPosition {
 /// after initialization to see what is available.
 /// - note: The MPMediaPlayer concept of a queue is hidden here as well. The assumption is that you want
 ///         full controll over playback and thus assume full responsibility for transitions.
-public protocol AudioPlayer: class {
+public protocol AudioPlayer: AnyObject {
     var delegate: AudioPlayerDelegate? { get set }
     
     var mediaItem: MPMediaItem? { get set }
