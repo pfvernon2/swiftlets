@@ -96,6 +96,10 @@ public extension CGPoint {
             x = round(x)
         }
     }
+    
+    func distance(to point: CGPoint) -> CGFloat {
+        hypot(point.x - x, point.y - y)
+    }
 }
 
 // MARK: - CGPointArray

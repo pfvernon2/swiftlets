@@ -9,6 +9,10 @@
 import UIKit
 
 extension UIApplication {
+    public class var windowInterfaceOrientation: UIInterfaceOrientation? {
+        return UIApplication.shared.windows.first?.windowScene?.interfaceOrientation
+    }
+
     public class func jumpOutToAppPreferences() {
         guard let settingsURL:URL = URL(string: UIApplication.openSettingsURLString),
             UIApplication.shared.canOpenURL(settingsURL) else {
@@ -58,4 +62,3 @@ extension UIApplication {
         }) as? UIWindowScene
     }
 }
-
