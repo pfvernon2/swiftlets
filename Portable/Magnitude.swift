@@ -127,7 +127,7 @@ public protocol MagnitudeConversion {
     static func toNearestMagnitude(_ units: Double) -> (Double, T)
 }
 
-extension MagnitudeConversion where Self: Equatable, Self: RawRepresentable, Self: CaseIterable, T: RawRepresentable, T: CaseIterable {
+extension MagnitudeConversion where Self: Equatable, Self: RawRepresentable, Self: CaseIterable, T: RawRepresentable {
     public func toMagnitude(_ units: Double, fromMagnitude: T) -> Double {
         (units * (fromMagnitude.rawValue as! Double)) / (rawValue as! Double)
     }
