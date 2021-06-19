@@ -11,12 +11,17 @@ import AVFoundation
 import Accelerate
 
 public let kDefaultNoiseFloor: Float = -50.0
+private let kProcessingFormat: AVAudioCommonFormat = .pcmFormatFloat32
 
 public extension AVAudioFile {
     enum SwiftletsAudioFileError: Error {
         case invalidFormat
         case outOfMemory
         case invalidConverter
+    }
+    
+    convenience init(forViewing fileURL: URL) throws {
+        try self.init(forReading: fileURL, commonFormat: kProcessingFormat, interleaved: false)
     }
     
     ///Render file as mono waveform image. There are many like it, this is mine.
@@ -84,25 +89,18 @@ public extension AVAudioFile {
         }
     }
 
-    ///Read entire file into buffer of Float32 based on the format of the file. By default returns a mono representation of the samples.
+    ///Read entire file into buffer based on the processing format. By default returns a mono representation of the samples.
     func samples(asMono mono: Bool = true) throws -> [Float] {
-        guard let fileFormat = AVAudioFormat(commonFormat: .pcmFormatFloat32,
-                                             sampleRate: fileFormat.sampleRate,
-                                             channels: fileFormat.channelCount,
-                                             interleaved: false) else {
-                                                throw SwiftletsAudioFileError.invalidFormat
-        }
-        
-        guard var buf = AVAudioPCMBuffer(pcmFormat: fileFormat, frameCapacity: UInt32(length)) else {
+        guard var buf = AVAudioPCMBuffer(pcmFormat: processingFormat, frameCapacity: UInt32(length)) else {
             throw SwiftletsAudioFileError.outOfMemory
         }
         
         try read(into: buf)
         
         //TODO: Make this more efficient on memory by doing mono conversion during chunked file read
-        if mono && fileFormat.channelCount > 1 {
-            guard let monoFormat = AVAudioFormat(commonFormat: .pcmFormatFloat32,
-                                                 sampleRate: fileFormat.sampleRate,
+        if mono && processingFormat.channelCount > 1 {
+            guard let monoFormat = AVAudioFormat(commonFormat: processingFormat.commonFormat,
+                                                 sampleRate: processingFormat.sampleRate,
                                                  channels: 1,
                                                  interleaved: false) else {
                                                     throw SwiftletsAudioFileError.invalidFormat

@@ -139,13 +139,11 @@ public class AudioPlayerEngine {
     /// This mode allows playback of audio when the ringer (mute) switch is enabled.
     /// Be sure to enable audio in the BackgroundModes settings of your apps Capabilities if necessary.
     #if os(iOS) || os(watchOS)
-    public class func initAudioSessionCooperativePlayback() {
-        try? AVAudioSession.sharedInstance().setActive(true)
-        
-        //AVAudioSessionCategoryMultiRoute - AVAudioSessionCategoryPlayback
-        try? AVAudioSession.sharedInstance().setCategory(.playback,
+    public class func initAudioSessionCooperativePlayback(category: AVAudioSession.Category = .multiRoute) {
+        try? AVAudioSession.sharedInstance().setCategory(category,
                                                          mode: .default,
                                                          policy: .longFormAudio)
+        try? AVAudioSession.sharedInstance().setActive(true)
     }
     #endif
     
