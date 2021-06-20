@@ -544,6 +544,10 @@ public class FXAudioPlayerEngine: AudioPlayerEngine, AudioPlayer {
         }
     }
 
+    public var isPrepared: Bool {
+        true
+    }
+    
     //Audio Units
     private let timePitch: AVAudioUnitTimePitch = AVAudioUnitTimePitch()
     private let equalizer: AVAudioUnitEQ = AVAudioUnitEQ(numberOfBands: kNumberOfBands)
@@ -841,11 +845,13 @@ public protocol AudioPlayer: AnyObject {
     
     var asset: AVURLAsset? { get set }
     
-    var assetURL: URL? {get }
+    var assetURL: URL? { get }
 
+    var isPrepared: Bool { get }
+    
     var playbackPosition: TimeInterval { get set }
     
-    var playbackProgress: Float {get set}
+    var playbackProgress: Float { get set }
 
     ///Playback duration adjusted for playbackRate
     var playbackDuration: TimeInterval { get }
@@ -1020,11 +1026,7 @@ public class MusicPlayer: AudioPlayer {
     
     public weak var delegate: AudioPlayerDelegate?
 
-    public var mediaItem: MPMediaItem? = nil {
-        didSet {
-            setupPlayer()
-        }
-    }
+    public var mediaItem: MPMediaItem? = nil
     
     public var asset: AVURLAsset? {
         get {
@@ -1040,15 +1042,25 @@ public class MusicPlayer: AudioPlayer {
         return mediaItem?.assetURL
     }
 
+    public var isPrepared: Bool {
+        return MusicPlayer.player.isPreparedToPlay
+    }
+    
     public var playbackState: MPMusicPlaybackState {
         get {
             MusicPlayer.player.playbackState
         }
     }
 
+    //This is a hack to work around the issue that currentPlaybackTime is bogus
+    // immediately after setting up the queue.
+    // Attempting to reset currentPlaybackTime to .zero immediately after initializing the
+    // queue results in prolonged (10 second) delays.
+    private var queueJustInitialized: Bool = false
+    
     public var playbackPosition: TimeInterval {
         get {
-            MusicPlayer.player.currentPlaybackTime
+            queueJustInitialized ? .zero : MusicPlayer.player.currentPlaybackTime
         }
         set {
             MusicPlayer.player.currentPlaybackTime = newValue
@@ -1077,8 +1089,6 @@ public class MusicPlayer: AudioPlayer {
                                                selector: #selector(self.handleStateChange),
                                                name: .MPMusicPlayerControllerPlaybackStateDidChange,
                                                object: nil)
-                
-        setupPlayer()
     }
 
     deinit {
@@ -1086,6 +1096,7 @@ public class MusicPlayer: AudioPlayer {
     }
     
     @discardableResult public func play() -> Bool {
+        queueJustInitialized = false
         MusicPlayer.player.play()
         
         // NOTE: Attempting to call play() immediately before or after
@@ -1126,24 +1137,25 @@ public class MusicPlayer: AudioPlayer {
         delegate?.playbackStopped(trackCompleted: false)
     }
     
-    private func setupPlayer() {
-        guard let id = mediaItem?.playbackStoreID else {
-            return
+    func setupPlayer(completion: @escaping ()->Swift.Void) {
+        DispatchQueue.global(qos: .userInitiated).async {
+            guard let id = self.mediaItem?.playbackStoreID else {
+                completion()
+                return
+            }
+            
+            MusicPlayer.player.setQueue(with: [id])
+            MusicPlayer.player.repeatMode = .none
+            MusicPlayer.player.shuffleMode = .off
+            
+            MusicPlayer.player.prepareToPlay() { error in
+                if let error = error { print("☢️", error) }
+                DispatchQueue.main.async {
+                    self.queueJustInitialized = true
+                    completion()
+                }
+            }
         }
-        
-        // This API is apparently very sensitive to order of operation.
-        // The below is the only sequence that appears to operate consistently and reliably
-        // for this use case as of iOS 14.4.
-        // Variations of this order have introduced significant (3-5 second) delays
-        // and blocking of the main thread when invoking prepareToPlay()
-        //
-        // Noli Se Tangere
-
-        MusicPlayer.player.setQueue(with: [id])
-        MusicPlayer.player.currentPlaybackTime = .zero
-        MusicPlayer.player.repeatMode = .none
-        MusicPlayer.player.shuffleMode = .off
-        MusicPlayer.player.prepareToPlay()
     }
     
     @objc private func handleStateChange(notification: Notification) {
@@ -1195,17 +1207,20 @@ public class MusicPlayer: AudioPlayer {
 /// after initialization to see what is available.
 public struct AudioPlayerFactory {
     ///Create an appropriate audio player based on the media item
-    public static func createPlayer(for mediaItem: MPMediaItem) -> AudioPlayer {
+    public static func createPlayer(for mediaItem: MPMediaItem, _ completion: @escaping (AudioPlayer)->Swift.Void) {
         if mediaItem.assetURL != nil {
-            return FXAudioPlayerEngine(mediaItem: mediaItem)
+            completion(FXAudioPlayerEngine(mediaItem: mediaItem))
         }
         else {
-            return MusicPlayer(mediaItem: mediaItem)
+            let player = MusicPlayer(mediaItem: mediaItem)
+            player.setupPlayer {
+                completion(player)
+            }
         }
     }
     
-    public static func createPlayer(for asset: AVURLAsset) -> AudioPlayer {
-        return FXAudioPlayerEngine(asset: asset)
+    public static func createPlayer(for asset: AVURLAsset, _ completion: @escaping (AudioPlayer)->Swift.Void) {
+        completion(FXAudioPlayerEngine(asset: asset))
     }
 }
 
