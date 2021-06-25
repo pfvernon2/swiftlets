@@ -1006,8 +1006,8 @@ extension AudioPlayer {
 
 ///This is a thin wrapper on MPMusicPlayerController to give us interface consistency with AudioPlayer for factory construction
 public class MusicPlayer: AudioPlayer {
-    private static var player: MPMusicPlayerController = {
-        let player = MPMusicPlayerController.applicationMusicPlayer
+    private static var player: MPMusicPlayerApplicationController = {
+        let player = MPMusicPlayerController.applicationQueuePlayer
         player.repeatMode = .none
         player.shuffleMode = .off
         player.beginGeneratingPlaybackNotifications()
@@ -1139,17 +1139,20 @@ public class MusicPlayer: AudioPlayer {
     
     func setupPlayer(completion: @escaping ()->Swift.Void) {
         DispatchQueue.global(qos: .userInitiated).async {
-            guard let id = self.mediaItem?.playbackStoreID else {
+            guard let mediaItem = self.mediaItem else {
                 completion()
                 return
             }
             
-            MusicPlayer.player.setQueue(with: [id])
+            MusicPlayer.player.setQueue(with: [mediaItem.playbackStoreID])
             MusicPlayer.player.repeatMode = .none
             MusicPlayer.player.shuffleMode = .off
-            
+
             MusicPlayer.player.prepareToPlay() { error in
-                if let error = error { print("☢️", error) }
+                //I continue to see a lot of random failures in prepareToPlay()
+                // hoping this may shed some light on things.
+                if let error = error { print("☢️ MPMusicPlayerController.prepareToPlay", error, "☢️") }
+                
                 DispatchQueue.main.async {
                     self.queueJustInitialized = true
                     completion()
