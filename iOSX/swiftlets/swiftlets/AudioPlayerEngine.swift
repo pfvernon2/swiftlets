@@ -144,6 +144,12 @@ public class AudioPlayerEngine {
                                                          mode: .default,
                                                          policy: .longFormAudio)
         try? AVAudioSession.sharedInstance().setActive(true)
+        
+        //Prevent interruptions from incoming calls - unless user has configured device
+        // for fullscreen call notifications
+        if #available(iOS 14.5, *) {
+            try? AVAudioSession.sharedInstance().setPrefersNoInterruptionsFromSystemAlerts(true)
+        }
     }
     #endif
     
@@ -1250,14 +1256,20 @@ public class SystemVolumeMonitor: NSObject {
 
     public override init() {
         super.init()
-        
+    }
+    
+    deinit {
+        stop()
+    }
+    
+    public func start() {
         AVAudioSession.sharedInstance().addObserver(self,
                                                     forKeyPath: Observation.VolumeKey,
                                                     options: [.initial, .new],
                                                     context: &Observation.Context)
     }
     
-    deinit {
+    public func stop() {
         AVAudioSession.sharedInstance().removeObserver(self,
                                                        forKeyPath: Observation.VolumeKey,
                                                        context: &Observation.Context)
@@ -1267,7 +1279,7 @@ public class SystemVolumeMonitor: NSObject {
         if context == &Observation.Context {
             if keyPath == Observation.VolumeKey,
                let volume = (change?[NSKeyValueChangeKey.newKey] as? NSNumber)?.floatValue {
-                NotificationCenter.default.post(name: .SystemVolumeMonitor, userInfo: ["volume":volume])
+                NotificationCenter.default.post(name: .SystemVolumeMonitor, userInfo: ["volume": volume])
             }
         } else {
             super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
