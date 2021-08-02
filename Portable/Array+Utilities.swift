@@ -34,6 +34,12 @@ public struct Queue<T>: ExpressibleByArrayLiteral {
 //MARK: - Array
 
 public extension Array {
+    
+    init(capacity: Int) {
+        self.init()
+        reserveCapacity(capacity)
+    }
+
     ///Add element to end of array and pop elment(s) off the front
     /// when specified depth exceeded
     mutating func enqueue(_ newElement: Self.Element, maxDepth: Int) {

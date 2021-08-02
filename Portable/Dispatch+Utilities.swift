@@ -55,11 +55,15 @@ public extension DispatchQueue {
 /**
  Reader Writer pattern with first-in priority semantics. Reads occur concurrently and writes serially.
  
- Execution of both read and write is based on first-in semantics of a queue. That is, all reads and writes will occur in the order in which they are added to the queue.
+ Execution of both read and write is based on first-in semantics of a queue. That is, all reads and writes will occur
+ in the order in which they are added to the queue.
 
- This pattern is useful in cases where you want to access data in a fashion consistent with the order of the requests. For example a case where you wanted to update your user interface before a potentially invalidating write operation.
+ This pattern is useful in cases where you want to access data in a fashion consistent with the order of the requests. For
+ example a case where you wanted to update your user interface before a potentially invalidating write operation.
 
- If, however, you wish to ensure that writes happen as quickly as possible and/or that any data read is as current as possible, then you may want to consider using the DispatchWriterReader class. The DispatchWriterReader class ensures that reads return the most recent data based on their execution time as apposed to their queue order.
+ If, however, you wish to ensure that writes happen as quickly as possible and/or that any data read is as current as
+ possible, then you may want to consider using the DispatchWriterReader class. The DispatchWriterReader class ensures
+ that reads return the most recent data based on their execution time as apposed to their queue order.
  */
 open class DispatchReaderWriter {
     private var concurrentQueue:DispatchQueue = DispatchQueue(label: "com.cyberdev.Dispatch.readerWriter", attributes: .concurrent)
@@ -76,11 +80,15 @@ open class DispatchReaderWriter {
 /**
  This is similar to a reader writer pattern but has write priority semantics. Reads occur concurrently and writes serially.
  
- Execution is based on write priotity at execution time. That is, when a write is enqueued all currently executing reads will be allow to complete, however, all pending reads (i.e. reads which have not yet been scheduled) will be held off until all pending writes have completed. Thus if a sequence of writes are enqueued all reads will be held off until the sequence of writes complete.
+ Execution is based on write priotity at execution time. That is, when a write is enqueued all currently executing reads will
+ be allow to complete, however, all pending reads (i.e. reads which have not yet been scheduled) will be held off until all pending
+ writes have completed. Thus if a sequence of writes are enqueued all reads will be held off until the sequence of writes complete.
 
- This pattern is useful in situations where race conditions at execution time must be minimized. While this may be useful, or even critical, for some operations please be aware that it can result in long delays, or even starvation, on read.
+ This pattern is useful in situations where race conditions at execution time must be minimized. While this may be useful, or even
+ critical, for some operations please be aware that it can result in long delays, or even starvation, on read.
  
- - note: This object incurs significantly more overhead than the DispatchReaderWriter class. Its usefulness is likely limited to cases where it is crucial to minimize race conditions when accessing the data.
+ - note: This object incurs significantly more overhead than the DispatchReaderWriter class. Its usefulness is likely limited to
+         cases where it is crucial to minimize race conditions when accessing the data.
  */
 open class DispatchWriterReader {
     private var writeQueue:DispatchQueue = DispatchQueue(label: "com.cyberdev.Dispatch.writerReader.write")
@@ -217,8 +225,7 @@ open class DispatchGuard {
  let dataGuard:DispatchGuard = DispatchGuard()
  
  func refreshData() {
-     let custodian = DispatchGuardCustodian(dataGuard)
-     guard custodian.acquired else {
+     guard let _ = DispatchGuardCustodian(dataGuard) else {
          return
      }
 
@@ -228,17 +235,16 @@ open class DispatchGuard {
  ```
  */
 open class DispatchGuardCustodian {
-    fileprivate var dispatchGuard:DispatchGuard
-    fileprivate(set) public var acquired:Bool
+    fileprivate var dispatchGuard: DispatchGuard
     
-    public init(_ dispatchGuard:DispatchGuard) {
+    public init?(_ dispatchGuard: DispatchGuard) {
+        guard dispatchGuard.enter() else {
+            return nil
+        }
         self.dispatchGuard = dispatchGuard
-        self.acquired = self.dispatchGuard.enter()
     }
     
     deinit {
-        if self.acquired {
-            self.dispatchGuard.exit()
-        }
+        self.dispatchGuard.exit()
     }
 }

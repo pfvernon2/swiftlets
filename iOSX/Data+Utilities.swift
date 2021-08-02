@@ -9,20 +9,19 @@
 import Foundation
 
 extension Data {
+    fileprivate static var hexDigits = Array("0123456789ABCDEF".utf16)
+
     ///Hex representation of the bytes in upper case hex characters
     ///
     /// - Note: You can call lowercased() on the result if you prefer lowercase.
     func hexRepresentation() -> String {
-        let hexDigits = Array("0123456789ABCDEF".utf16)
-        var chars: [unichar] = []
-        chars.reserveCapacity(2 * count)
-        for byte in self {
-            chars.append(hexDigits[Int(byte / 16)])
-            chars.append(hexDigits[Int(byte % 16)])
+        let chars = reduce(into: Array<unichar>()) {
+            $0.append(Data.hexDigits[Int($1 / 16)])
+            $0.append(Data.hexDigits[Int($1 % 16)])
         }
         return String(utf16CodeUnits: chars, count: chars.count)
     }
-    
+
     //Convert string to data with utf8 encoding and append to current data
     @discardableResult mutating func appendStringAsUTF8(_ string: String) -> Bool {
         guard let data = string.data(using: String.Encoding.utf8, allowLossyConversion: true) else {

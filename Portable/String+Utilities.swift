@@ -228,6 +228,33 @@ extension FourCharCode: ExpressibleByStringLiteral {
     }
 }
 
-extension CharacterSet {
-    public static var hexCharacters: CharacterSet = { CharacterSet(charactersIn: "1234567890ABCDEF") }()
+public extension CharacterSet {
+    static var hexCharacters: CharacterSet = { CharacterSet(charactersIn: "1234567890ABCDEF") }()
 }
+
+public extension String {
+    //Common
+    static var empty: String { "" }
+    static var space: String { " " }
+    static var comma: String { "," }
+    static var newline: String { "\n" }
+    
+    //Debug
+    static var test: String { "🧪" }
+    static var notice: String { "⚠️" }
+    static var warning: String { "🚧" }
+    static var fatal: String { "☢️" }
+    static var reentry: String { "⛔️" }
+    static var stop: String { "🛑" }
+    static var boom: String { "💥" }
+    static var sync: String { "🚦" }
+    static var key: String { "🗝" }
+    static var bell: String { "🔔" }
+}
+
+public func testPrint(_ items: Any..., separator: String = .comma, terminator: String = .newline, prefix: String = String.test) {
+    print(prefix, terminator: .space)
+    print(items.map {"\($0)"}.joined(separator: separator),
+          terminator: terminator)
+}
+
