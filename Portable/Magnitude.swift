@@ -34,7 +34,8 @@ public extension OrderOfMagnitude where Self: Equatable, Self: RawRepresentable 
     }
 
     func caseIndex() -> Int {
-        //force unwrap protected by logical requirement that self be in the array of allCases
+        //force unwrap protected by logical requirement
+        // that self be in the array of allCases
         Self.allCases.firstIndex(of: self) as! Int
     }
 }
