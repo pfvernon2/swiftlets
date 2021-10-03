@@ -221,31 +221,24 @@ public class AudioPlayerEngine {
         }
     }
     
-    @discardableResult public func play() -> Bool {
-        let result: Bool
-        
+    public func play() {
         if isPaused() {
             bufferQueue.sync {
                 player.play()
                 paused = false
             }
-            result = true
         } else {
-            result = _play()
+            _play()
         }
         
-        if result {
-            DispatchQueue.main.async {
-                self.delegate?.playbackStarted()
-            }
+        DispatchQueue.main.async {
+            self.delegate?.playbackStarted()
         }
-        
-        return result
     }
     
-    @discardableResult public func pause() -> Bool {
+    public func pause() {
         guard isPlaying() else {
-            return isPaused()
+            return
         }
         
         _pause()
@@ -253,8 +246,6 @@ public class AudioPlayerEngine {
         DispatchQueue.main.async {
             self.delegate?.playbackPaused()
         }
-        
-        return isPaused()
     }
     
     public func stop() {
@@ -886,14 +877,14 @@ public protocol AudioPlayer: AnyObject {
     
     var outputSampleRate: Double? { get }
     
-    @discardableResult func play() -> Bool
+    func play()
     func isPlaying() -> Bool
 
-    @discardableResult func pause() -> Bool
+    func pause()
     func isPaused() -> Bool
 
     ///Toggle play/pause as appropriate
-    @discardableResult func plause() -> Bool
+    func plause()
 
     func stop()
     
@@ -939,14 +930,12 @@ extension AudioPlayer {
     }
     
     ///Toggle play/pause as appropriate
-    @discardableResult public func plause() -> Bool {
+    public func plause() {
         if isPlaying() {
             pause()
         } else {
             play()
         }
-        
-        return isPlaying()
     }
 
     ///playback postion as percentage 0.0->1.0
@@ -1101,7 +1090,7 @@ public class MusicPlayer: AudioPlayer {
         NotificationCenter.default.removeObserver(self)
     }
     
-    @discardableResult public func play() -> Bool {
+    public func play() {
         queueJustInitialized = false
         MusicPlayer.player.play()
         
@@ -1111,26 +1100,22 @@ public class MusicPlayer: AudioPlayer {
         // This async call seems to solve that issue.
         DispatchQueue.main.async {
             MusicPlayer.player.currentPlaybackRate = self.playbackRate
+            if self.isPlaying() {
+                self.delegate?.playbackStarted()
+            }
         }
-        
-        let state = isPlaying()
-        if state {
-            delegate?.playbackStarted()
-        }
-
-        return state
     }
     
     public func isPlaying() -> Bool {
         MusicPlayer.player.playbackState == .playing
     }
     
-    @discardableResult public func pause() -> Bool {
+    public func pause() {
         MusicPlayer.player.pause()
         
-        delegate?.playbackPaused()
-
-        return isPaused()
+        DispatchQueue.main.async {
+            self.delegate?.playbackPaused()
+        }
     }
     
     public func isPaused() -> Bool {
