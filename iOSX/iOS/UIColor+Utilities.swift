@@ -26,6 +26,14 @@ extension UIColor {
         
         self.init(cgColor: color.cgColor)
     }
+    
+    ///Random UIColor in the conventional color space with alpha == 1.0
+    public static func random() -> UIColor {
+        UIColor(red: CGFloat.random(in: 0.0...1.0),
+                green: CGFloat.random(in: 0.0...1.0),
+                blue: CGFloat.random(in: 0.0...1.0),
+                alpha: 1.0)
+    }
 }
 
 extension String {
