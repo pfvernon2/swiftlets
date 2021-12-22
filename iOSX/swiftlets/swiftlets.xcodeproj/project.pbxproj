@@ -38,7 +38,6 @@
 		0113F2AD235CD694002E7F9F /* Magnitude.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0113F2AA235CD694002E7F9F /* Magnitude.swift */; };
 		0113F2AE235CD694002E7F9F /* Magnitude.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0113F2AA235CD694002E7F9F /* Magnitude.swift */; };
 		011914C31D74984D009B578A /* Dispatch+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011914C21D74984D009B578A /* Dispatch+Utilities.swift */; };
-		0119ABDB25E6BFBA0081D9F1 /* UIButton+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0119ABDA25E6BFBA0081D9F1 /* UIButton+Utilities.swift */; };
 		011C42202013DAF80032EC48 /* AVMetadataIdentifier+id3v2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011C421F2013DAF80032EC48 /* AVMetadataIdentifier+id3v2.swift */; };
 		011C42222013DBA80032EC48 /* AVAsset+AVMetadataItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011C42212013DBA80032EC48 /* AVAsset+AVMetadataItem.swift */; };
 		011F1ABB24F597E9002F30AD /* UICollectionView+Utilties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011F1ABA24F597E9002F30AD /* UICollectionView+Utilties.swift */; };
@@ -124,7 +123,6 @@
 		011330801D05CC27002DA0F0 /* String+Localization.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "String+Localization.swift"; path = "../../../Portable/String+Localization.swift"; sourceTree = "<group>"; };
 		0113F2AA235CD694002E7F9F /* Magnitude.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Magnitude.swift; path = ../../../Portable/Magnitude.swift; sourceTree = "<group>"; };
 		011914C21D74984D009B578A /* Dispatch+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Dispatch+Utilities.swift"; path = "../../../Portable/Dispatch+Utilities.swift"; sourceTree = "<group>"; };
-		0119ABDA25E6BFBA0081D9F1 /* UIButton+Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "UIButton+Utilities.swift"; path = "../../iOS/UIButton+Utilities.swift"; sourceTree = "<group>"; };
 		011C421F2013DAF80032EC48 /* AVMetadataIdentifier+id3v2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "AVMetadataIdentifier+id3v2.swift"; path = "../../AVMetadataIdentifier+id3v2.swift"; sourceTree = "<group>"; };
 		011C42212013DBA80032EC48 /* AVAsset+AVMetadataItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "AVAsset+AVMetadataItem.swift"; path = "../../AVAsset+AVMetadataItem.swift"; sourceTree = "<group>"; };
 		011F1ABA24F597E9002F30AD /* UICollectionView+Utilties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "UICollectionView+Utilties.swift"; path = "../../iOS/UICollectionView+Utilties.swift"; sourceTree = "<group>"; };
@@ -291,7 +289,6 @@
 				01E6783E1CD5145E00ABE1CB /* Data+Utilities.swift */,
 				01E678521CD531AA00ABE1CB /* UIColor+Utilities.swift */,
 				01E678531CD531AA00ABE1CB /* UIView+Utilities.swift */,
-				0119ABDA25E6BFBA0081D9F1 /* UIButton+Utilities.swift */,
 				01E769701CEF85B600866433 /* UIViewController+Utilities.swift */,
 				01A9D12B24707E62002FEC2E /* UILabel+Utilities.swift */,
 				01E678501CD5317400ABE1CB /* Formatting.swift */,
@@ -454,7 +451,7 @@
 					01533AC71C9DDAE700C6E69D = {
 						CreatedOnToolsVersion = 7.2.1;
 						DevelopmentTeam = K8SUWT674B;
-						LastSwiftMigration = 1020;
+						LastSwiftMigration = 1320;
 						ProvisioningStyle = Automatic;
 					};
 					01533AD11C9DDAE700C6E69D = {
@@ -576,7 +573,6 @@
 				011914C31D74984D009B578A /* Dispatch+Utilities.swift in Sources */,
 				015710CF1D049C1F0057C1FB /* Array+Utilities.swift in Sources */,
 				015A849B20FD50C4006C2583 /* CommandLine+Utilities.swift in Sources */,
-				0119ABDB25E6BFBA0081D9F1 /* UIButton+Utilities.swift in Sources */,
 				015B866B247F1D2600891F97 /* LeftAlignedFlowLayout.swift in Sources */,
 				012BBB7625277CB800D52523 /* Set+Utilities.swift in Sources */,
 				01533B0A1C9DDF2000C6E69D /* UIImage+Scaling.swift in Sources */,
@@ -874,8 +870,7 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				INFOPLIST_FILE = swiftlets/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.4;
-				"IPHONEOS_DEPLOYMENT_TARGET[sdk=macosx*]" = 14.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.2;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -885,6 +880,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 			};
@@ -904,8 +900,7 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				INFOPLIST_FILE = swiftlets/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.4;
-				"IPHONEOS_DEPLOYMENT_TARGET[sdk=macosx*]" = 14.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.2;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -915,6 +910,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;

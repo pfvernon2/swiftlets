@@ -11,18 +11,14 @@ import MediaPlayer
 import MobileCoreServices
 import CryptoKit
 
-extension AVFileType {
+public extension AVFileType {
     /// Reference file extension for UTI string
     var fileExtension: String? {
-        guard let tag = UTTypeCopyPreferredTagWithClass(self as CFString, kUTTagClassFilenameExtension) else {
-            return nil
-        }
-        
-        return tag.takeRetainedValue() as String
+        UTType(rawValue)?.preferredFilenameExtension
     }
 }
 
-extension String {
+public extension String {
     func sha256() -> String {
         guard let data:Data = self.data(using: String.Encoding.utf8) else {
             return String()
@@ -50,16 +46,17 @@ extension MPMediaItem {
     
     - Returns: A string representation of a hash of the track metadata.
      
-    - note: Most of the performance hit here is accessing the MPMediaItem values, especially on initial access.
+    - note: Most of the performance hit here is accessing the MPMediaItem values, especially on initial access. enumerateValues is broken in Swift has been for many years. There is an ObjC fix but it is not compatible with library distrubution. See: https://gist.github.com/StephenHeaps/40ea93012600f7e9abad9bd9bdc9084b
     */
     public func mediaItemHash() -> String {
+        // Hash Title|Artist|Album|TrackLength with record seperators to ensure uniqueness of fields
+        
         let title:String = normalizeString(self.title)
         let artist:String = normalizeString(self.artist)
         let album:String = normalizeString(self.albumTitle)
         let trackLength:String = String(self.playbackDuration)
-
-        //Hash Title|Artist|Album|TrackLength with record seperators to ensure uniqueness of fields
         let hashString = [title, artist, album, trackLength].joined(separator: "\u{1c}")
+
         return hashString.sha256()
     }
     
