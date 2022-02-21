@@ -111,7 +111,7 @@ public extension String {
             return true
         }
             
-            //zip+4
+        //zip+4
         else if self.count == 10 {
             let plusFours: [String] = self.split(separator: "-").map { String($0) }
             return plusFours.count == 2

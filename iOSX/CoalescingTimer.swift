@@ -28,7 +28,7 @@ to be performed in a batched or coalesced fashion, for example when the device b
 }
  
  override func touchesEnded(touches: NSSet!, withEvent event: UIEvent!) {
-     //User ends operation so restart the timer.
+     //User ends operation so start the timer.
      delayedOperationTimer?.prime()
  }
 

@@ -32,6 +32,13 @@ fileprivate let kTrackHeadFramePosition: AVAudioFramePosition = -1
 ///Simple class to playback audio files.
 /// Supports seeking within track and notifies delegate of play/pause/stop state changes
 public class AudioPlayerEngine {
+    //MARK: Structures - public
+
+    public struct AudioOutput {
+        public var name: String
+        public var number: Int
+        public var index: Int
+    }
     
     //MARK: Member variables - private
     
@@ -139,21 +146,53 @@ public class AudioPlayerEngine {
     /// This mode allows playback of audio when the ringer (mute) switch is enabled.
     /// Be sure to enable audio in the BackgroundModes settings of your apps Capabilities if necessary.
     #if os(iOS) || os(watchOS)
-    public class func initAudioSessionCooperativePlayback(category: AVAudioSession.Category = .multiRoute) {
-        try? AVAudioSession.sharedInstance().setCategory(category,
-                                                         mode: .default,
-                                                         policy: .longFormAudio)
-        try? AVAudioSession.sharedInstance().setActive(true)
-        
-        //Prevent interruptions from incoming calls - unless user has configured device
-        // for fullscreen call notifications
-        if #available(iOS 14.5, *) {
-            try? AVAudioSession.sharedInstance().setPrefersNoInterruptionsFromSystemAlerts(true)
+    public class func initAudioSessionCooperativePlayback(category: AVAudioSession.Category = .playback,
+                                                          policy: AVAudioSession.RouteSharingPolicy = .longFormAudio) {
+        do {
+            try AVAudioSession.sharedInstance().setCategory(category,
+                                                             mode: .default,
+                                                             policy: policy)
+            try AVAudioSession.sharedInstance().setActive(true)
+            
+            //Prevent interruptions from incoming calls - unless user has configured device
+            // for fullscreen call notifications
+            if #available(iOS 14.5, *) {
+                try AVAudioSession.sharedInstance().setPrefersNoInterruptionsFromSystemAlerts(true)
+            }
+        } catch {
+            debugPrint("failed to initialize audio session: \(error)")
         }
     }
     #endif
     
+    ///Returns list of current outputs for the current route along with their indexes.
+    /// These can be passed to setOutputs() to designate the outputs to be used.
+    public class func outputsForCurrentRoute() -> [AudioOutput] {
+        //reference: https://developer.apple.com/forums/thread/15416
+        var result: [AudioOutput] = []
+        
+        var outputIndex: Int = 0
+        for output in AVAudioSession.sharedInstance().currentRoute.outputs {
+            guard let channels = output.channels else {
+                continue
+            }
+            
+            for channel in channels {
+                result.append(AudioOutput(name: channel.channelName,
+                                          number: channel.channelNumber,
+                                          index: outputIndex))
+                outputIndex += 1
+            }
+        }
+        
+        return result
+    }
+
     internal func initAudioEngine() {
+        engine.connect(engine.mainMixerNode,
+                       to: engine.outputNode,
+                       format: engine.outputNode.outputFormat(forBus: 0))
+
         //attach nodes
         engine.attach(player)
         engine.attach(mixer)
@@ -208,6 +247,30 @@ public class AudioPlayerEngine {
         
         return true
     }
+    
+    ///Set outputs for the engine.
+    /// See outputsForCurrentRoute()
+    public func setOutputs(_ outputs: [AudioOutput]) {
+        //reference: https://developer.apple.com/forums/thread/15416
+
+        let channelCount = AudioPlayerEngine.outputsForCurrentRoute().count
+        var channelMap: [Int32] = Array<Int32>(count: channelCount) {_ in -1}
+        
+        var currentChannel: Int32 = 0
+        for output in outputs {
+            channelMap[output.index] = currentChannel
+            currentChannel += 1
+        }
+        
+        let propSize: UInt32 = UInt32(channelMap.count) * UInt32(MemoryLayout<Int32>.size)
+
+        AudioUnitSetProperty(engine.outputNode.audioUnit!,
+                             kAudioOutputUnitProperty_ChannelMap,
+                             kAudioUnitScope_Global,
+                             0,
+                             channelMap,
+                             propSize);
+    }
         
     public func isPlaying() -> Bool {
         bufferQueue.sync {
@@ -258,6 +321,20 @@ public class AudioPlayerEngine {
         DispatchQueue.main.async {
             self.delegate?.playbackStopped(trackCompleted: self.reachedEnd)
         }
+    }
+    
+    public var debugDescription: String {
+        var outputDescriptions: [String] = []
+        for bus in 0..<engine.outputNode.numberOfOutputs {
+            let name = engine.outputNode.name(forOutputBus: bus)
+            let format = engine.outputNode.outputFormat(forBus: bus)
+            let desc = format.settings.map { "\($0) = \($1)" }.sorted()
+            let channelMap = engine.outputNode.auAudioUnit.channelMap?.debugDescription
+            
+            outputDescriptions.append("Output \(bus):\nname = \(String(describing: name))\nChannelMap = \(String(describing: channelMap))\n\(desc.joined(separator: "\n"))")
+        }
+        
+        return outputDescriptions.joined(separator: "\n")
     }
         
     //MARK: Private Methods
@@ -1125,7 +1202,9 @@ public class MusicPlayer: AudioPlayer {
     public func stop() {
         MusicPlayer.player.stop()
         
-        delegate?.playbackStopped(trackCompleted: false)
+        DispatchQueue.main.async {
+            self.delegate?.playbackStopped(trackCompleted: false)
+        }
     }
     
     func setupPlayer(completion: @escaping ()->Swift.Void) {

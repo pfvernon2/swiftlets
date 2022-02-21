@@ -78,7 +78,7 @@ public extension AVAudioFile {
                 let x = offset * pixelsPerSample
                 let y = center - amplitude.halved
                 
-                path.addVerticalLine(at: CGPoint(x: x, y: y), ofHeight: amplitude)
+                path.addVerticalLine(at: CGPoint(x: x, y: y), ofLength: amplitude)
             }
             path.close()
             

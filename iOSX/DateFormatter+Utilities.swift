@@ -316,8 +316,9 @@ public extension Calendar {
     }
     
     func startOfNextDay() -> Date {
-        date(byAdding: DateComponents(day: 1),
-             to: startOfCurrentDay()) ?? startOfCurrentDay()
+        startOfDay(for: date(byAdding: .day,
+                             value: 1,
+                             to: Date()) ?? Date())
     }
     
     func startOfCurrentWeek() -> Date {
@@ -344,17 +345,19 @@ public extension Calendar {
     }
     
     func startOfNextMonth() -> Date{
-        date(byAdding: DateComponents(month: 1),
+        date(byAdding: .month,
+             value: 1,
              to: startOfCurrentMonth()) ?? startOfCurrentDay()
     }
     
     func startOfCurrentYear() -> Date {
-        let year = dateComponents([.year], from: startOfCurrentDay())
+        let year = dateComponents([.year], from: Date())
         return date(from: year) ?? startOfCurrentDay()
     }
     
     func startOfNextYear() -> Date {
-        date(byAdding: DateComponents(year: 1),
+        date(byAdding: .year,
+             value: 1,
              to: startOfCurrentYear()) ?? startOfCurrentDay()
     }
     
@@ -420,8 +423,8 @@ public extension Calendar {
                     to: startDate) ?? Date()
     }
     
-    func startOfMoving30Days() -> Date {
-        let components = DateComponents(day: -30)
+    func startOfMoving31Days() -> Date {
+        let components = DateComponents(day: -31)
         let startDate = startOfNextDay()
         return date(byAdding: components,
                     to: startDate) ?? Date()
@@ -446,7 +449,7 @@ public extension Calendar {
     }
     
     func rangeOfMovingMonth() -> (Date, Date) {
-        (startOfMoving30Days(), startOfNextDay())
+        (startOfMoving31Days(), startOfNextDay())
     }
     
     func rangeOfMovingYear() -> (Date, Date) {

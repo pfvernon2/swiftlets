@@ -159,14 +159,7 @@ public extension Int {
     }
     
     func rollDice(sides: Int = 6, count: Int = 2) -> [Int] {
-        var result = [Int]()
-        result.reserveCapacity(count)
-        
-        for _ in 0..<count {
-            result.append(rollDice(sides: sides))
-        }
-        
-        return result
+        Array<Int>(count: count) { _ in rollDice(sides: sides) }
     }
 }
 

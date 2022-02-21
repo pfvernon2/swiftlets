@@ -176,7 +176,7 @@ public extension CGPointArray {
     }
     
     ///Calculate trend line points for current array, presumably a scatter plot
-    /// - note: Trendlines need at least 3 points to make any practical sense
+    /// - note: Trendlines need at least 2 points to make any practical sense
     ///        so that limit is enforced here.
     func trendPoints() -> CGPointArray? {
         guard count >= kTrendlineMinSamples else {

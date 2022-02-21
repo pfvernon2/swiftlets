@@ -36,16 +36,27 @@ public func UIGraphicsImageContext(size:CGSize, opaque:Bool = false, scale:CGFlo
 
 public extension UIBezierPath {
     ///Draws a vertical line at the given x, y for the given height
-    func addVerticalLine(at point: CGPoint, ofHeight height: CGFloat) {
+    func addVerticalLine(at point: CGPoint, ofLength height: CGFloat) {
         move(to: point)
         addLine(to: CGPoint(x: point.x, y: point.y + height))
     }
     
     ///Draws a horizontal line at the given x, y for the given width
-    func addHorizontalLine(at point: CGPoint, ofWidth width: CGFloat) {
+    func addHorizontalLine(at point: CGPoint, ofLength width: CGFloat) {
         move(to: point)
         addLine(to: CGPoint(x: point.x + width, y: point.y))
     }
+    
+    ///Draws a vertical line at the given x, y for the given height
+    func addVerticalLine(ofLength height: CGFloat) {
+        addLine(to: CGPoint(x: currentPoint.x, y: currentPoint.y + height))
+    }
+    
+    ///Draws a horizontal line at the given x, y for the given width
+    func addHorizontalLine(ofLength width: CGFloat) {
+        addLine(to: CGPoint(x: currentPoint.x + width, y: currentPoint.y))
+    }
+
     
     convenience init(star rect: CGRect, points: Int = 5) {
         self.init()
@@ -86,6 +97,26 @@ public extension UIBezierPath {
 
         close()
     }
+    
+    convenience init(polgygonIn rect: CGRect, sides: Int) {
+        self.init()
+
+        let radius = min(rect.width, rect.height)/2.0
+        for segment in 0..<sides {
+            let seg = CGFloat(segment)
+            let side = CGFloat(sides)
+            let point = CGPoint(x: rect.origin.x + (rect.width/2.0 + radius * cos(seg * 2.0 * CGFloat.pi/side)),
+                                y: rect.origin.y + (rect.width/2.0 + radius * sin(seg * 2.0 * CGFloat.pi/side)))
+            if segment == 0 {
+                move(to: point)
+            } else {
+                addLine(to: point)
+            }
+        }
+        
+        close()
+    }
+
 }
 
 public extension UIEdgeInsets {

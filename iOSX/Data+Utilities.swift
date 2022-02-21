@@ -12,14 +12,17 @@ extension Data {
     fileprivate static var hexDigits = Array("0123456789ABCDEF".utf16)
 
     ///Hex representation of the bytes in upper case hex characters
-    ///
-    /// - Note: You can call lowercased() on the result if you prefer lowercase.
     func hexRepresentation() -> String {
         let chars = reduce(into: Array<unichar>()) {
             $0.append(Data.hexDigits[Int($1 / 16)])
             $0.append(Data.hexDigits[Int($1 % 16)])
         }
         return String(utf16CodeUnits: chars, count: chars.count)
+    }
+    
+    ///Hex representation of the bytes in lower case hex characters
+    func hexRepresentationLower() -> String {
+        hexRepresentation().lowercased()
     }
 
     //Convert string to data with utf8 encoding and append to current data

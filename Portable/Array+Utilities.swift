@@ -87,29 +87,12 @@ public extension Array {
 }
 
 public extension Array {
-    /// Method to append an optional. If optional is nil append does not occur.
-    mutating func safeAppend(_ newElement: Self.Element?) {
-        guard let newElement = newElement else {
-            return
-        }
-        
-        append(newElement)
-    }
-    
-    /// Method to convert array into array of arrays with the given number of elements.
-    /// - note: Does not use slices, may result in copies elements.
-    func split(by numElements: Int) -> [[Element]] {
-        return stride(from: 0, to: count, by: numElements).map {
-            Array(self[$0 ..< Swift.min($0 + numElements, count)])
-        }
-    }
-
     ///Convenience init to populate array with unique instances of Element.
     ///
     /// let foo: [Int] = Array(100) { $0 * 10 } //populates array with ints [0, 10, 20, ...]
     /// let bar: [IndexPath] = Array(5) { IndexPath(row: $0, section: 0) } //populates array with IndexPaths for rows 0...4 in section 0
     init(count: Int, repeating: (_ index: Int)->Element) {
-        self.init()
+        self.init(capacity: count)
         append(count: count, repeating: repeating)
     }
     
@@ -123,11 +106,27 @@ public extension Array {
             append(repeating(index))
         }
     }
+
+    /// Method to append an optional. If optional is nil append does not occur.
+    mutating func safeAppend(_ newElement: Self.Element?) {
+        guard let newElement = newElement else {
+            return
+        }
+        
+        append(newElement)
+    }
+    
+    /// Method to convert array into array of arrays with the given number of elements.
+    /// - note: Does not use slices, may result in copies of elements.
+    func split(by numElements: Int) -> [[Element]] {
+        return stride(from: 0, to: count, by: numElements).map {
+            Array(self[$0 ..< Swift.min($0 + numElements, count)])
+        }
+    }
     
     ///Method to remove multiple elements at given indices.
     ///
-    /// - note: The elements may not be returned in the order specified in the array of indices.
-    ///      Elements are returned in the order the appeared in array.
+    /// - note: Elements are returned in the order they appeared in array.
     mutating func remove(at indices:[Int]) -> [Element] {
         var elements: [Element] = []
         for index in indices.sorted().reversed() {
