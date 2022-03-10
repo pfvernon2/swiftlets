@@ -975,13 +975,7 @@ public protocol AudioPlayer: AnyObject {
 extension AudioPlayer {
     public var assetURL: URL? {
         get {
-            if asset != nil {
-                return asset?.url
-            } else if mediaItem != nil {
-                return mediaItem?.assetURL
-            }
-            
-            return nil
+            asset?.url ?? mediaItem?.assetURL
         }
     }
 
@@ -1128,11 +1122,11 @@ public class MusicPlayer: AudioPlayer {
     // immediately after setting up the queue.
     // Attempting to reset currentPlaybackTime to .zero immediately after initializing the
     // queue results in prolonged (10 second) delays.
-    private var queueJustInitialized: Bool = false
+    private var queueUninitialized: Bool = true
     
     public var playbackPosition: TimeInterval {
         get {
-            queueJustInitialized ? .zero : MusicPlayer.player.currentPlaybackTime
+            queueUninitialized ? .zero : MusicPlayer.player.currentPlaybackTime
         }
         set {
             MusicPlayer.player.currentPlaybackTime = newValue
@@ -1168,19 +1162,8 @@ public class MusicPlayer: AudioPlayer {
     }
     
     public func play() {
-        queueJustInitialized = false
+        queueUninitialized = false
         MusicPlayer.player.play()
-        
-        // NOTE: Attempting to call play() immediately before or after
-        // setting currentPlaybackRate introduces a race condition
-        // that prevents currentPlaybackRate from taking effect.
-        // This async call seems to solve that issue.
-        DispatchQueue.main.async {
-            MusicPlayer.player.currentPlaybackRate = self.playbackRate
-            if self.isPlaying() {
-                self.delegate?.playbackStarted()
-            }
-        }
     }
     
     public func isPlaying() -> Bool {
@@ -1198,7 +1181,7 @@ public class MusicPlayer: AudioPlayer {
     public func isPaused() -> Bool {
         MusicPlayer.player.playbackState == .paused
     }
-        
+    
     public func stop() {
         MusicPlayer.player.stop()
         
@@ -1224,7 +1207,7 @@ public class MusicPlayer: AudioPlayer {
                 if let error = error { print("☢️ MPMusicPlayerController.prepareToPlay", error, "☢️") }
                 
                 DispatchQueue.main.async {
-                    self.queueJustInitialized = true
+                    self.queueUninitialized = true
                     completion()
                 }
             }
@@ -1245,8 +1228,20 @@ public class MusicPlayer: AudioPlayer {
         switch playbackState {
         case .stopped:
             break
+            
         case .playing:
-            break
+            // NOTE: Setting currentPlaybackRate immediately before or after
+            // attempting to call play() introduces a race condition
+            // which prevents currentPlaybackRate from taking effect.
+            // This seems to solve that issue as of 15.4 but this issue has moved around
+            // between iOS 13 and 15 several times.
+            MusicPlayer.player.currentPlaybackRate = playbackRate
+            
+            //As of iOS 15.4 there is now a race condition detecting playback from
+            // the main loop so moving this here.
+            // This is still problematic as it can be called multiple times.
+            self.delegate?.playbackStarted()
+            
         case .paused:
             guard let mediaItemDuration = MusicPlayer.player.nowPlayingItem?.playbackDuration else {
                 return
@@ -1256,6 +1251,9 @@ public class MusicPlayer: AudioPlayer {
             // to test for playbackPosition > mediaItemDuration on .paused.
             if playbackPosition > mediaItemDuration {
                 DispatchQueue.main.async {
+                    //Indicate queue no longer initialized, fixes issues
+                    // with track progress past end as the player likes to do.
+                    self.queueUninitialized = true
                     self.delegate?.playbackStopped(trackCompleted: true)
                 }
             }
@@ -1264,10 +1262,13 @@ public class MusicPlayer: AudioPlayer {
             DispatchQueue.main.async {
                 self.delegate?.playbackStopped(trackCompleted: false)
             }
+            
         case .seekingForward:
             break
+            
         case .seekingBackward:
             break
+            
         @unknown default:
             break
         }
