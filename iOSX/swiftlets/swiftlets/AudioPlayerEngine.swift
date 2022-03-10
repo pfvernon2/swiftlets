@@ -32,14 +32,6 @@ fileprivate let kTrackHeadFramePosition: AVAudioFramePosition = -1
 ///Simple class to playback audio files.
 /// Supports seeking within track and notifies delegate of play/pause/stop state changes
 public class AudioPlayerEngine {
-    //MARK: Structures - public
-
-    public struct AudioOutput {
-        public var name: String
-        public var number: Int
-        public var index: Int
-    }
-    
     //MARK: Member variables - private
     
     //AVAudioEngine and nodes
@@ -67,6 +59,10 @@ public class AudioPlayerEngine {
     private var buffersInFlight: Int = .zero
     
     //MARK: - Member variables - public
+    public var channelCount: UInt32 {
+        audioFile?.fileFormat.channelCount ?? 0
+    }
+    
     public weak var delegate: AudioPlayerDelegate?
 
     private(set) public var trackLength: TimeInterval = .zero
@@ -165,29 +161,6 @@ public class AudioPlayerEngine {
     }
     #endif
     
-    ///Returns list of current outputs for the current route along with their indexes.
-    /// These can be passed to setOutputs() to designate the outputs to be used.
-    public class func outputsForCurrentRoute() -> [AudioOutput] {
-        //reference: https://developer.apple.com/forums/thread/15416
-        var result: [AudioOutput] = []
-        
-        var outputIndex: Int = 0
-        for output in AVAudioSession.sharedInstance().currentRoute.outputs {
-            guard let channels = output.channels else {
-                continue
-            }
-            
-            for channel in channels {
-                result.append(AudioOutput(name: channel.channelName,
-                                          number: channel.channelNumber,
-                                          index: outputIndex))
-                outputIndex += 1
-            }
-        }
-        
-        return result
-    }
-
     internal func initAudioEngine() {
         engine.connect(engine.mainMixerNode,
                        to: engine.outputNode,
@@ -248,28 +221,9 @@ public class AudioPlayerEngine {
         return true
     }
     
-    ///Set outputs for the engine.
-    /// See outputsForCurrentRoute()
-    public func setOutputs(_ outputs: [AudioOutput]) {
-        //reference: https://developer.apple.com/forums/thread/15416
-
-        let channelCount = AudioPlayerEngine.outputsForCurrentRoute().count
-        var channelMap: [Int32] = Array<Int32>(count: channelCount) {_ in -1}
-        
-        var currentChannel: Int32 = 0
-        for output in outputs {
-            channelMap[output.index] = currentChannel
-            currentChannel += 1
-        }
-        
-        let propSize: UInt32 = UInt32(channelMap.count) * UInt32(MemoryLayout<Int32>.size)
-
-        AudioUnitSetProperty(engine.outputNode.audioUnit!,
-                             kAudioOutputUnitProperty_ChannelMap,
-                             kAudioUnitScope_Global,
-                             0,
-                             channelMap,
-                             propSize);
+    ///Set outputs for the engine
+    public func mapOutputs(to channels: [AVAudioOutputNode.OutputChannelMapping]) {
+        engine.outputNode.mapRouteOutputs(to: channels)
     }
         
     public func isPlaying() -> Bool {

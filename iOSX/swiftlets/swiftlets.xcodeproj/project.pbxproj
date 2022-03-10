@@ -37,6 +37,7 @@
 		0113F2AB235CD694002E7F9F /* Magnitude.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0113F2AA235CD694002E7F9F /* Magnitude.swift */; };
 		0113F2AD235CD694002E7F9F /* Magnitude.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0113F2AA235CD694002E7F9F /* Magnitude.swift */; };
 		0113F2AE235CD694002E7F9F /* Magnitude.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0113F2AA235CD694002E7F9F /* Magnitude.swift */; };
+		0118627B27D91466001C8312 /* AVAudioSession+Routing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0118627A27D91466001C8312 /* AVAudioSession+Routing.swift */; };
 		011914C31D74984D009B578A /* Dispatch+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011914C21D74984D009B578A /* Dispatch+Utilities.swift */; };
 		011C42202013DAF80032EC48 /* AVMetadataIdentifier+id3v2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011C421F2013DAF80032EC48 /* AVMetadataIdentifier+id3v2.swift */; };
 		011C42222013DBA80032EC48 /* AVAsset+AVMetadataItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011C42212013DBA80032EC48 /* AVAsset+AVMetadataItem.swift */; };
@@ -122,6 +123,7 @@
 		0111A02F1D21CBC700A9B35E /* Dictionary+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Dictionary+Utilities.swift"; path = "../../../Portable/Dictionary+Utilities.swift"; sourceTree = "<group>"; };
 		011330801D05CC27002DA0F0 /* String+Localization.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "String+Localization.swift"; path = "../../../Portable/String+Localization.swift"; sourceTree = "<group>"; };
 		0113F2AA235CD694002E7F9F /* Magnitude.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Magnitude.swift; path = ../../../Portable/Magnitude.swift; sourceTree = "<group>"; };
+		0118627A27D91466001C8312 /* AVAudioSession+Routing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "AVAudioSession+Routing.swift"; path = "../../AVAudioSession+Routing.swift"; sourceTree = "<group>"; };
 		011914C21D74984D009B578A /* Dispatch+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Dispatch+Utilities.swift"; path = "../../../Portable/Dispatch+Utilities.swift"; sourceTree = "<group>"; };
 		011C421F2013DAF80032EC48 /* AVMetadataIdentifier+id3v2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "AVMetadataIdentifier+id3v2.swift"; path = "../../AVMetadataIdentifier+id3v2.swift"; sourceTree = "<group>"; };
 		011C42212013DBA80032EC48 /* AVAsset+AVMetadataItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "AVAsset+AVMetadataItem.swift"; path = "../../AVAsset+AVMetadataItem.swift"; sourceTree = "<group>"; };
@@ -234,6 +236,7 @@
 				011C42212013DBA80032EC48 /* AVAsset+AVMetadataItem.swift */,
 				013D4EEB2454B13B005A15A9 /* MPMediaItem+Util.swift */,
 				01636FFB24C0B83C00FF4433 /* AVAudioFile+Utilities.swift */,
+				0118627A27D91466001C8312 /* AVAudioSession+Routing.swift */,
 			);
 			name = MediaPlayer;
 			sourceTree = "<group>";
@@ -581,6 +584,7 @@
 				01D1ED151D415FE600886D3D /* Platform.swift in Sources */,
 				01E05EF51F10495C00B074F2 /* LineReader.swift in Sources */,
 				011330811D05CC27002DA0F0 /* String+Localization.swift in Sources */,
+				0118627B27D91466001C8312 /* AVAudioSession+Routing.swift in Sources */,
 				01E6784F1CD5315D00ABE1CB /* MKMapView+Utilities.swift in Sources */,
 				013D4EEC2454B13B005A15A9 /* MPMediaItem+Util.swift in Sources */,
 				01C4FA5C1E0B217E00E96F4F /* UserDefaultsTextField.swift in Sources */,
