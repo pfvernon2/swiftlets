@@ -303,3 +303,18 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int {
         self.insert(contentsOf: self.extractItems(in: indexSet), at: startIndex)
     }
 }
+
+//MARK: - WeakContainer
+
+///Trivial struct for holding weak references in swift containers.
+public struct WeakContainer<T> where T: AnyObject {
+    private weak var _value : T?
+
+    init (value: T) {
+        _value = value
+    }
+
+    public func get() -> T? {
+        return _value
+    }
+}

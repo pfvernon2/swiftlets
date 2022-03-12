@@ -59,6 +59,7 @@
 		01533B091C9DDF2000C6E69D /* UIImage+maskColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01533B021C9DDF2000C6E69D /* UIImage+maskColor.swift */; };
 		01533B0A1C9DDF2000C6E69D /* UIImage+Scaling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01533B031C9DDF2000C6E69D /* UIImage+Scaling.swift */; };
 		01533B0B1C9DDF2000C6E69D /* RoundedCornerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01533B041C9DDF2000C6E69D /* RoundedCornerView.swift */; };
+		0157049D27DCF92100C2FD83 /* ConsoleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0157049C27DCF92100C2FD83 /* ConsoleView.swift */; };
 		015710CF1D049C1F0057C1FB /* Array+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 015710CE1D049C1F0057C1FB /* Array+Utilities.swift */; };
 		015A849B20FD50C4006C2583 /* CommandLine+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 015A849A20FD50C4006C2583 /* CommandLine+Utilities.swift */; };
 		015B866B247F1D2600891F97 /* LeftAlignedFlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 015B866A247F1D2600891F97 /* LeftAlignedFlowLayout.swift */; };
@@ -148,6 +149,7 @@
 		01533B021C9DDF2000C6E69D /* UIImage+maskColor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIImage+maskColor.swift"; path = "../../iOS/UIImage+maskColor.swift"; sourceTree = "<group>"; };
 		01533B031C9DDF2000C6E69D /* UIImage+Scaling.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIImage+Scaling.swift"; path = "../../iOS/UIImage+Scaling.swift"; sourceTree = "<group>"; };
 		01533B041C9DDF2000C6E69D /* RoundedCornerView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = RoundedCornerView.swift; path = ../../iOS/RoundedCornerView.swift; sourceTree = "<group>"; };
+		0157049C27DCF92100C2FD83 /* ConsoleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ConsoleView.swift; path = ../../ConsoleView.swift; sourceTree = "<group>"; };
 		015710CE1D049C1F0057C1FB /* Array+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Array+Utilities.swift"; path = "../../../Portable/Array+Utilities.swift"; sourceTree = "<group>"; };
 		015A849A20FD50C4006C2583 /* CommandLine+Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "CommandLine+Utilities.swift"; path = "../../OSX/CommandLine+Utilities.swift"; sourceTree = "<group>"; };
 		015B866A247F1D2600891F97 /* LeftAlignedFlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LeftAlignedFlowLayout.swift; path = ../../iOS/LeftAlignedFlowLayout.swift; sourceTree = "<group>"; };
@@ -314,6 +316,7 @@
 				012BBB7525277CB800D52523 /* Set+Utilities.swift */,
 				016EDB4225EAF03E00DD4982 /* UserDefaults+Utilities.swift */,
 				016EDB4825EAF0C500DD4982 /* FileManager+Utilities.swift */,
+				0157049C27DCF92100C2FD83 /* ConsoleView.swift */,
 			);
 			path = swiftlets;
 			sourceTree = "<group>";
@@ -559,6 +562,7 @@
 				01533B071C9DDF2000C6E69D /* CoalescingTimer.swift in Sources */,
 				01533B061C9DDF2000C6E69D /* AudioPlayerEngine.swift in Sources */,
 				011C42222013DBA80032EC48 /* AVAsset+AVMetadataItem.swift in Sources */,
+				0157049D27DCF92100C2FD83 /* ConsoleView.swift in Sources */,
 				01E678541CD531AA00ABE1CB /* UIColor+Utilities.swift in Sources */,
 				01ADE31B1D34AD5E005424EF /* UIFont+Utilities.swift in Sources */,
 				01CD89E21CDD0B24000790C2 /* UIAlertController+Utilities.swift in Sources */,
