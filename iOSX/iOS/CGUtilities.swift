@@ -11,6 +11,10 @@ import QuartzCore
 // MARK: - CGRect
 
 public extension CGRect {
+    init(square: CGFloat) {
+        self.init(origin: .zero, size: CGSize(width: square, height: square))
+    }
+    
     var center:CGPoint {
         get {
             CGPoint(x: self.midX, y: self.midY)

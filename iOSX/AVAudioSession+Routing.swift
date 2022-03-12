@@ -1,5 +1,5 @@
 //
-//  AVAudioSession+Utilities.swift
+//  AVAudioSession+Routing.swift
 //  swiftlets
 //
 //  Created by Frank Vernon on 3/9/22.
@@ -14,7 +14,7 @@ public extension AVAudioSession {
     }
     
     /// Channels on outputs are mapped to AVAudioOutputNodes via the channel index position in the
-    /// overall list of outputs for the route of the associated session. This function returns the index value
+    /// overall list of channels for the route of the associated session. This returns the index value
     /// for a given channel on current route of the given session.
     ///
     /// Reference: https://developer.apple.com/forums/thread/15416
@@ -49,6 +49,8 @@ public extension AVAudioSession {
 }
 
 public extension AVAudioOutputNode {
+    ///Struct for mapping the output of an AVAudioOutputNode
+    ///to a channel on the current route of the session.
     struct OutputChannelMapping {
         var output: Int
         var channel: AVAudioSessionChannelDescription
@@ -59,9 +61,9 @@ public extension AVAudioOutputNode {
         }
     }
 
-    /// Map channels on this output to channels from the given session.
+    /// Map outputs on this AU to channels from the given session.
     ///
-    /// Lists of outputs and associated channels can be obtained via: AVAudioSession.currentRoute
+    /// Lists of ports (i.e. devices) and associated channels can be obtained via: AVAudioSession.currentRoute
     ///
     ///  - note: See https://developer.apple.com/forums/thread/15416
     func mapRouteOutputs(to channels: [OutputChannelMapping],
@@ -70,14 +72,16 @@ public extension AVAudioOutputNode {
             return
         }
         
-        //populate array with '-1'. These are the output positions which will be ignored
-        // in the assignment of channels
+        //Initialize array with '-1'. These are the output positions which will be ignored
+        // in the assignment of channels.
         var channelMap: [Int32] = Array<Int32>(count: session.currentRouteChannelCount) {_ in -1}
         
+        //Populate the map with output channels at the associated channel indexes.
         for channel in channels {
             channelMap[session.outputIndexFor(channel: channel.channel)] = Int32(channel.output)
         }
         
+        //Set the property on the AU
         let propSize: UInt32 = UInt32(channelMap.count) * UInt32(MemoryLayout<Int32>.size)
         AudioUnitSetProperty(outputAudioUnit,
                              kAudioOutputUnitProperty_ChannelMap,
@@ -89,13 +93,15 @@ public extension AVAudioOutputNode {
 }
 
 public extension AVAudioSessionPortDescription {
+    ///I've encountered ports with trailing white space so this cleans
+    /// up the name to be more presentable to users.
     var shortPortName: String {
         portName.stringByTrimmingWhiteSpace()
     }
 }
 
 public extension AVAudioSessionChannelDescription {
-    //Name of the channel with the associated port name stripped.
+    ///Name of the channel with the associated port name stripped.
     var shortChannelName: String {
         guard let portName = AVAudioSession.sharedInstance().portFor(uid: owningPortUID)?.portName else {
             return channelName
@@ -103,6 +109,7 @@ public extension AVAudioSessionChannelDescription {
         return channelName.stringByTrimmingPrefix(portName).stringByTrimmingWhiteSpace()
     }
     
+    ///Index of channel on the current route. Used for mapping outputs to channels.
     var outputIndex: Int {
         AVAudioSession.sharedInstance().outputIndexFor(channel: self)
     }
