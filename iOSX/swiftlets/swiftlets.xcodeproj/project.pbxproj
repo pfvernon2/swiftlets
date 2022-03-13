@@ -402,9 +402,9 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 01533ADC1C9DDAE700C6E69D /* Build configuration list for PBXNativeTarget "swiftlets" */;
 			buildPhases = (
+				01533AC51C9DDAE700C6E69D /* Headers */,
 				01533AC31C9DDAE700C6E69D /* Sources */,
 				01533AC41C9DDAE700C6E69D /* Frameworks */,
-				01533AC51C9DDAE700C6E69D /* Headers */,
 				01533AC61C9DDAE700C6E69D /* Resources */,
 			);
 			buildRules = (
