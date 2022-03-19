@@ -315,4 +315,19 @@ public extension UIView {
 
         return nil
     }
+    
+    var safeAreaFrame: CGRect {
+        guard #available(iOS 11, *) else {
+            return bounds
+        }
+        
+        return safeAreaLayoutGuide.layoutFrame
+    }
+    
+    var safeAreaBottomHeight: CGFloat {
+        guard let window = window else {
+            return .zero
+        }
+        return window.bounds.height - (safeAreaFrame.top + safeAreaFrame.height)
+    }
 }
