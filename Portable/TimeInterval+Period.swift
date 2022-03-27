@@ -206,6 +206,10 @@ public extension TimeInterval {
     ///* 30s = 0:30
     ///* -30s = -0:30
     func trackTimeDescription() -> String {
+        guard self != .infinity else {
+            return ""
+        }
+        
         let absInterval = abs(self)
         
         //Deconstruct TimeInterval into hours:mins:seconds

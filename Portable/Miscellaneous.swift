@@ -100,6 +100,10 @@ public extension Float {
 
     static var opacityMin: Float = 0.0
     static var opacityMax: Float = 1.0
+    
+    func truncate(to places: Int) -> Float {
+        Float(Int(pow(10, Float(places)) * self)) / pow(10, Float(places))
+    }
 }
 
 public extension Double {
