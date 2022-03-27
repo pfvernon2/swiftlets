@@ -145,9 +145,11 @@ public class AudioPlayerEngine {
     public class func initAudioSessionCooperativePlayback(category: AVAudioSession.Category = .playback,
                                                           policy: AVAudioSession.RouteSharingPolicy = .longFormAudio) {
         do {
+            try AVAudioSession.sharedInstance().setActive(false)
             try AVAudioSession.sharedInstance().setCategory(category,
-                                                             mode: .default,
-                                                             policy: policy)
+                                                            mode: .default,
+                                                            policy: policy,
+                                                            options: [])
             try AVAudioSession.sharedInstance().setActive(true)
             
             //Prevent interruptions from incoming calls - unless user has configured device
@@ -177,7 +179,7 @@ public class AudioPlayerEngine {
         engine.connect(mixer, to: engine.mainMixerNode, format: nil)
         
         engine.prepare()
-        engine.isAutoShutdownEnabled = true
+//        engine.isAutoShutdownEnabled = true
     }
     
     //ensure output format of player matches format of the file
@@ -325,8 +327,14 @@ public class AudioPlayerEngine {
             //ensure file framePosition at head in case we are re-playing a track
             trackToPlay.framePosition = .zero
             initBuffers()
-            
+                        
             bufferQueue.sync {
+                //This should not be necessary but there appears to be a
+                // race condition in engine setup and player readiness
+                // player.play() will crash if this is not observed.
+                guard engine.isRunning else {
+                    return
+                }
                 player.play()
             }
         }
@@ -492,16 +500,41 @@ public class AudioPlayerEngine {
                 break;
             }
         }
-        
-        NotificationCenter.default.removeObserver(self, name: AVAudioSession.mediaServicesWereLostNotification, object: nil)
-        NotificationCenter.default.addObserver(forName: AVAudioSession.mediaServicesWereLostNotification, object: nil, queue: nil) { /*[weak self]*/ (notification: Notification) in
-            //TODO: Reset everything here
-        }
-        
+                
         NotificationCenter.default.removeObserver(self, name: AVAudioSession.mediaServicesWereResetNotification, object: nil)
-        NotificationCenter.default.addObserver(forName: AVAudioSession.mediaServicesWereResetNotification, object: nil, queue: nil) { /*[weak self]*/ (notification: Notification) in
-            //TODO: Reset everything here
+        NotificationCenter.default.addObserver(forName: AVAudioSession.mediaServicesWereResetNotification, object: nil, queue: nil) { [weak self] (notification: Notification) in
+            self?.stop()
         }
+        
+        NotificationCenter.default.removeObserver(self, name: AVAudioSession.routeChangeNotification, object: nil)
+        NotificationCenter.default.addObserver(forName: AVAudioSession.routeChangeNotification, object: nil, queue: nil) { [weak self] (notification: Notification) in
+            guard let userInfo = notification.userInfo,
+                  let reasonValue = userInfo[AVAudioSessionRouteChangeReasonKey] as? UInt,
+                  let reason = AVAudioSession.RouteChangeReason(rawValue: reasonValue) else {
+                      return
+            }
+            
+            switch reason {
+            case .newDeviceAvailable:
+                if AVAudioSession.sharedInstance().currentRoute.hasHeadphonens {
+                    self?.play()
+                }
+                
+            case .oldDeviceUnavailable:
+                if let previousRoute = userInfo[AVAudioSessionRouteChangePreviousRouteKey] as? AVAudioSessionRouteDescription,
+                   !previousRoute.hasHeadphonens {
+                    guard let self = self else {
+                        return
+                    }
+                                        
+                    self.play()
+                }
+                
+            default:
+                break
+            }
+        }
+
     }
     #else
     private func registerForMediaServerNotifications() {
@@ -531,12 +564,6 @@ public class AudioPlayerEngine {
 }
 
 //MARK: - FXAudioPlayerEngine
-
-//TimePitch Rate constants
-
-public let kRateMin: Float = 0.03125
-public let kRateCenter: Float = 1.0
-public let kRateMax: Float = 32.0
 
 //Track output level constants
 fileprivate let kOutputLevelDefault: Float = .zero
@@ -633,7 +660,7 @@ public class FXAudioPlayerEngine: AudioPlayerEngine, AudioPlayer {
     public var hasOutputLevelAdjust: Bool {
         true
     }
-
+    
     ///Adjust track playback level in range: -1.0 to 1.0
     public var trackOutputLevelAdjust: Float? {
         get {
@@ -646,12 +673,16 @@ public class FXAudioPlayerEngine: AudioPlayerEngine, AudioPlayer {
         }
     }
     
-    public var timePitchQuality: AudioPlayerTimePitchQuality? = .med {
+    public var timePitchQuality: AVAudioUnitTimePitch.QualityRange? = .high {
         didSet {
-            timePitch.overlap = timePitchQuality?.rawValue ?? AudioPlayerTimePitchQuality.med.rawValue
+            timePitch.overlap = timePitchQuality?.rawValue ?? AVAudioUnitTimePitch.QualityRange.high.rawValue
         }
     }
     
+    public var hasPlaybackRate: Bool {
+        true
+    }
+
     ///Adjust the time pitch rate in the range: 0.03125 to 32.0, default is 1.0
     public var playbackRate: Float {
         get {
@@ -663,13 +694,13 @@ public class FXAudioPlayerEngine: AudioPlayerEngine, AudioPlayer {
                 return
             }
             
-            timePitch.rate = rate
+            timePitch.rate = rate.clamped(to: AVAudioUnitTimePitch.RateRange.range)
 
             //Enabling bypass when at center position saves us significant CPU cycles, battery, etc.
             // I presume Apple doesn't do this by default in order better predict/reserve CPU cycles
             // necessary for audio processing. This optimization may need to be made conditional if
             // we hit similar issues.
-            timePitch.bypass = (rate == kRateCenter)
+            timePitch.bypass = (rate == AVAudioUnitTimePitch.RateRange.center.rawValue)
             
             DispatchQueue.main.async {
                 self.delegate?.playbackRateAdjusted()
@@ -723,7 +754,7 @@ public class FXAudioPlayerEngine: AudioPlayerEngine, AudioPlayer {
         
         //configure time pitch
         timePitch.bypass = false
-        timePitch.overlap = timePitchQuality?.rawValue ?? AudioPlayerTimePitchQuality.med.rawValue
+        timePitch.overlap = timePitchQuality?.rawValue ?? AVAudioUnitTimePitch.QualityRange.high.rawValue
         engine.attach(timePitch)
         
         //configure eq
@@ -754,7 +785,7 @@ public class FXAudioPlayerEngine: AudioPlayerEngine, AudioPlayer {
     public func reset() {
         resetEQ()
         trackOutputLevelAdjust = kOutputLevelDefault
-        playbackRate = kRateCenter
+        playbackRate = AVAudioUnitTimePitch.RateRange.center.rawValue
     }
     
     ///Reset EQ to nominal (flat) values
@@ -845,15 +876,6 @@ public enum AudioPlayerOutputRouting {
     case monoRight //mono output (all channels combined) to right channel of stereo device
 }
 
-///Defines simplified values for TimePitch overlap parameter which roughly
-/// translates to quality, i.e. reduction in artifacts at the
-/// expense of increased CPU overhead.
-public enum AudioPlayerTimePitchQuality : Float {
-    case low = 3.0
-    case med = 8.0
-    case high = 32.0
-}
-
 public struct PlaybackPosition {
     public let position: Float
     public let current: TimeInterval
@@ -885,6 +907,7 @@ public protocol AudioPlayer: AnyObject {
     var playbackDuration: TimeInterval { get }
 
     ///Adjust the time pitch rate in the range: 0.03125 to 32.0, default is 1.0
+    var hasPlaybackRate: Bool { get }
     var playbackRate: Float { get set }
 
     var currentPosition: PlaybackPosition { get }
@@ -899,7 +922,7 @@ public protocol AudioPlayer: AnyObject {
     ///- note: You may want to read back the value after setting to get actual value of the control.
     var trackOutputLevelAdjust: Float? { get set }
 
-    var timePitchQuality: AudioPlayerTimePitchQuality? { get set }
+    var timePitchQuality: AVAudioUnitTimePitch.QualityRange? { get set }
 
     var hasEQSettings: Bool { get }
 
@@ -984,6 +1007,15 @@ extension AudioPlayer {
         }
     }
 
+    public var hasPlaybackRate: Bool {
+        false
+    }
+    
+    public var playbackRate: Float  {
+        get { 1.0 }
+        set {}
+    }
+    
     public var hasOutputRouting: Bool {
         false
     }
@@ -1000,7 +1032,7 @@ extension AudioPlayer {
         set {}
     }
     
-    public var timePitchQuality: AudioPlayerTimePitchQuality? {
+    public var timePitchQuality: AVAudioUnitTimePitch.QualityRange? {
         get { nil }
         set {}
     }
@@ -1087,21 +1119,6 @@ public class MusicPlayer: AudioPlayer {
         }
     }
 
-    public var playbackRate: Float = .unity {
-        didSet {
-            //currentPlaybackRate == 0 when stopped
-            guard MusicPlayer.player.currentPlaybackRate != .zero,
-                  MusicPlayer.player.currentPlaybackRate != playbackRate else {
-                return
-            }
-            
-            MusicPlayer.player.currentPlaybackRate = playbackRate
-            DispatchQueue.main.async {
-                self.delegate?.playbackRateAdjusted()
-            }
-        }
-    }
-
     public init(mediaItem: MPMediaItem? = nil) {
         self.mediaItem = mediaItem
         
@@ -1184,13 +1201,6 @@ public class MusicPlayer: AudioPlayer {
             break
             
         case .playing:
-            // NOTE: Setting currentPlaybackRate immediately before or after
-            // attempting to call play() introduces a race condition
-            // which prevents currentPlaybackRate from taking effect.
-            // This seems to solve that issue as of 15.4 but this issue has moved around
-            // between iOS 13 and 15 several times.
-            MusicPlayer.player.currentPlaybackRate = playbackRate
-            
             //As of iOS 15.4 there is now a race condition detecting playback from
             // the main loop so moving this here.
             // This is still problematic as it can be called multiple times.
@@ -1231,7 +1241,7 @@ public class MusicPlayer: AudioPlayer {
 
 ///Factory creator for audio player classes
 ///
-/// Not all features (EQ, routing, track output level) are supported by all types of players so you need to check with your factory created object
+/// Not all features (EQ, playbackRate, routing, track output level) are supported by all types of players so you need to check with your factory created object
 /// after initialization to see what is available.
 public struct AudioPlayerFactory {
     ///Create an appropriate audio player based on the media item
@@ -1303,5 +1313,69 @@ public class SystemVolumeMonitor: NSObject {
         } else {
             super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
         }
+    }
+}
+
+//MARK: - AVAudioUnitTimePitch
+
+public extension AVAudioUnitTimePitch {
+    enum RateRange: Float {
+        case min = 0.03125
+        case center = 1.0
+        case max = 32.0
+        
+        public static var range: ClosedRange<Float> {
+            AVAudioUnitTimePitch.RateRange.min.rawValue...AVAudioUnitTimePitch.RateRange.max.rawValue
+        }
+    }
+    
+    enum PitchRange: Float {
+        case min = -2400.0
+        case center = 0.0
+        case max = 2400.0
+        
+        public static var range: ClosedRange<Float> {
+            AVAudioUnitTimePitch.PitchRange.min.rawValue...AVAudioUnitTimePitch.PitchRange.max.rawValue
+        }
+    }
+
+    enum QualityRange: Float {
+        case low = 3.0
+        case med = 8.0
+        case high = 32.0
+        
+        public static var range: ClosedRange<Float> {
+            AVAudioUnitTimePitch.QualityRange.low.rawValue...AVAudioUnitTimePitch.QualityRange.high.rawValue
+        }
+    }
+    
+    static func rateToPercent(_ rate: Float) -> Float {
+        (rate * 100.0) - 100.0
+    }
+    
+    static func percentToRate(_ percent: Float) -> Float {
+        RateRange.center.rawValue + (percent/100.0)
+    }
+    
+    ///rate adjustment as percentage, zero based as signed whole numbers
+    /// 1x speed = +0%
+    /// 2x speed = +100%
+    /// 1/2 speed = -50%
+    var rateAsPercent: Float {
+        get {
+            AVAudioUnitTimePitch.rateToPercent(rate)
+        }
+        set(value) {
+            rate = AVAudioUnitTimePitch.percentToRate(value)
+        }
+    }
+}
+
+
+// MARK: - AVAudioSessionRouteDescription
+
+extension AVAudioSessionRouteDescription {
+    var hasHeadphonens: Bool {
+        outputs.filter({$0.portType == .headphones}).isNotEmpty
     }
 }
