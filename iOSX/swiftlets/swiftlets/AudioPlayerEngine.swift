@@ -60,7 +60,7 @@ public class AudioPlayerEngine {
     
     //MARK: - Member variables - public
     public var channelCount: UInt32 {
-        audioFile?.fileFormat.channelCount ?? 0
+        audioFile?.channelCount ?? 0
     }
     
     public weak var delegate: AudioPlayerDelegate?
@@ -99,7 +99,7 @@ public class AudioPlayerEngine {
             
             //stopped
             else if let audioFile = audioFile {
-                return TimeInterval(Double(seekPosition) / audioFile.fileFormat.sampleRate)
+                return TimeInterval(Double(seekPosition) / audioFile.processingFormat.sampleRate)
             }
             
             //not configured
@@ -111,7 +111,7 @@ public class AudioPlayerEngine {
                 return
             }
             
-            let newPosition = AVAudioFramePosition(seconds * audioFile.fileFormat.sampleRate)
+            let newPosition = AVAudioFramePosition(seconds * audioFile.processingFormat.sampleRate)
             
             //if newPosition > audioFile.length then we are scheduling past end of file, allowing this for now as nothing bad happens
             
@@ -183,12 +183,12 @@ public class AudioPlayerEngine {
     }
     
     //ensure output format of player matches format of the file
-    internal func matchFilePlaybackFormat(_ fileFormat: AVAudioFormat) {
-        let mainsFormat = engine.mainMixerNode.outputFormat(forBus: 0)
-        let playbackFormat = AVAudioFormat(commonFormat: mainsFormat.commonFormat,
-                                           sampleRate: fileFormat.sampleRate,
-                                           channels: fileFormat.channelCount,
-                                           interleaved: mainsFormat.isInterleaved)
+    internal func matchFilePlaybackFormat(_ format: AVAudioFormat) {
+        let outputFormat = engine.mainMixerNode.outputFormat(forBus: 0)
+        let playbackFormat = AVAudioFormat(commonFormat: outputFormat.commonFormat,
+                                           sampleRate: format.sampleRate,
+                                           channels: format.channelCount,
+                                           interleaved: outputFormat.isInterleaved)
         
         engine.connect(player, to: mixer, format: playbackFormat)
         
@@ -198,10 +198,16 @@ public class AudioPlayerEngine {
 
     //MARK: Public Methods
     @discardableResult public func setTrack(url: URL) -> Bool {
-        guard let file: AVAudioFile = try? AVAudioFile.init(forReading: url) else {
+        guard let file = try? AVAudioFile.init(forReading: url) else {
             return false
         }
         
+        setAudioFile(file)
+        
+        return true
+    }
+    
+    public func setAudioFile(_ file: AVAudioFile) {
         //managing playback state
         let wasPlaying: Bool = isPlaying()
         if wasPlaying {
@@ -209,18 +215,16 @@ public class AudioPlayerEngine {
         }
         
         audioFile = file
-        trackLength = Double(file.length)/file.processingFormat.sampleRate
+        trackLength = file.duration
         seekPosition = kTrackHeadFramePosition
-                
-        matchFilePlaybackFormat(file.fileFormat)
+        
+        matchFilePlaybackFormat(file.processingFormat)
         
         registerForMediaServerNotifications()
         
         if wasPlaying {
             _play()
         }
-        
-        return true
     }
     
     ///Set outputs for the engine

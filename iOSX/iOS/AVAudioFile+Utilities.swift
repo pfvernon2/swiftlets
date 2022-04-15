@@ -13,6 +13,18 @@ import Accelerate
 public let kDefaultNoiseFloor: Float = -50.0
 private let kProcessingFormat: AVAudioCommonFormat = .pcmFormatFloat32
 
+//Utilities
+public extension AVAudioFile {
+    var duration: TimeInterval{
+        Double(length) / processingFormat.sampleRate
+    }
+    
+    var channelCount: UInt32 {
+        processingFormat.channelCount
+    }
+}
+
+//Waveform approximation
 public extension AVAudioFile {
     enum SwiftletsAudioFileError: Error {
         case invalidFormat
