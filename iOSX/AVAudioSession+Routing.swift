@@ -43,8 +43,8 @@ public extension AVAudioSession {
     
     var currentRouteDescription: String {
         currentRoute.outputs.compactMap { device in
-            device.channels?.map {"\(device.shortPortName) \($0.shortChannelName)"}
-        }.flatMap{$0}.joined(separator: "\n")
+            device.portChannelDescription
+        }.compactMap{$0}.joined(separator: "\n")
     }
 }
 
@@ -60,7 +60,7 @@ public extension AVAudioOutputNode {
             self.channel = channel
         }
     }
-
+    
     /// Map outputs on this AU to channels from the given session.
     ///
     /// Lists of ports (i.e. devices) and associated channels can be obtained via: AVAudioSession.currentRoute
@@ -98,6 +98,13 @@ public extension AVAudioSessionPortDescription {
     var shortPortName: String {
         portName.stringByTrimmingWhiteSpace()
     }
+    
+    var portChannelDescription: String {
+        guard let channels = channels else {
+            return shortPortName
+        }
+        return channels.map {"\(shortPortName) - \($0.shortChannelName)"}.joined(separator: "\n")
+    }
 }
 
 public extension AVAudioSessionChannelDescription {
@@ -112,5 +119,15 @@ public extension AVAudioSessionChannelDescription {
     ///Index of channel on the current route. Used for mapping outputs to channels.
     var outputIndex: Int {
         AVAudioSession.sharedInstance().outputIndexFor(channel: self)
+    }
+}
+
+extension AVAudioOutputNode.OutputChannelMapping: CustomStringConvertible {
+    public var description: String {
+        "Output: \(output) Port: \(channel.owningPortUID) Channel: \(channel.shortChannelName) Number: \(channel.channelNumber) Index: \(channel.outputIndex)"
+    }
+    
+    public var debugDescription: String {
+        description
     }
 }
