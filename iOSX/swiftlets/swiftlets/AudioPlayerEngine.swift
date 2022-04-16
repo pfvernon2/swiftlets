@@ -37,7 +37,6 @@ public class AudioPlayerEngine {
     //AVAudioEngine and nodes
     internal var engine: AVAudioEngine = AVAudioEngine()
     internal var player: AVAudioPlayerNode = AVAudioPlayerNode()
-    internal let mixer: AVAudioMixerNode = AVAudioMixerNode()
     
     //audio file
     internal var audioFile: AVAudioFile?
@@ -84,7 +83,7 @@ public class AudioPlayerEngine {
         }
     }
 
-    //playback position in seconds
+    ///playback position in seconds
     public var playbackPosition: TimeInterval {
         get {
             //playing
@@ -99,7 +98,7 @@ public class AudioPlayerEngine {
             
             //stopped
             else if let audioFile = audioFile {
-                return TimeInterval(Double(seekPosition) / audioFile.processingFormat.sampleRate)
+                return TimeInterval(Double(seekPosition) / audioFile.sampleRate)
             }
             
             //not configured
@@ -111,7 +110,7 @@ public class AudioPlayerEngine {
                 return
             }
             
-            let newPosition = AVAudioFramePosition(seconds * audioFile.processingFormat.sampleRate)
+            let newPosition = AVAudioFramePosition(seconds * audioFile.sampleRate)
             
             //if newPosition > audioFile.length then we are scheduling past end of file, allowing this for now as nothing bad happens
             
@@ -139,7 +138,7 @@ public class AudioPlayerEngine {
     }
     
     ///Call this is to setup playback options for your app to allow simulataneous playback with other apps.
-    /// This mode allows playback of audio when the ringer (mute) switch is enabled.
+    /// The default mode allows playback of audio when the ringer (mute) switch is enabled.
     /// Be sure to enable audio in the BackgroundModes settings of your apps Capabilities if necessary.
     #if os(iOS) || os(watchOS)
     public class func initAudioSessionCooperativePlayback(category: AVAudioSession.Category = .playback,
@@ -170,32 +169,13 @@ public class AudioPlayerEngine {
 
         //attach nodes
         engine.attach(player)
-        engine.attach(mixer)
         
-        //create node graph
-        // note: use of mixer here allows for better abstraction
-        //       of mapping channels in audio file to the output device
-        engine.connect(player, to: mixer, format: nil)
-        engine.connect(mixer, to: engine.mainMixerNode, format: nil)
+        //create simple player node graph
+        engine.connect(player, to: engine.mainMixerNode, format: nil)
         
         engine.prepare()
-//        engine.isAutoShutdownEnabled = true
     }
     
-    //ensure output format of player matches format of the file
-    internal func matchFilePlaybackFormat(_ format: AVAudioFormat) {
-        let outputFormat = engine.mainMixerNode.outputFormat(forBus: 0)
-        let playbackFormat = AVAudioFormat(commonFormat: outputFormat.commonFormat,
-                                           sampleRate: format.sampleRate,
-                                           channels: format.channelCount,
-                                           interleaved: outputFormat.isInterleaved)
-        
-        engine.connect(player, to: mixer, format: playbackFormat)
-        
-        //prepare the engine
-        engine.prepare()
-    }
-
     //MARK: Public Methods
     @discardableResult public func setTrack(url: URL) -> Bool {
         guard let file = try? AVAudioFile.init(forReading: url) else {
@@ -217,8 +197,6 @@ public class AudioPlayerEngine {
         audioFile = file
         trackLength = file.duration
         seekPosition = kTrackHeadFramePosition
-        
-        matchFilePlaybackFormat(file.processingFormat)
         
         registerForMediaServerNotifications()
         
@@ -305,19 +283,19 @@ public class AudioPlayerEngine {
         }
         
         //check we are configured to play something
-        guard let trackToPlay = audioFile, startEngine() else {
+        guard let audioFile = audioFile, startEngine() else {
             return false
         }
         
         //If a seek offset is set then move track head to that position
         if seekPosition != kTrackHeadFramePosition {
-            trackToPlay.framePosition = seekPosition
+            audioFile.framePosition = seekPosition
             initBuffers()
             
             bufferQueue.sync {
                 if let currentPos: AVAudioFramePosition = self.player.lastRenderTime?.sampleTime {
                     let playTime: AVAudioTime = AVAudioTime(sampleTime: currentPos-self.seekPosition,
-                                                           atRate: trackToPlay.processingFormat.sampleRate)
+                                                            atRate: audioFile.sampleRate)
                     self.player.play(at: playTime)
                 }
             }
@@ -325,13 +303,13 @@ public class AudioPlayerEngine {
             //reset seek position now that it has been consumed
             seekPosition = kTrackHeadFramePosition
         }
-            
-            //otherwise just start playing at beginning of track
+        
+        //otherwise just start playing at beginning of track
         else {
             //ensure file framePosition at head in case we are re-playing a track
-            trackToPlay.framePosition = .zero
+            audioFile.framePosition = .zero
             initBuffers()
-                        
+            
             bufferQueue.sync {
                 //This should not be necessary but there appears to be a
                 // race condition in engine setup and player readiness
@@ -771,7 +749,7 @@ public class FXAudioPlayerEngine: AudioPlayerEngine, AudioPlayer {
         engine.attach(routingMixer)
         
         //construct fx node graph... connect to output of the playback mixer
-        engine.connect(mixer, to: timePitch, format: nil)
+        engine.connect(player, to: timePitch, format: nil)
         engine.connect(timePitch, to: equalizer, format: nil)
         engine.connect(equalizer, to: routingMixer, format: nil)
         engine.connect(routingMixer, to: engine.mainMixerNode, format: nil)

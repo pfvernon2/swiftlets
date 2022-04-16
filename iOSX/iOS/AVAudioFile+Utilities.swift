@@ -22,6 +22,10 @@ public extension AVAudioFile {
     var channelCount: UInt32 {
         processingFormat.channelCount
     }
+    
+    var sampleRate: Double {
+        processingFormat.sampleRate
+    }
 }
 
 //Waveform approximation
