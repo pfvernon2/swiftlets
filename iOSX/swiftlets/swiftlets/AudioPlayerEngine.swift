@@ -37,7 +37,8 @@ public class AudioPlayerEngine {
     //AVAudioEngine and nodes
     internal var engine: AVAudioEngine = AVAudioEngine()
     internal var player: AVAudioPlayerNode = AVAudioPlayerNode()
-    
+    internal let mixer: AVAudioMixerNode = AVAudioMixerNode()
+
     //audio file
     internal var audioFile: AVAudioFile?
     
@@ -135,13 +136,14 @@ public class AudioPlayerEngine {
     
     deinit {
         NotificationCenter.default.removeObserver(self)
+        engine.stop()
     }
     
+   #if os(iOS) || os(watchOS)
     ///Call this is to setup playback options for your app to allow simulataneous playback with other apps.
     /// The default mode allows playback of audio when the ringer (mute) switch is enabled.
     /// Be sure to enable audio in the BackgroundModes settings of your apps Capabilities if necessary.
-    #if os(iOS) || os(watchOS)
-    public class func initAudioSessionCooperativePlayback(category: AVAudioSession.Category = .playback,
+     public class func initAudioSessionCooperativePlayback(category: AVAudioSession.Category = .playback,
                                                           policy: AVAudioSession.RouteSharingPolicy = .longFormAudio) {
         do {
             try AVAudioSession.sharedInstance().setActive(false)
@@ -169,13 +171,35 @@ public class AudioPlayerEngine {
 
         //attach nodes
         engine.attach(player)
+        engine.attach(mixer)
         
-        //create simple player node graph
-        engine.connect(player, to: engine.mainMixerNode, format: nil)
-        
+        //connect nodes
+        // IMPORTANT: The mixer is used to abstract away
+        // file format (channel count, sample rate) config from
+        // other processing nodes which may want to connect to this stream
+        // subclasses can connect to the mixer which is configured for file format.
+        engine.connect(player, to: mixer, format: nil)
+        engine.connect(mixer, to: engine.mainMixerNode, format: nil)
+
         engine.prepare()
     }
     
+    //ensure output format of player matches format of the file
+    //not doing this can cause crashes when channel counts don't match
+    //and can cause sample rate mismatches which impact playback speed
+    internal func matchFilePlaybackFormat(_ fileFormat: AVAudioFormat) {
+        let outputFormat = engine.mainMixerNode.outputFormat(forBus: 0)
+        let playbackFormat = AVAudioFormat(commonFormat: outputFormat.commonFormat,
+                                           sampleRate: fileFormat.sampleRate,
+                                           channels: fileFormat.channelCount,
+                                           interleaved: outputFormat.isInterleaved)
+        
+        engine.connect(player, to: mixer, format: playbackFormat)
+        
+        //prepare the engine
+        engine.prepare()
+    }
+
     //MARK: Public Methods
     @discardableResult public func setTrack(url: URL) -> Bool {
         guard let file = try? AVAudioFile.init(forReading: url) else {
@@ -197,6 +221,8 @@ public class AudioPlayerEngine {
         audioFile = file
         trackLength = file.duration
         seekPosition = kTrackHeadFramePosition
+        
+        matchFilePlaybackFormat(file.processingFormat)
         
         registerForMediaServerNotifications()
         
@@ -250,14 +276,14 @@ public class AudioPlayerEngine {
     }
     
     public func stop() {
-        guard isPlaying() else {
-            return
-        }
+        let wasPlaying = isPlaying()
                 
         _stop()
         
-        DispatchQueue.main.async {
-            self.delegate?.playbackStopped(trackCompleted: self.reachedEnd)
+        if wasPlaying {
+            DispatchQueue.main.async {
+                self.delegate?.playbackStopped(trackCompleted: self.reachedEnd)
+            }
         }
     }
     
@@ -749,7 +775,7 @@ public class FXAudioPlayerEngine: AudioPlayerEngine, AudioPlayer {
         engine.attach(routingMixer)
         
         //construct fx node graph... connect to output of the playback mixer
-        engine.connect(player, to: timePitch, format: nil)
+        engine.connect(mixer, to: timePitch, format: nil)
         engine.connect(timePitch, to: equalizer, format: nil)
         engine.connect(equalizer, to: routingMixer, format: nil)
         engine.connect(routingMixer, to: engine.mainMixerNode, format: nil)
