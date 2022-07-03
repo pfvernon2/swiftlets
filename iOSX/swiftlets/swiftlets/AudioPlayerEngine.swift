@@ -32,6 +32,14 @@ fileprivate let kTrackHeadFramePosition: AVAudioFramePosition = -1
 ///Simple class to playback audio files.
 /// Supports seeking within track and notifies delegate of play/pause/stop state changes
 public class AudioPlayerEngine {
+    //Enum for indicating at which end(s) of the audio file
+    // to trim silence at playback
+    public enum trimPositions {
+        case leading
+        case trailing
+        case both
+    }
+    
     //MARK: Member variables - private
     
     //AVAudioEngine and nodes
@@ -42,6 +50,25 @@ public class AudioPlayerEngine {
     //audio file
     internal var audioFile: AVAudioFile?
     
+    //trim position head/tail
+    private var headPosition: AVAudioFramePosition = .zero
+    public var headTime: TimeInterval {
+        guard let audioFile = audioFile else {
+            return .zero
+        }
+
+        return audioFile.time(forFrame: headPosition)
+    }
+
+    private var tailPosition: AVAudioFramePosition = .zero
+    public var tailTime: TimeInterval {
+        guard let audioFile = audioFile else {
+            return .zero
+        }
+
+        return audioFile.time(forFrame: tailPosition)
+    }
+
     //seek position for start
     private var seekPosition: AVAudioFramePosition = kTrackHeadFramePosition
     
@@ -89,9 +116,9 @@ public class AudioPlayerEngine {
         get {
             //playing
             if let playerTime: AVAudioTime = currentPlayerTime() {
-                return TimeInterval(playerTime.sampleTime) / playerTime.sampleRate
+                return TimeInterval(playerTime.sampleTime - headPosition) / playerTime.sampleRate
             }
-                
+            
             //paused
             else if isPaused() {
                 return pausedPosition
@@ -99,7 +126,7 @@ public class AudioPlayerEngine {
             
             //stopped
             else if let audioFile = audioFile {
-                return TimeInterval(Double(seekPosition) / audioFile.sampleRate)
+                return audioFile.time(forFrame: seekPosition)
             }
             
             //not configured
@@ -111,16 +138,12 @@ public class AudioPlayerEngine {
                 return
             }
             
-            let newPosition = AVAudioFramePosition(seconds * audioFile.sampleRate)
-            
-            //if newPosition > audioFile.length then we are scheduling past end of file, allowing this for now as nothing bad happens
-            
             let wasPlaying: Bool = self.isPlaying()
             if wasPlaying || isPaused() {
                 _stop()
             }
             
-            seekPosition = newPosition
+            seekPosition = audioFile.frame(forTime: seconds) + headPosition
             
             if wasPlaying {
                 _play()
@@ -129,15 +152,6 @@ public class AudioPlayerEngine {
     }
         
     //MARK: Initialization
-    
-    public init() {
-        initAudioEngine()
-    }
-    
-    deinit {
-        NotificationCenter.default.removeObserver(self)
-        engine.stop()
-    }
     
    #if os(iOS) || os(watchOS)
     ///Call this is to setup playback options for your app to allow simulataneous playback with other apps.
@@ -163,6 +177,15 @@ public class AudioPlayerEngine {
         }
     }
     #endif
+    
+    public init() {
+        initAudioEngine()
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+        engine.stop()
+    }
     
     internal func initAudioEngine() {
         engine.connect(engine.mainMixerNode,
@@ -221,6 +244,8 @@ public class AudioPlayerEngine {
         audioFile = file
         trackLength = file.duration
         seekPosition = kTrackHeadFramePosition
+        headPosition = .zero
+        tailPosition = file.length
         
         matchFilePlaybackFormat(file.processingFormat)
         
@@ -300,7 +325,43 @@ public class AudioPlayerEngine {
         
         return outputDescriptions.joined(separator: "\n")
     }
+    
+    ///Set headPosition and/or tailPosition by scanning audio file for silence (zero value samples)
+    ///from specified position(s) in the file.
+    public func trimSilence(_ trim: trimPositions = .both) {
+        guard let (head, tail) = audioFile?.silenceTrimPositions() else {
+            return
+        }
+                
+        switch trim {
+        case .leading:
+            setTrimPositions(head: head)
+        case .trailing:
+            setTrimPositions(tail: tail)
+        case .both:
+            setTrimPositions(head: head, tail: tail)
+        }
+    }
+    
+    ///Trim start/end times. This will adjust track playback length and playback progress.
+    public func setTrimPositions(head: AVAudioFramePosition? = nil,
+                                 tail: AVAudioFramePosition? = nil) {
+        guard let audioFile = audioFile else {
+            return
+        }
         
+        if let head = head {
+            headPosition = head
+        }
+        
+        if let tail = tail {
+            tailPosition = tail
+        }
+        
+        //Update trackLength
+        trackLength = audioFile.time(forFrame: tailPosition - headPosition)
+    }
+    
     //MARK: Private Methods
     
     @discardableResult private func _play() -> Bool {
@@ -312,15 +373,23 @@ public class AudioPlayerEngine {
         guard let audioFile = audioFile, startEngine() else {
             return false
         }
-        
-        //If a seek offset is set then move track head to that position
-        if seekPosition != kTrackHeadFramePosition {
-            audioFile.framePosition = seekPosition
+                
+        //If a start offset is set then move track head to that position
+        let startPosition = max(seekPosition, headPosition)
+        if startPosition > .zero {
+            audioFile.framePosition = startPosition
             initBuffers()
             
             bufferQueue.sync {
+                //This guard should not be necessary but there appears to be a
+                // race condition in engine setup and player readiness
+                // player.play() will crash if this is not observed.
+                guard engine.isRunning else {
+                    return
+                }
+
                 if let currentPos: AVAudioFramePosition = self.player.lastRenderTime?.sampleTime {
-                    let playTime: AVAudioTime = AVAudioTime(sampleTime: currentPos-self.seekPosition,
+                    let playTime: AVAudioTime = AVAudioTime(sampleTime: currentPos - startPosition,
                                                             atRate: audioFile.sampleRate)
                     self.player.play(at: playTime)
                 }
@@ -337,7 +406,7 @@ public class AudioPlayerEngine {
             initBuffers()
             
             bufferQueue.sync {
-                //This should not be necessary but there appears to be a
+                //This guard should not be necessary but there appears to be a
                 // race condition in engine setup and player readiness
                 // player.play() will crash if this is not observed.
                 guard engine.isRunning else {
@@ -476,12 +545,19 @@ public class AudioPlayerEngine {
     }
     
     private func readNextBuffer(buffer: AVAudioPCMBuffer) -> Bool {
-        guard let audioFile = audioFile, audioFile.framePosition < audioFile.length else {
+        guard let audioFile = audioFile, audioFile.framePosition < tailPosition else {
             return false
         }
-        
+                
         do {
             try audioFile.read(into: buffer)
+            
+            //trim samples past tailPosition from buffer
+            let remaining = tailPosition - audioFile.framePosition
+            if remaining < 0 {
+                buffer.frameLength -= AVAudioFrameCount(abs(remaining))
+            }
+            
             return buffer.frameLength > 0
         } catch let error as NSError {
             print("Exception in buffer read: \(error.localizedDescription)")

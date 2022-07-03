@@ -61,6 +61,10 @@
 		01533B0B1C9DDF2000C6E69D /* RoundedCornerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01533B041C9DDF2000C6E69D /* RoundedCornerView.swift */; };
 		0157049D27DCF92100C2FD83 /* ConsoleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0157049C27DCF92100C2FD83 /* ConsoleView.swift */; };
 		015710CF1D049C1F0057C1FB /* Array+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 015710CE1D049C1F0057C1FB /* Array+Utilities.swift */; };
+		0157EEA2287217CF00B55CCB /* AVAudioBuffer+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0157EEA1287217CF00B55CCB /* AVAudioBuffer+Utilities.swift */; };
+		0157EEA3287217CF00B55CCB /* AVAudioBuffer+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0157EEA1287217CF00B55CCB /* AVAudioBuffer+Utilities.swift */; };
+		0157EEA4287217CF00B55CCB /* AVAudioBuffer+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0157EEA1287217CF00B55CCB /* AVAudioBuffer+Utilities.swift */; };
+		0157EEA5287217CF00B55CCB /* AVAudioBuffer+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0157EEA1287217CF00B55CCB /* AVAudioBuffer+Utilities.swift */; };
 		015A849B20FD50C4006C2583 /* CommandLine+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 015A849A20FD50C4006C2583 /* CommandLine+Utilities.swift */; };
 		015B866B247F1D2600891F97 /* LeftAlignedFlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 015B866A247F1D2600891F97 /* LeftAlignedFlowLayout.swift */; };
 		01636FFC24C0B83C00FF4433 /* AVAudioFile+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01636FFB24C0B83C00FF4433 /* AVAudioFile+Utilities.swift */; };
@@ -151,6 +155,7 @@
 		01533B041C9DDF2000C6E69D /* RoundedCornerView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = RoundedCornerView.swift; path = ../../iOS/RoundedCornerView.swift; sourceTree = "<group>"; };
 		0157049C27DCF92100C2FD83 /* ConsoleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ConsoleView.swift; path = ../../ConsoleView.swift; sourceTree = "<group>"; };
 		015710CE1D049C1F0057C1FB /* Array+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Array+Utilities.swift"; path = "../../../Portable/Array+Utilities.swift"; sourceTree = "<group>"; };
+		0157EEA1287217CF00B55CCB /* AVAudioBuffer+Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "AVAudioBuffer+Utilities.swift"; path = "../../AVAudioBuffer+Utilities.swift"; sourceTree = "<group>"; };
 		015A849A20FD50C4006C2583 /* CommandLine+Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "CommandLine+Utilities.swift"; path = "../../OSX/CommandLine+Utilities.swift"; sourceTree = "<group>"; };
 		015B866A247F1D2600891F97 /* LeftAlignedFlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LeftAlignedFlowLayout.swift; path = ../../iOS/LeftAlignedFlowLayout.swift; sourceTree = "<group>"; };
 		016310861D03660500862035 /* URLComponent+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "URLComponent+Utilities.swift"; path = "../../URLComponent+Utilities.swift"; sourceTree = "<group>"; };
@@ -238,6 +243,7 @@
 				011C42212013DBA80032EC48 /* AVAsset+AVMetadataItem.swift */,
 				013D4EEB2454B13B005A15A9 /* MPMediaItem+Util.swift */,
 				01636FFB24C0B83C00FF4433 /* AVAudioFile+Utilities.swift */,
+				0157EEA1287217CF00B55CCB /* AVAudioBuffer+Utilities.swift */,
 				0118627A27D91466001C8312 /* AVAudioSession+Routing.swift */,
 			);
 			name = MediaPlayer;
@@ -533,6 +539,7 @@
 				0113F2AD235CD694002E7F9F /* Magnitude.swift in Sources */,
 				0105B27B223042840069124E /* LineReader.swift in Sources */,
 				0105B263223041370069124E /* swiftlets_macos.m in Sources */,
+				0157EEA4287217CF00B55CCB /* AVAudioBuffer+Utilities.swift in Sources */,
 				013D4EED2454B13B005A15A9 /* MPMediaItem+Util.swift in Sources */,
 				0105B29222306EAF0069124E /* HTTPURLResponse+Utility.swift in Sources */,
 				0105B274223042390069124E /* Data+Utilities.swift in Sources */,
@@ -550,6 +557,7 @@
 			files = (
 				016F8935230F5C7600FF12E1 /* TimeInterval+Period.swift in Sources */,
 				0105B28E22306E860069124E /* swiftletsTests.swift in Sources */,
+				0157EEA5287217CF00B55CCB /* AVAudioBuffer+Utilities.swift in Sources */,
 				0113F2AE235CD694002E7F9F /* Magnitude.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -569,6 +577,7 @@
 				01533B081C9DDF2000C6E69D /* DoubleTapTableView.swift in Sources */,
 				016F8932230F5C7600FF12E1 /* TimeInterval+Period.swift in Sources */,
 				01E678511CD5317400ABE1CB /* Formatting.swift in Sources */,
+				0157EEA2287217CF00B55CCB /* AVAudioBuffer+Utilities.swift in Sources */,
 				018B5A041F03453C009F40FB /* HTTPURLResponse+Utility.swift in Sources */,
 				011C42202013DAF80032EC48 /* AVMetadataIdentifier+id3v2.swift in Sources */,
 				01E678551CD531AA00ABE1CB /* UIView+Utilities.swift in Sources */,
@@ -619,6 +628,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0157EEA3287217CF00B55CCB /* AVAudioBuffer+Utilities.swift in Sources */,
 				01533AD81C9DDAE700C6E69D /* swiftletsTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

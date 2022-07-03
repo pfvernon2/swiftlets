@@ -13,10 +13,10 @@ import Accelerate
 public let kDefaultNoiseFloor: Float = -50.0
 private let kProcessingFormat: AVAudioCommonFormat = .pcmFormatFloat32
 
-//Utilities
+//Utility accessors
 public extension AVAudioFile {
     var duration: TimeInterval{
-        Double(length) / processingFormat.sampleRate
+        time(forFrame: length)
     }
     
     var channelCount: UInt32 {
@@ -25,6 +25,109 @@ public extension AVAudioFile {
     
     var sampleRate: Double {
         processingFormat.sampleRate
+    }
+    
+    func time(forFrame frame: AVAudioFramePosition) -> TimeInterval {
+        TimeInterval(Double(frame) / processingFormat.sampleRate)
+    }
+    
+    func frame(forTime time: TimeInterval) -> AVAudioFramePosition {
+        AVAudioFramePosition(time * processingFormat.sampleRate)
+    }
+}
+
+//Utility functions
+public extension AVAudioFile {
+    ///Read entire file into buffer based on the processing format.
+    ///
+    /// - parameter asMono - pass true to retrieve mono version of samples. Useful for creating images, for example.
+    func samples(asMono mono: Bool) throws -> AVAudioPCMBuffer {
+        guard var buf = AVAudioPCMBuffer(pcmFormat: processingFormat, frameCapacity: UInt32(length)) else {
+            throw SwiftletsAudioFileError.outOfMemory
+        }
+        
+        try read(into: buf)
+        
+        //TODO: Make this more efficient on memory by doing mono conversion during chunked file read
+        if mono && processingFormat.channelCount > 1 {
+            guard let monoFormat = AVAudioFormat(commonFormat: processingFormat.commonFormat,
+                                                 sampleRate: processingFormat.sampleRate,
+                                                 channels: 1,
+                                                 interleaved: false) else {
+                                                    throw SwiftletsAudioFileError.invalidFormat
+            }
+            
+            guard let monoBuf = AVAudioPCMBuffer(pcmFormat: monoFormat, frameCapacity: buf.frameLength) else {
+                throw SwiftletsAudioFileError.outOfMemory
+            }
+            
+            guard let converter = AVAudioConverter(from: buf.format, to: monoBuf.format) else {
+                throw SwiftletsAudioFileError.invalidConverter
+            }
+            
+            try converter.convert(to: monoBuf, from: buf)
+            
+            buf = monoBuf
+        }
+        
+        return buf
+    }
+    
+    ///Locates frame positions of first and last samples in the file with non-zero values. These frame positions can be used
+    ///as start/stop positions on playback to effectively trim silence without modifying the file contents.
+    ///
+    /// - note: This is optimized for speed at the expense of memory overhead. The entire file size may reside
+    ///         in memory for a brief time while the samples are inspected. All sample data is released before result is returned.
+    func silenceTrimPositions() -> (AVAudioFramePosition, AVAudioFramePosition) {
+        //Note to future self... going mono does not save significant time and
+        // introduces issues with accuracy. (Out of phase samples will cancel in mono.)
+        guard let buffer = try? samples(asMono: false) else {
+            return (.zero, length)
+        }
+        
+        return silenceTrimPositions(buffer: buffer)
+    }
+            
+    ///Locates frame positions of first and last samples in the file with non-zero values. These frame positions can be used
+    ///as start/stop positions on playback to effectively trim silence without modifying the file contents.
+    ///
+    ///This works directly on the buffer, no copy of data is made during processing.
+    func silenceTrimPositions(buffer: AVAudioPCMBuffer) -> (AVAudioFramePosition, AVAudioFramePosition) {
+        var start: AVAudioFramePosition? = nil
+        var end: AVAudioFramePosition? = nil
+
+        let framesEnd: AVAudioFramePosition = AVAudioFramePosition(buffer.frameLength)
+        let framesLength: Int = Int(buffer.frameLength)
+        
+        //Walk samples in each channel searching for start/end of channel
+        for i in 0..<Int(buffer.format.channelCount) {
+            guard let channel = buffer.floatChannelData?[i] else {
+                return (.zero, framesEnd)
+            }
+            
+            //head
+            for j in 0..<framesLength {
+                if channel[j] != .zero {
+                    //walk back to previous zero value sample to ensure zero crossing
+                    let pos = j > 0 ? j - 1 : .zero
+                    start = min(start ?? framesEnd, AVAudioFramePosition(pos))
+                    break
+                }
+            }
+            
+            //tail
+            for j in stride(from: framesLength-1, to: 0, by: -1) {
+                if channel[j] != .zero {
+                    //walk back to previous zero value sample to ensure zero crossing
+                    let pos = j < framesLength ? j + 1 : framesLength
+                    end = max(end ?? .zero, AVAudioFramePosition(pos))
+                    break
+                }
+            }
+        }
+
+        return (AVAudioFramePosition(start ?? .zero),
+                AVAudioFramePosition(end ?? framesEnd))
     }
 }
 
@@ -41,6 +144,7 @@ public extension AVAudioFile {
     }
     
     ///Render file as mono waveform image. There are many like it, this is mine.
+    ///
     /// - note: This is optimized for speed at the expense of memory overhead. As much as 2x the file size may reside
     ///         in memory for a brief time while the samples are manipulated. All sample data is released before the image is returned.
     func waveFormImage(imageSize: CGSize,
@@ -48,7 +152,15 @@ public extension AVAudioFile {
                        scaleToDisplay: Bool = true,
                        displayInDB: Bool = false,
                        noiseFloor: Float = kDefaultNoiseFloor) -> UIImage? {
-        guard var samples = try? samples(asMono: true) else {
+        let samples: [Float]? = {
+            guard let buffer = try? self.samples(asMono: true) else {
+                return []
+            }
+            
+            return buffer.floatChannelArray?[0]
+        }()
+        
+        guard var samples = samples else {
             return nil
         }
         
@@ -105,40 +217,6 @@ public extension AVAudioFile {
         }
     }
 
-    ///Read entire file into buffer based on the processing format. By default returns a mono representation of the samples.
-    func samples(asMono mono: Bool = true) throws -> [Float] {
-        guard var buf = AVAudioPCMBuffer(pcmFormat: processingFormat, frameCapacity: UInt32(length)) else {
-            throw SwiftletsAudioFileError.outOfMemory
-        }
-        
-        try read(into: buf)
-        
-        //TODO: Make this more efficient on memory by doing mono conversion during chunked file read
-        if mono && processingFormat.channelCount > 1 {
-            guard let monoFormat = AVAudioFormat(commonFormat: processingFormat.commonFormat,
-                                                 sampleRate: processingFormat.sampleRate,
-                                                 channels: 1,
-                                                 interleaved: false) else {
-                                                    throw SwiftletsAudioFileError.invalidFormat
-            }
-            
-            guard let monoBuf = AVAudioPCMBuffer(pcmFormat: monoFormat, frameCapacity: buf.frameLength) else {
-                throw SwiftletsAudioFileError.outOfMemory
-            }
-            
-            guard let converter = AVAudioConverter(from: buf.format, to: monoBuf.format) else {
-                throw SwiftletsAudioFileError.invalidConverter
-            }
-            
-            try converter.convert(to: monoBuf, from: buf)
-            
-            buf = monoBuf
-        }
-        
-        return Array(UnsafeBufferPointer(start: buf.floatChannelData?[0],
-                                         count:Int(buf.frameLength)))
-    }
-    
     //Somewhat messy routine to manipulate the samples from the file into more manageable form
     // for image rendering. Unlikely to be of use outside this file so marked private for now.
     // Note that all work is done in place on the array of samples passed in.
