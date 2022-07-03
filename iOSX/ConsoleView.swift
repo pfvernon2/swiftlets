@@ -16,7 +16,8 @@ import UIKit
 /// - note: This is not recommended or intended for production use. You have been warned.
 public class ConsoleView: UITextView  {
     private static var instances: [WeakContainer<ConsoleView>] = []
-    public static func print(_ line: String) {
+    public static func print(_ args: String...) {
+        let line = args.joined(separator: " ")
         instances.forEach { $0.get()?.appendLine(line) }
     }
 

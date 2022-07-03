@@ -280,3 +280,15 @@ public extension UIControl.State {
         [.normal, .highlighted, .disabled, .selected, .focused, .application]
     }
 }
+
+public func TimingBlock(label: String = "⏱", _ block : (() -> Void)) {
+    let start = DispatchTime.now()
+    defer {
+        let end = DispatchTime.now()
+        let nanoTime = end.uptimeNanoseconds - start.uptimeNanoseconds
+        let timeInterval = Double(nanoTime) * DecimalMagnitude.nano.rawValue
+        print("\(label) - \(timeInterval) seconds")
+    }
+    
+    block()
+}
