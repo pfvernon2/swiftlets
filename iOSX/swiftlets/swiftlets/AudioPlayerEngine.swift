@@ -85,6 +85,17 @@ public class AudioPlayerEngine {
     private let bufferQueue: DispatchQueue = DispatchQueue(label: "com.cyberdev.AudioPlayerEngine.buffers")
     private var buffersInFlight: Int = .zero
     
+    //Meter queue management
+    private let meterQueue: DispatchQueue = DispatchQueue(label: "com.cyberdev.AudioPlayerEngine.meters")
+    private var _meterValues: [Float] = []
+    public var meters: [Float] {
+        get {
+            meterQueue.sync {
+                return _meterValues
+            }
+        }
+    }
+    
     //MARK: - Member variables - public
     public var channelCount: UInt32 {
         audioFile?.channelCount ?? 0
@@ -150,6 +161,30 @@ public class AudioPlayerEngine {
             }
         }
     }
+    
+    public var meteringEnabled: Bool = false {
+        didSet {
+            if meteringEnabled {
+                let format = engine.mainMixerNode.outputFormat(forBus: 0)
+                engine.mainMixerNode.installTap(
+                  onBus: 0,
+                  bufferSize: 1024,
+                  format: format
+                ) { buffer, _ in
+                    if let meters = buffer.rmsPowerValues() {
+                        self.meterQueue.async {
+                            self._meterValues = meters
+                        }
+                    }
+                }
+            } else {
+                engine.mainMixerNode.removeTap(onBus: 0)
+                self.meterQueue.async {
+                    self._meterValues = []
+                }
+            }
+        }
+    }
         
     //MARK: Initialization
     
@@ -184,6 +219,7 @@ public class AudioPlayerEngine {
     
     deinit {
         NotificationCenter.default.removeObserver(self)
+        meteringEnabled = false
         engine.stop()
     }
     
@@ -361,7 +397,7 @@ public class AudioPlayerEngine {
         //Update trackLength
         trackLength = audioFile.time(forFrame: tailPosition - headPosition)
     }
-    
+        
     //MARK: Private Methods
     
     @discardableResult private func _play() -> Bool {
