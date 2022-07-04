@@ -1051,6 +1051,9 @@ public protocol AudioPlayer: AnyObject {
     
     var outputSampleRate: Double? { get }
     
+    var meters: [Float] { get }
+    var meteringEnabled: Bool { get set }
+    
     func play()
     func isPlaying() -> Bool
 
@@ -1178,6 +1181,10 @@ extension AudioPlayer {
 
 ///This is a thin wrapper on MPMusicPlayerController to give us interface consistency with AudioPlayer for factory construction
 public class MusicPlayer: AudioPlayer {
+    public var meteringEnabled: Bool = false
+    
+    public var meters: [Float] = []
+    
     private static var player: MPMusicPlayerApplicationController = {
         let player = MPMusicPlayerController.applicationQueuePlayer
         player.repeatMode = .none

@@ -202,7 +202,14 @@ public extension AVAudioFile {
             let path = UIBezierPath()
             for (index, sample) in samples.enumerated() {
                 let offset = CGFloat(index)
-                let amplitude = max(CGFloat(sample), 1.0)
+                let amplitude: CGFloat = {
+                    switch sample {
+                    case _ where sample < 1.0:
+                        return 1.0
+                    default:
+                        return max(CGFloat(sample), 2.0)
+                    }
+                }()
                 
                 let x = offset * pixelsPerSample
                 let y = center - amplitude.halved

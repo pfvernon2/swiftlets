@@ -32,16 +32,14 @@ public extension AVAudioPCMBuffer {
             return nil
         }
         
-        let numFrames: UInt = UInt(frameLength)
         let numChannels: Int = Int(format.channelCount)
-        
         var result = Array<Float>(capacity: numChannels)
         
         for i in 0..<numChannels {
             let samples = floatChannelData[i]
 
             var avgValue:Float32 = .zero
-            vDSP_rmsqv(samples, 1, &avgValue, numFrames)
+            vDSP_rmsqv(samples, 1, &avgValue, UInt(frameLength))
             var power: Float = -100.0
             if avgValue != .zero {
                 power = 20.0 * log10f(avgValue)
