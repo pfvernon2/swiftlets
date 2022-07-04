@@ -65,6 +65,7 @@ public extension AVAudioFile {
                 throw SwiftletsAudioFileError.invalidConverter
             }
             
+            converter.downmix = true
             try converter.convert(to: monoBuf, from: buf)
             
             buf = monoBuf
