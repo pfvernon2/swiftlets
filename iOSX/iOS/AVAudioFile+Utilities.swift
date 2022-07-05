@@ -77,6 +77,9 @@ public extension AVAudioFile {
     ///Locates frame positions of first and last samples in the file with non-zero values. These frame positions can be used
     ///as start/stop positions on playback to effectively trim silence without modifying the file contents.
     ///
+    /// - returns: Tuple of AVAudioFramePositions representing the frame positions immediately before and after the first and last
+    ///            non-zero samples in the file.
+    ///
     /// - note: This is optimized for speed at the expense of memory overhead. The entire file size may reside
     ///         in memory for a brief time while the samples are inspected. All sample data is released before result is returned.
     func silenceTrimPositions() -> (AVAudioFramePosition, AVAudioFramePosition) {
