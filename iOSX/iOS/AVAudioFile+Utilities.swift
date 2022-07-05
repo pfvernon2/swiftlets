@@ -94,12 +94,11 @@ public extension AVAudioFile {
     ///
     ///This works directly on the buffer, no copy of data is made during processing.
     func silenceTrimPositions(buffer: AVAudioPCMBuffer) -> (AVAudioFramePosition, AVAudioFramePosition) {
-        var start: AVAudioFramePosition? = nil
-        var end: AVAudioFramePosition? = nil
-
         let framesEnd: AVAudioFramePosition = AVAudioFramePosition(buffer.frameLength)
-        let framesLength: Int = Int(buffer.frameLength)
         
+        var start: AVAudioFramePosition = framesEnd
+        var end: AVAudioFramePosition = .zero
+
         //Walk samples in each channel searching for start/end of channel
         for i in 0..<Int(buffer.format.channelCount) {
             guard let channel = buffer.floatChannelData?[i] else {
@@ -107,28 +106,25 @@ public extension AVAudioFile {
             }
             
             //head
-            for j in 0..<framesLength {
-                if channel[j] != .zero {
-                    //walk back to previous zero value sample to ensure zero crossing
-                    let pos = j > 0 ? j - 1 : .zero
-                    start = min(start ?? framesEnd, AVAudioFramePosition(pos))
+            for j in 0..<start {
+                if channel[Int(j)] != .zero {
+                    //walk back to previous zero value sample to ensure start at zero crossing
+                    start = j > .zero ? j - 1 : .zero
                     break
                 }
             }
             
             //tail
-            for j in stride(from: framesLength-1, to: 0, by: -1) {
-                if channel[j] != .zero {
-                    //walk back to previous zero value sample to ensure zero crossing
-                    let pos = j < framesLength ? j + 1 : framesLength
-                    end = max(end ?? .zero, AVAudioFramePosition(pos))
+            for j in stride(from: framesEnd-1, to: end, by: -1) {
+                if channel[Int(j)] != .zero {
+                    //walk back to previous zero value sample to ensure end at zero crossing
+                    end = j < framesEnd ? j + 1 : framesEnd
                     break
                 }
             }
         }
 
-        return (AVAudioFramePosition(start ?? .zero),
-                AVAudioFramePosition(end ?? framesEnd))
+        return (start, end)
     }
 }
 
