@@ -82,49 +82,12 @@ public extension AVAudioFile {
     func silenceTrimPositions() -> (AVAudioFramePosition, AVAudioFramePosition) {
         //Note to future self... going mono does not save significant time and
         // introduces issues with accuracy. (Out of phase samples will cancel in mono.)
+        // Most of the overhead is the file read not the sample parsing.
         guard let buffer = try? samples(asMono: false) else {
             return (.zero, length)
         }
         
-        return silenceTrimPositions(buffer: buffer)
-    }
-            
-    ///Locates frame positions of first and last samples in the file with non-zero values. These frame positions can be used
-    ///as start/stop positions on playback to effectively trim silence without modifying the file contents.
-    ///
-    ///This works directly on the buffer, no copy of data is made during processing.
-    func silenceTrimPositions(buffer: AVAudioPCMBuffer) -> (AVAudioFramePosition, AVAudioFramePosition) {
-        let framesEnd: AVAudioFramePosition = AVAudioFramePosition(buffer.frameLength)
-        
-        var start: AVAudioFramePosition = framesEnd
-        var end: AVAudioFramePosition = .zero
-
-        //Walk samples in each channel searching for start/end of channel
-        for i in 0..<Int(buffer.format.channelCount) {
-            guard let channel = buffer.floatChannelData?[i] else {
-                return (.zero, framesEnd)
-            }
-            
-            //head
-            for j in 0..<start {
-                if channel[Int(j)] != .zero {
-                    //walk back to previous zero value sample to ensure start at zero crossing
-                    start = j > .zero ? j - 1 : .zero
-                    break
-                }
-            }
-            
-            //tail
-            for j in stride(from: framesEnd-1, to: end, by: -1) {
-                if channel[Int(j)] != .zero {
-                    //walk back to previous zero value sample to ensure end at zero crossing
-                    end = j < framesEnd ? j + 1 : framesEnd
-                    break
-                }
-            }
-        }
-
-        return (start, end)
+        return buffer.silenceTrimPositions()
     }
 }
 

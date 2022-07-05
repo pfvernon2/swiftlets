@@ -65,4 +65,42 @@ public extension AVAudioPCMBuffer {
             return (abs(min) - abs(power)) / abs(min)
         }
     }
+    
+    ///Locates frame positions of first and last samples in the file with non-zero values. These frame positions can be used
+    ///as start/stop positions on playback to effectively trim silence without modifying the file contents.
+    ///
+    ///This works directly on the buffer. No copy of data is made and buffer is not modified.
+    func silenceTrimPositions() -> (AVAudioFramePosition, AVAudioFramePosition) {
+        let framesEnd: AVAudioFramePosition = AVAudioFramePosition(frameLength)
+        
+        var start: AVAudioFramePosition = framesEnd
+        var end: AVAudioFramePosition = .zero
+
+        //Walk samples in each channel searching for start/end of channel
+        for i in 0..<Int(format.channelCount) {
+            guard let channel = floatChannelData?[i] else {
+                return (.zero, framesEnd)
+            }
+            
+            //head
+            for j in 0..<start {
+                if channel[Int(j)] != .zero {
+                    //walk back to previous zero value sample to ensure start at zero crossing
+                    start = j > .zero ? j - 1 : .zero
+                    break
+                }
+            }
+            
+            //tail
+            for j in Swift.stride(from: framesEnd-1, to: end, by: -1) {
+                if channel[Int(j)] != .zero {
+                    //walk back to previous zero value sample to ensure end at zero crossing
+                    end = j < framesEnd ? j + 1 : framesEnd
+                    break
+                }
+            }
+        }
+
+        return (start, end)
+    }
 }
