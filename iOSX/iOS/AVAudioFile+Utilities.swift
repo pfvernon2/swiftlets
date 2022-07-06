@@ -77,20 +77,59 @@ public extension AVAudioFile {
     ///Locates frame positions of first and last samples in the file with non-zero values. These frame positions can be used
     ///as start/stop positions on playback to effectively trim silence without modifying the file contents.
     ///
-    /// - returns: Tuple of AVAudioFramePositions representing the frame positions immediately before and after the first and last
+    /// - returns: Tuple of AVAudioFramePositions representing the frame positions of the first and last
     ///            non-zero samples in the file.
-    ///
-    /// - note: This is optimized for speed at the expense of memory overhead. The entire file size may reside
-    ///         in memory for a brief time while the samples are inspected. All sample data is released before result is returned.
     func silenceTrimPositions() -> (AVAudioFramePosition, AVAudioFramePosition) {
-        //Note to future self... going mono does not save significant time and
-        // introduces issues with accuracy. (Out of phase samples will cancel in mono.)
-        // Most of the overhead is the file read not the sample parsing.
-        guard let buffer = try? samples(asMono: false) else {
+        // be nice, don't reset file position
+        let startingFramePosition = framePosition
+        framePosition = .zero
+        defer {
+            framePosition = startingFramePosition
+        }
+        
+        //Create buffer to hold a few seconds of the file data
+        let bufferSize = UInt32(sampleRate * 3.0)
+        guard let buf = AVAudioPCMBuffer(pcmFormat: processingFormat, frameCapacity: bufferSize) else {
             return (.zero, length)
         }
         
-        return buffer.silenceTrimPositions()
+        do {
+            var start: AVAudioFramePosition? = nil
+            var end: AVAudioFramePosition? = nil
+            
+            //read from head of file until we find non-silence
+            var framesRead: AVAudioFrameCount = .zero
+            while framesRead < length {
+                try read(into: buf)
+                
+                start = buf.silenceTrimPosition()
+                if start != nil {
+                    start! += AVAudioFramePosition(framesRead)
+                    break
+                }
+                
+                framesRead += buf.frameLength
+            }
+            
+            //read from tail of file until we find non-silence
+            framesRead = .zero
+            while framesRead < length {
+                framePosition = length - AVAudioFramePosition(framesRead) - AVAudioFramePosition(bufferSize)
+                try read(into: buf)
+
+                end = buf.silenceTrimPosition(fromTail: true)
+                if end != nil {
+                    end! = (length - AVAudioFramePosition(framesRead + buf.frameLength)) + end!
+                    break
+                }
+                
+                framesRead += buf.frameLength
+            }
+                        
+            return (start ?? .zero, end ?? length)
+        } catch {
+            return (.zero, length)
+        }
     }
 }
 

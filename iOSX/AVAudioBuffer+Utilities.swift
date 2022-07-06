@@ -66,40 +66,63 @@ public extension AVAudioPCMBuffer {
         }
     }
     
-    ///Locates frame positions of first and last samples in the file with non-zero values. These frame positions can be used
-    ///as start/stop positions on playback to effectively trim silence without modifying the file contents.
-    ///
-    ///This works directly on the buffer. No copy of data is made and buffer is not modified.
+    ///Locates frame positions of first and last samples in the buffer with non-zero values.
     func silenceTrimPositions() -> (AVAudioFramePosition, AVAudioFramePosition) {
-        guard let floatChannelData = floatChannelData else {
+        guard let start = silenceTrimPosition(fromTail: false),
+              let end = silenceTrimPosition(fromTail: true) else {
             return (.zero, AVAudioFramePosition(frameLength))
         }
         
-        let framesEnd: AVAudioFramePosition = AVAudioFramePosition(frameLength)
-        var start: AVAudioFramePosition = framesEnd
-        var end: AVAudioFramePosition = .zero
+        return (start, end)
+    }
+    
+    ///Locates frame position of first or last sample in the buffer with a non-zero value.
+    ///
+    /// - parameter fromTail - If true scans backward from the end of the buffer for
+    /// contigous silence, if false scans forward from start of the buffer.
+    ///
+    /// - note: This works directly on the buffer. No copy of data is made and buffer is not modified.
+    func silenceTrimPosition(fromTail: Bool = false) -> AVAudioFramePosition? {
+        guard let floatChannelData = floatChannelData else {
+            return nil
+        }
 
-        //Walk samples in each channel searching for start/end of channel
+        let framesEnd: AVAudioFramePosition = AVAudioFramePosition(frameLength)
+
+        //Setup the forward/reverse walk of the channel samples
+        // based on fromTail parameter
+        let start: AVAudioFramePosition
+        var end: AVAudioFramePosition
+        let stride: Int
+        switch fromTail {
+        case true:
+            start = framesEnd - 1
+            end = .zero
+            stride = -1
+        case false:
+            start = .zero
+            end = framesEnd - 1
+            stride = 1
+        }
+        
+        //Walk all channels looking for earliest/latest non-zero sample
+        var foundSample = false
         for i in 0..<Int(format.channelCount) {
-            //head
-            for j in 0..<start {
+            for j in Swift.stride(from: start, to: end, by: stride) {
                 if floatChannelData[i][Int(j)] != .zero {
-                    //walk back to previous zero value sample to ensure start at zero crossing
-                    start = j > .zero ? j - 1 : .zero
-                    break
-                }
-            }
-            
-            //tail
-            for j in Swift.stride(from: framesEnd-1, to: end, by: -1) {
-                if floatChannelData[i][Int(j)] != .zero {
-                    //walk back to previous zero value sample to ensure end at zero crossing
-                    end = j < framesEnd ? j + 1 : framesEnd
+                    // reset end to avoid walking any further
+                    // than necessary in subsequent channels
+                    end = j
+                    foundSample = true
                     break
                 }
             }
         }
-
-        return (start, end)
+        
+        guard foundSample else {
+            return nil
+        }
+        
+        return end
     }
 }
