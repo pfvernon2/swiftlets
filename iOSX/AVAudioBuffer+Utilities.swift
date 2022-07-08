@@ -11,35 +11,37 @@ import AVFAudio
 import Accelerate
 
 public extension AVAudioPCMBuffer {
+    ///Calls provided block with per channel floatChannelData
+    func performTransform(_ block: (UnsafeMutablePointer<Float>) -> Swift.Void) {
+        guard let floatChannelData = floatChannelData else {
+            return
+        }
+        
+        for i in 0..<Int(format.channelCount) {
+            block(floatChannelData[i])
+        }
+    }
+    
     ///Returns floatChannelData as array of arrays for ease of handling. Copies data.
     ///
     ///See: `AVAudioPCMBuffer.floatChannelData` for details and limitations.
     var floatChannelArray: [[Float]]? {
-        guard let floatChannelData = floatChannelData else {
-            return nil
-        }
-        
         var result = [[Float]](capacity: Int(format.channelCount))
-        for channel in 0..<Int(format.channelCount) {
-            result.append(Array(UnsafeBufferPointer(start: floatChannelData[channel],
+        
+        performTransform {
+            result.append(Array(UnsafeBufferPointer(start: $0,
                                                     count: Int(frameLength))))
         }
-        return result
+                
+        return result.isEmpty ? nil : result
     }
     
     func rmsPowerValues(scale: Float = -80.0) -> [Float]? {
-        guard let floatChannelData = floatChannelData else {
-            return nil
-        }
+        var result = Array<Float>(capacity: Int(format.channelCount))
         
-        let numChannels: Int = Int(format.channelCount)
-        var result = Array<Float>(capacity: numChannels)
-        
-        for i in 0..<numChannels {
-            let samples = floatChannelData[i]
-
+        performTransform {
             var avgValue:Float32 = .zero
-            vDSP_rmsqv(samples, 1, &avgValue, UInt(frameLength))
+            vDSP_rmsqv($0, 1, &avgValue, UInt(frameLength))
             var power: Float = -100.0
             if avgValue != .zero {
                 power = 20.0 * log10f(avgValue)
@@ -48,7 +50,7 @@ public extension AVAudioPCMBuffer {
             result.append(scalePowerValue(power: power, min: scale))
         }
         
-        return result
+        return result.isEmpty ? nil : result
     }
     
     private func scalePowerValue(power: Float, min: Float) -> Float {
@@ -124,5 +126,43 @@ public extension AVAudioPCMBuffer {
         }
         
         return end
+    }
+    
+    ///Decimate all channels in buffer based on factor supplied.
+    ///
+    /// - note: frameLength of the buffer will be modified before return
+    ///         indicating new buffer length.
+    func decimateBy(_ factor: Int) {
+        var decimatedLength: AVAudioFrameCount = frameLength
+        performTransform {
+            decimatedLength = decimate(samples: $0,
+                                       decimationFactor: factor)
+        }
+                
+        frameLength = decimatedLength
+    }
+    
+    ///Decimate samples based on factor supplied.
+    ///
+    /// - returns: New frameLength
+    ///
+    /// - note: All work done in place on the array passed in. On return array is resized to
+    ///         represent only the decimated samples.
+    func decimate(samples: UnsafeMutablePointer<Float>, decimationFactor: Int) -> AVAudioFrameCount {
+        let filterLength = vDSP_Length(decimationFactor)
+        let decimatedLength = vDSP_Length((UInt(frameLength) - filterLength) / filterLength) + 1
+
+        let filter = [Float](repeating: 1 / Float(filterLength),
+                             count: Int(filterLength))
+
+        //decimate samples
+        vDSP_desamp(samples,
+                    vDSP_Stride(decimationFactor),
+                    filter,
+                    samples,
+                    decimatedLength,
+                    filterLength)
+        
+        return AVAudioFrameCount(decimatedLength)
     }
 }
