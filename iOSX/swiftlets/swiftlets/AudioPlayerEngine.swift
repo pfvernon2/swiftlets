@@ -165,6 +165,7 @@ public class AudioPlayerEngine {
     public var meteringEnabled: Bool = false {
         didSet {
             if meteringEnabled {
+                engine.mainMixerNode.removeTap(onBus: 0)
                 let format = engine.mainMixerNode.outputFormat(forBus: 0)
                 engine.mainMixerNode.installTap(
                   onBus: 0,
