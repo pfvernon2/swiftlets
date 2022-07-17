@@ -37,6 +37,25 @@ extension UIColor {
     public static var eigengrau: UIColor = { UIColor(red: 0.09, green: 0.09, blue: 0.11, alpha: 1.00) }()
 }
 
+//Color operations
+public extension UIColor {
+    func lightenColor(removeSaturation val: CGFloat, resultAlpha alpha: CGFloat = -1) -> UIColor {
+        var h: CGFloat = .zero
+        var s: CGFloat = .zero
+        var b: CGFloat = .zero
+        var a: CGFloat = .zero
+
+        guard getHue(&h, saturation: &s, brightness: &b, alpha: &a) else {
+            return self
+        }
+
+        return UIColor(hue: h,
+                       saturation: max(s - val, 0.0),
+                       brightness: b,
+                       alpha: alpha == -1 ? a : alpha)
+    }
+}
+
 extension String {
     /**
      Convenience method for creating UIColor from HTML hex formats: [#]RRGGBB[AA]

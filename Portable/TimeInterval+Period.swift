@@ -205,7 +205,7 @@ public extension TimeInterval {
     ///* 3m:30s = 3:30
     ///* 30s = 0:30
     ///* -30s = -0:30
-    func trackTimeDescription() -> String {
+    func trackTimeDescription(includeMillis: Bool = false) -> String {
         guard self != .infinity else {
             return ""
         }
@@ -216,11 +216,16 @@ public extension TimeInterval {
         //Not using DateComponents as I want hours to be the max value represented.
         let hours = floor(absInterval/TimePeriod.hour.rawValue)
         let minutes = floor((absInterval - (hours * TimePeriod.hour.rawValue))/TimePeriod.minute.rawValue)
-        let seconds = floor(absInterval - ((minutes * TimePeriod.minute.rawValue) + (hours * TimePeriod.hour.rawValue)))
-
+        
+        let subMinute = absInterval - ((minutes * TimePeriod.minute.rawValue) + (hours * TimePeriod.hour.rawValue))
+        let seconds = floor(subMinute)
+        let millis = subMinute.truncatingRemainder(dividingBy: 1.0) * 1000
+        
         var timeDescription: String
         if hours > 0.0 {
             timeDescription = String(format: "%d:%0.2d:%0.2d", Int(hours), Int(minutes), Int(seconds))
+        } else if includeMillis && millis != .zero {
+            timeDescription = String(format: "%0.1d:%0.2d.%0.3d", Int(minutes), Int(seconds), Int(millis))
         } else {
             timeDescription = String(format: "%0.1d:%0.2d", Int(minutes), Int(seconds))
         }
