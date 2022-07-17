@@ -7,6 +7,7 @@
 //
 
 import AVFoundation
+import MediaPlayer
 
 //MARK: - AudioPlayerDelegate
 
@@ -15,178 +16,257 @@ public protocol AudioPlayerDelegate: AnyObject {
     func playbackStarted()
     func playbackPaused()
     func playbackStopped(trackCompleted: Bool)
-    func playbackRateAdjusted()
+    func playbackLengthAdjusted()
 }
 
 //MARK: - Constants
 
-//buffer configuration
-fileprivate let kMaxBuffersInFlight: Int = 4
-fileprivate let kBufferFrameCount: UInt32 = 64 * 1024
-
 //internal indication track should begin at head
-fileprivate let kTrackHeadFramePosition: AVAudioFramePosition = -1
+fileprivate let kTrackHeadFramePosition: AVAudioFramePosition = .zero
 
 //MARK: - AudioPlayerEngine
 
 ///Simple class to playback audio files.
-/// Supports seeking within track and notifies delegate of play/pause/stop state changes
+///
+/// Supports seeking within track, output channel mapping, and trimming of playback. Includes delegate for play/pause/stop state changes.
+/// It's primary intent is for music track playback rather than background sounds or effects.
 public class AudioPlayerEngine {
-    //Enum for indicating at which end(s) of the audio file
-    // to trim silence at playback
+    ///Enum for indicating at which end(s) of the audio file
+    /// to detect and trim silence at playback.
     public enum trimPositions {
         case leading
         case trailing
         case both
     }
     
-    //MARK: Member variables - private
+    //MARK: - Member variables - private
     
     //AVAudioEngine and nodes
     internal var engine: AVAudioEngine = AVAudioEngine()
     internal var player: AVAudioPlayerNode = AVAudioPlayerNode()
     internal let mixer: AVAudioMixerNode = AVAudioMixerNode()
 
-    //audio file
-    internal var audioFile: AVAudioFile?
-    
-    //trim position head/tail
-    private var headPosition: AVAudioFramePosition = .zero
-    public var headTime: TimeInterval {
-        guard let audioFile = audioFile else {
-            return .zero
-        }
-
-        return audioFile.time(forFrame: headPosition)
-    }
-
-    private var tailPosition: AVAudioFramePosition = .zero
-    public var tailTime: TimeInterval {
-        guard let audioFile = audioFile else {
-            return .zero
-        }
-
-        return audioFile.time(forFrame: tailPosition)
-    }
+    //Trim positions
+    private var headPosition: AVAudioFramePosition = kTrackHeadFramePosition
+    private var tailPosition: AVAudioFramePosition = kTrackHeadFramePosition
 
     //seek position for start
     private var seekPosition: AVAudioFramePosition = kTrackHeadFramePosition
-    
+
     //indication of external interruption of playback
     private var interrupted: Bool = false
     
-    //state tracking for AVAudioPlayerNode
-    private var paused: Bool = false
-    private var pausedPosition: TimeInterval = .zero
-    private var stopping: Bool = false
-    private var reachedEnd: Bool = false
+    //Queue for local state tracking of AVAudioPlayerNode
+    private let stateQueue: DispatchQueue = DispatchQueue(label: "com.cyberdev.AudioPlayerEngine.state")
 
-    //Buffer queue management and thread safety
-    private let bufferQueue: DispatchQueue = DispatchQueue(label: "com.cyberdev.AudioPlayerEngine.buffers")
-    private var buffersInFlight: Int = .zero
+    //Tracks whether there is a segment scheduled on player… There can be only one.
+    @AtomicAccessor private var playerScheduled: Bool
     
+    //Frame position of pause, necessary as player does not return
+    // position while paused.
+    //
+    // This is used also to indicated whether we are
+    // paused as player has no explicit way to indicate said state.
+    @AtomicAccessor private var pausePosition: AVAudioFramePosition
+
+    //Tracks whether scheduled segment played up/through its expected ending frame
+    @AtomicAccessor private var reachedEnd: Bool
+
+    //Tracks if we are in a seek operation, allows us to ignore early
+    // completion callback of previously scheduled segment
+    @AtomicAccessor private var inSeek: Bool
+
     //Meter queue management
     private let meterQueue: DispatchQueue = DispatchQueue(label: "com.cyberdev.AudioPlayerEngine.meters")
     private var _meterValues: [Float] = []
-    public var meters: [Float] {
+    public private(set) var meters: [Float] {
         get {
             meterQueue.sync {
-                return _meterValues
+                _meterValues
             }
         }
+        set(value) {
+            meterQueue.async() {
+                self._meterValues = value
+            }
+        }
+    }
+    
+    ///AVAudioTime representing number of frames played since last start()
+    /// - note: Not adjusted for start position in file. This is the underlying player time.
+    private var currentPlayerTime: AVAudioTime? {
+        guard let nodeTime: AVAudioTime = player.lastRenderTime else {
+            return nil
+        }
+        
+        return player.playerTime(forNodeTime: nodeTime)
     }
     
     //MARK: - Member variables - public
-    public var channelCount: UInt32 {
-        audioFile?.channelCount ?? 0
-    }
-    
+
+    ///Delegate for notification of state changes on the player
     public weak var delegate: AudioPlayerDelegate?
 
-    private(set) public var trackLength: TimeInterval = .zero
+    ///Set to true to have tap installed on output for monitoring meter levels
+    public var meteringEnabled: Bool = false
+
+    //MARK: File Info
     
-    ///playback postion as percentage 0.0->1.0
-    public var playbackProgress: Float {
-        get {
-            guard trackLength > 0.0 else {
-                return 0.0
-            }
-            
-            return Float(playbackPosition / trackLength).clamped(to: 0.0...1.0)
-        }
+    ///Backing audio file
+    public private(set) var audioFile: AVAudioFile?
+    
+    ///File duration in seconds
+    public var fileDuration: TimeInterval {
+        audioFile?.duration ?? .zero
+    }
+    
+    ///File length of file in frames
+    public var fileLength: AVAudioFramePosition {
+        audioFile?.length ?? .zero
+    }
+    
+    ///Count of channels in file
+    public var fileChannelCount: UInt32 {
+        audioFile?.channelCount ?? .zero
+    }
+    
+    ///Processing sampleRate of file
+    public var fileSampleRate: Double {
+        audioFile?.sampleRate ?? .zero
+    }
+    
+    //MARK: Track Timing and Positioning
+
+    ///Frame position of begining of segment to be played.
+    ///
+    ///This either the begining of the file, a user defined head position, or user defined seek position.
+    private var startPosition: AVAudioFramePosition {
+        max(min(endPosition, seekPosition), headPosition)
+    }
+    
+    ///Frame position of end of segment to be played
+    ///
+    ///This either the end of the file or a user defined tail position.
+    private var endPosition: AVAudioFramePosition {
+        min(fileLength, tailPosition)
+    }
+    
+    ///Length of segment to be played in frames
+    private var segmentLength: AVAudioFrameCount {
+        AVAudioFrameCount(endPosition - startPosition)
+    }
         
-        set (position) {
-            let clamped = position.clamped(to: 0.0...1.0)
-            let offsetSeconds: TimeInterval = trackLength * TimeInterval(clamped)
-            playbackPosition = offsetSeconds
-        }
+    ///Time for head position in terms of absolute length of file in seconds
+    public var headTime: TimeInterval {
+        time(forFrame: headPosition)
     }
 
-    ///playback position in seconds
-    public var playbackPosition: TimeInterval {
+    ///Head position as percentage in terms of absolute length of file
+    public var headProgress: Float {
+        progress(forFrame: headPosition)
+    }
+
+    ///Time for tail position in terms of absolute length of file in seconds
+    public var tailTime: TimeInterval {
+        time(forFrame: tailPosition)
+    }
+
+    ///Tail position as percentage in terms of absolute length of file
+    public var tailProgress: Float {
+        progress(forFrame: tailPosition)
+    }
+    
+    ///Playback length in seconds with trimming taken into account
+    public var trimmedPlaybackDuration: TimeInterval {
+        let end = tailPosition > .zero ? tailTime : fileDuration
+        return end - headTime
+    }
+    
+    ///Last rendered frame including offset from startPosition
+    public var currentPlayerPosition: AVAudioFramePosition? {
+        guard let current = currentPlayerTime?.sampleTime else {
+            return nil
+        }
+        
+        return current + startPosition
+    }
+    
+    ///Current frame position of playback in terms of absolute length of file
+    ///
+    ///Setting this value will reposition the playback position to the
+    /// specified frame.
+    public var playbackPosition: AVAudioFramePosition {
         get {
             //playing
-            if let playerTime: AVAudioTime = currentPlayerTime() {
-                return TimeInterval(playerTime.sampleTime - headPosition) / playerTime.sampleRate
+            if isPlaying() {
+                return currentPlayerPosition ?? .zero
             }
             
             //paused
             else if isPaused() {
-                return pausedPosition
+                return pausePosition
             }
             
             //stopped
-            else if let audioFile = audioFile {
-                return audioFile.time(forFrame: seekPosition)
+            else {
+                return startPosition
             }
-            
-            //not configured
-            return 0.0
         }
         
-        set(seconds) {
-            guard let audioFile = self.audioFile else {
+        set(frame) {
+            guard audioFile != nil else {
                 return
             }
             
             let wasPlaying: Bool = self.isPlaying()
             if wasPlaying || isPaused() {
-                _stop()
+                inSeek = true
+                
+                if isPaused() {
+                    //update pausePosition so that progress updates while paused
+                    pausePosition = frame
+                }
+
+                player.stop()
             }
             
-            seekPosition = audioFile.frame(forTime: seconds) + headPosition
+            seekPosition = frame
             
             if wasPlaying {
                 _play()
             }
         }
     }
-    
-    public var meteringEnabled: Bool = false {
-        didSet {
-            if meteringEnabled {
-                engine.mainMixerNode.removeTap(onBus: 0)
-                let format = engine.mainMixerNode.outputFormat(forBus: 0)
-                engine.mainMixerNode.installTap(
-                  onBus: 0,
-                  bufferSize: 1024,
-                  format: format
-                ) { buffer, _ in
-                    if let meters = buffer.rmsPowerValues() {
-                        self.meterQueue.async {
-                            self._meterValues = meters
-                        }
-                    }
-                }
-            } else {
-                engine.mainMixerNode.removeTap(onBus: 0)
-                self.meterQueue.async {
-                    self._meterValues = []
-                }
-            }
+
+    ///TimeInterval of current position in terms of absolute length of file
+    public var playbackTime: TimeInterval {
+        get {
+            time(forFrame: playbackPosition)
+        }
+        
+        set(seconds) {
+            playbackPosition = frame(forTime: seconds)
         }
     }
+
+    ///Playback postion as percentage 0.0->1.0 in terms of absolute length of file
+    public var playbackProgress: Float {
+        get {
+            progress(forFrame: playbackPosition)
+        }
         
+        set (position) {
+            let clamped = position.clamped(to: 0.0...1.0)
+            let framePosition = floor(Double(fileLength) * Double(clamped))
+            playbackPosition = AVAudioFramePosition(framePosition)
+        }
+    }
+    
+    ///Indicates playback will begin at head
+    public var playbackAtHead: Bool {
+        playbackPosition == headPosition
+    }
+    
     //MARK: Initialization
     
    #if os(iOS) || os(watchOS)
@@ -215,7 +295,11 @@ public class AudioPlayerEngine {
     #endif
     
     public init() {
-        initAudioEngine()
+        //shared queue not available until init time
+        _playerScheduled = AtomicAccessor(wrappedValue: false, queue: stateQueue)
+        _pausePosition = AtomicAccessor(wrappedValue: kTrackHeadFramePosition, queue: stateQueue)
+        _reachedEnd = AtomicAccessor(wrappedValue: false, queue: stateQueue)
+        _inSeek = AtomicAccessor(wrappedValue: false, queue: stateQueue)
     }
     
     deinit {
@@ -224,42 +308,6 @@ public class AudioPlayerEngine {
         engine.stop()
     }
     
-    internal func initAudioEngine() {
-        engine.connect(engine.mainMixerNode,
-                       to: engine.outputNode,
-                       format: engine.outputNode.outputFormat(forBus: 0))
-
-        //attach nodes
-        engine.attach(player)
-        engine.attach(mixer)
-        
-        //connect nodes
-        // IMPORTANT: The mixer is used to abstract away
-        // file format (channel count, sample rate) config from
-        // other processing nodes which may want to connect to this stream
-        // subclasses can connect to the mixer which is configured for file format.
-        engine.connect(player, to: mixer, format: nil)
-        engine.connect(mixer, to: engine.mainMixerNode, format: nil)
-
-        engine.prepare()
-    }
-    
-    //ensure output format of player matches format of the file
-    //not doing this can cause crashes when channel counts don't match
-    //and can cause sample rate mismatches which impact playback speed
-    internal func matchFilePlaybackFormat(_ fileFormat: AVAudioFormat) {
-        let outputFormat = engine.mainMixerNode.outputFormat(forBus: 0)
-        let playbackFormat = AVAudioFormat(commonFormat: outputFormat.commonFormat,
-                                           sampleRate: fileFormat.sampleRate,
-                                           channels: fileFormat.channelCount,
-                                           interleaved: outputFormat.isInterleaved)
-        
-        engine.connect(player, to: mixer, format: playbackFormat)
-        
-        //prepare the engine
-        engine.prepare()
-    }
-
     //MARK: Public Methods
     @discardableResult public func setTrack(url: URL) -> Bool {
         guard let file = try? AVAudioFile.init(forReading: url) else {
@@ -276,16 +324,16 @@ public class AudioPlayerEngine {
         let wasPlaying: Bool = isPlaying()
         if wasPlaying {
             _stop()
+        } else {
+            _reset()
         }
         
         audioFile = file
-        trackLength = file.duration
-        seekPosition = kTrackHeadFramePosition
-        headPosition = .zero
+        headPosition = kTrackHeadFramePosition
         tailPosition = file.length
-        
-        matchFilePlaybackFormat(file.processingFormat)
-        
+                
+        initAudioEngine()
+
         registerForMediaServerNotifications()
         
         if wasPlaying {
@@ -297,28 +345,29 @@ public class AudioPlayerEngine {
     public func mapOutputs(to channels: [AVAudioOutputNode.OutputChannelMapping]) {
         engine.outputNode.mapRouteOutputs(to: channels)
     }
+    
+    public func time(forFrame frame: AVAudioFramePosition) -> TimeInterval {
+        audioFile?.time(forFrame: frame) ?? .zero
+    }
+    
+    public func frame(forTime time: TimeInterval) -> AVAudioFramePosition {
+        audioFile?.frame(forTime: time) ?? .zero
+    }
+    
+    public func progress(forFrame frame: AVAudioFramePosition) -> Float {
+        audioFile?.progress(forFrame: frame) ?? .zero
+    }
         
     public func isPlaying() -> Bool {
-        bufferQueue.sync {
-            player.isPlaying
-        }
+        player.isPlaying
     }
     
     public func isPaused() -> Bool {
-        bufferQueue.sync {
-            paused
-        }
+        pausePosition != kTrackHeadFramePosition
     }
     
     public func play() {
-        if isPaused() {
-            bufferQueue.sync {
-                player.play()
-                paused = false
-            }
-        } else {
-            _play()
-        }
+        _play()
         
         DispatchQueue.main.async {
             self.delegate?.playbackStarted()
@@ -337,39 +386,57 @@ public class AudioPlayerEngine {
         }
     }
     
+    public func resume() {
+        guard isPaused(), playerScheduled else {
+            return
+        }
+        
+        //edge case where OS interruption may disable
+        // the engine on us.
+        guard engine.isRunning else {
+            stop()
+            return
+        }
+        
+        pausePosition = kTrackHeadFramePosition
+        player.play()
+    }
+
+    ///Toggle play/pause as appropriate
+    public func plause() {
+        if isPlaying() {
+            pause()
+        } else {
+            play()
+        }
+    }
+
     public func stop() {
+        assert(Thread.isMainThread)
+        
         let wasPlaying = isPlaying()
-                
+        let atEnd = reachedEnd
+        
+        //player.stop() is particular about being called from main
+        player.stop()
+
         _stop()
         
         if wasPlaying {
-            DispatchQueue.main.async {
-                self.delegate?.playbackStopped(trackCompleted: self.reachedEnd)
-            }
+            delegate?.playbackStopped(trackCompleted: atEnd)
         }
-    }
-    
-    public var debugDescription: String {
-        var outputDescriptions: [String] = []
-        for bus in 0..<engine.outputNode.numberOfOutputs {
-            let name = engine.outputNode.name(forOutputBus: bus)
-            let format = engine.outputNode.outputFormat(forBus: bus)
-            let desc = format.settings.map { "\($0) = \($1)" }.sorted()
-            let channelMap = engine.outputNode.auAudioUnit.channelMap?.debugDescription
-            
-            outputDescriptions.append("Output \(bus):\nname = \(String(describing: name))\nChannelMap = \(String(describing: channelMap))\n\(desc.joined(separator: "\n"))")
-        }
-        
-        return outputDescriptions.joined(separator: "\n")
     }
     
     ///Set headPosition and/or tailPosition by scanning audio file for silence (zero value samples)
     ///from specified position(s) in the file.
+    ///
+    /// - note: This is slightly expensive as it has to open the audio file and read
+    /// from the specified ends of the file for zero value samples.
     public func trimSilence(_ trim: trimPositions = .both) {
         guard let (head, tail) = audioFile?.silenceTrimPositions() else {
             return
         }
-                
+        
         switch trim {
         case .leading:
             setTrimPositions(head: head)
@@ -380,13 +447,9 @@ public class AudioPlayerEngine {
         }
     }
     
-    ///Trim start/end times. This will adjust track playback length and playback progress.
+    ///Trim start/end times.
     public func setTrimPositions(head: AVAudioFramePosition? = nil,
                                  tail: AVAudioFramePosition? = nil) {
-        guard let audioFile = audioFile else {
-            return
-        }
-        
         if let head = head {
             headPosition = head
         }
@@ -395,99 +458,130 @@ public class AudioPlayerEngine {
             tailPosition = tail
         }
         
-        //Update trackLength
-        trackLength = audioFile.time(forFrame: tailPosition - headPosition)
+        DispatchQueue.main.async {
+            self.delegate?.playbackLengthAdjusted()
+        }
     }
         
     //MARK: Private Methods
     
+    internal func initAudioEngine() {
+        deinitAudioEngine()
+        
+        engine.connect(engine.mainMixerNode,
+                       to: engine.outputNode,
+                       format: engine.outputNode.outputFormat(forBus: 0))
+
+        //attach nodes
+        engine.attach(player)
+        engine.attach(mixer)
+        
+        let format = audioFile?.processingFormat
+        
+        //connect nodes
+        // IMPORTANT: The mixer is used to abstract away
+        // file format (channel count, sample rate) config from
+        // other processing nodes which may want to connect to this stream.
+        // Subclasses can connect to the mixer which is configured for file format.
+        engine.connect(player, to: mixer, format: format)
+        engine.connect(mixer, to: engine.mainMixerNode, format: format)
+
+        engine.prepare()
+    }
+    
+    internal func deinitAudioEngine() {
+        engine.stop()
+        engine.detachAll()
+    }
+        
     @discardableResult private func _play() -> Bool {
+        //check not currently playing
         guard !isPlaying() else {
             return true
         }
         
+        //check paused but player running
+        guard !(isPaused() && playerScheduled) else {
+            resume()
+            return isPlaying()
+        }
+
         //check we are configured to play something
         guard let audioFile = audioFile, startEngine() else {
             return false
         }
-                
-        //If a start offset is set then move track head to that position
-        let startPosition = max(seekPosition, headPosition)
-        if startPosition > .zero {
-            audioFile.framePosition = startPosition
-            initBuffers()
-            
-            bufferQueue.sync {
-                //This guard should not be necessary but there appears to be a
-                // race condition in engine setup and player readiness
-                // player.play() will crash if this is not observed.
-                guard engine.isRunning else {
-                    return
-                }
 
-                if let currentPos: AVAudioFramePosition = self.player.lastRenderTime?.sampleTime {
-                    let playTime: AVAudioTime = AVAudioTime(sampleTime: currentPos - startPosition,
-                                                            atRate: audioFile.sampleRate)
-                    self.player.play(at: playTime)
-                }
-            }
-            
-            //reset seek position now that it has been consumed
-            seekPosition = kTrackHeadFramePosition
-        }
+        let endFrame = startPosition + AVAudioFramePosition(segmentLength)
         
-        //otherwise just start playing at beginning of track
-        else {
-            //ensure file framePosition at head in case we are re-playing a track
-            audioFile.framePosition = .zero
-            initBuffers()
+        player.scheduleSegment(audioFile,
+                               startingFrame: startPosition,
+                               frameCount: segmentLength,
+                               at: nil,
+                               completionCallbackType: .dataPlayedBack) { state in
+            self.playerScheduled = false
             
-            bufferQueue.sync {
-                //This guard should not be necessary but there appears to be a
-                // race condition in engine setup and player readiness
-                // player.play() will crash if this is not observed.
-                guard engine.isRunning else {
-                    return
-                }
-                player.play()
+            guard !self.inSeek else {
+                self.inSeek = false
+                return
+            }
+            
+            DispatchQueue.main.async {
+                self.reachedEnd = self.currentPlayerPosition ?? .zero >= endFrame
+                self.stop()
             }
         }
+        playerScheduled = true
+
+        player.play()
+
+        _meter()
         
         return isPlaying()
     }
     
     private func _pause() {
-        let trackPosition = self.playbackPosition
-        
+        pausePosition = playbackPosition
         player.pause()
-        
-        bufferQueue.sync {
-            paused = true
-            pausedPosition = trackPosition
-        }
     }
     
     private func _stop() {
-        bufferQueue.sync {
-            stopping = true
-            paused = false
-        }
-        defer {
-            bufferQueue.sync {
-                stopping = false
+        stopEngine()
+        
+        _reset()
+    }
+    
+    private func _reset() {
+        seekPosition = kTrackHeadFramePosition
+        pausePosition = kTrackHeadFramePosition
+        interrupted = false
+        reachedEnd = false
+    }
+    
+    private func _meter() {
+        //for some reason this seems necessary to avoid random crashes
+        // when installing tap for the first time
+        engine.mainMixerNode.removeTap(onBus: 0)
+        meters = []
+
+        if meteringEnabled {
+            let format = engine.mainMixerNode.outputFormat(forBus: 0)
+            engine.mainMixerNode.installTap(
+              onBus: 0,
+              bufferSize: 1024,
+              format: format
+            ) { buffer, _ in
+                if let meters = buffer.rmsPowerValues() {
+                    self.meters = meters
+                }
             }
         }
-
-        player.stop()
-
-        stopEngine()
     }
     
     //MARK: Utility
     
     @discardableResult private func startEngine() -> Bool {
         guard !engine.isRunning else {
-            return false
+            return true
         }
         
         do {
@@ -509,178 +603,118 @@ public class AudioPlayerEngine {
         return !engine.isRunning
     }
     
-    private func currentPlayerTime() -> AVAudioTime? {
-        bufferQueue.sync {
-            guard let nodeTime: AVAudioTime = player.lastRenderTime else {
-                return nil
-            }
-            
-            return player.playerTime(forNodeTime: nodeTime)
-        }
-    }
-    
-    //MARK: Audio buffer handling
-    
-    private func initBuffers() {
-        guard let audioFile = audioFile else {
-            return
-        }
-        
-        reachedEnd = false
-        
-        for _ in 1...kMaxBuffersInFlight {
-            guard let buffer: AVAudioPCMBuffer = AVAudioPCMBuffer(pcmFormat: audioFile.processingFormat, frameCapacity: kBufferFrameCount) else {
-                return
-            }
-            loadBuffer(buffer: buffer)
-        }
-    }
-    
-    @discardableResult private func loadBuffer(buffer: AVAudioPCMBuffer) -> Bool {
-        bufferQueue.sync {
-            //Fill buffer with samples/data from file
-            guard readNextBuffer(buffer: buffer) else {
-                return false
-            }
-            
-            //track scheduled buffers
-            buffersInFlight += 1
-            
-            //schedule buffer for playback at end of player queue
-            // on completion reschedule with new data from file or exit
-            player.scheduleBuffer(buffer) { () -> Void in
-                var bufferQueueDrained = false
-                var stopping = false
-                
-                self.bufferQueue.sync {
-                    self.buffersInFlight -= 1
-                    bufferQueueDrained = self.buffersInFlight == .zero
-                    stopping = self.stopping
-                }
-                
-                //if in the process of stopping don't refill this buffer
-                guard !stopping else {
-                    return
-                }
-                
-                //when buffer queue is drained we are done with playback
-                // call stop for engine cleanup
-                guard !bufferQueueDrained else {
-                    DispatchQueue.main.async {
-                        self.reachedEnd = true
-                        self.stop()
-                    }
-                    return
-                }
-                
-                //to understand recursion one must first understand recursion
-                self.loadBuffer(buffer: buffer)
-            }
-            
-            return true
-        }
-    }
-    
-    private func readNextBuffer(buffer: AVAudioPCMBuffer) -> Bool {
-        guard let audioFile = audioFile, audioFile.framePosition < tailPosition else {
-            return false
-        }
-                
-        do {
-            try audioFile.read(into: buffer)
-            
-            //trim samples past tailPosition from buffer
-            let remaining = tailPosition - audioFile.framePosition
-            if remaining < 0 {
-                buffer.frameLength -= AVAudioFrameCount(abs(remaining))
-            }
-            
-            return buffer.frameLength > 0
-        } catch let error as NSError {
-            print("Exception in buffer read: \(error.localizedDescription)")
-            return false
-        }
-    }
-    
     //MARK: Session notificaiton handling
     
     #if os(iOS) || os(watchOS)
     private func registerForMediaServerNotifications() {
-        NotificationCenter.default.removeObserver(self, name: AVAudioSession.interruptionNotification, object: nil)
-        NotificationCenter.default.addObserver(forName: AVAudioSession.interruptionNotification, object: nil, queue: nil) { [weak self] (notification: Notification) in
-            guard let why: AVAudioSession.InterruptionType = notification.userInfo?[AVAudioSessionInterruptionTypeKey] as? AVAudioSession.InterruptionType else {
+        NotificationCenter.default.removeObserver(self,
+                                                  name: AVAudioSession.interruptionNotification,
+                                                  object: AVAudioSession.sharedInstance())
+        
+        NotificationCenter.default.addObserver(forName: AVAudioSession.interruptionNotification,
+                                               object: AVAudioSession.sharedInstance(),
+                                               queue: nil) { [weak self] (notification: Notification) in
+            guard let userInfo = notification.userInfo,
+                  let interruption = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
+                  let type = AVAudioSession.InterruptionType(rawValue: interruption) else {
                 return
             }
-            
-            switch why {
+
+            switch type {
             case .began:
                 self?.interruptSessionBegin()
+                
             case .ended:
-                self?.interruptSessionEnd()
+                guard let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt else {
+                    return
+                }
+                
+                let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
+                self?.interruptSessionEnd(resume: options.contains(.shouldResume))
+                
             @unknown default:
                 break;
             }
         }
-                
-        NotificationCenter.default.removeObserver(self, name: AVAudioSession.mediaServicesWereResetNotification, object: nil)
-        NotificationCenter.default.addObserver(forName: AVAudioSession.mediaServicesWereResetNotification, object: nil, queue: nil) { [weak self] (notification: Notification) in
+
+        NotificationCenter.default.removeObserver(self,
+                                                  name: AVAudioSession.mediaServicesWereResetNotification,
+                                                  object: AVAudioSession.sharedInstance())
+        
+        NotificationCenter.default.addObserver(forName: AVAudioSession.mediaServicesWereResetNotification,
+                                               object: AVAudioSession.sharedInstance(),
+                                               queue: nil) { [weak self] (notification: Notification) in
             self?.stop()
         }
+
+        NotificationCenter.default.removeObserver(self,
+                                                  name: AVAudioSession.routeChangeNotification,
+                                                  object: AVAudioSession.sharedInstance())
         
-        NotificationCenter.default.removeObserver(self, name: AVAudioSession.routeChangeNotification, object: nil)
-        NotificationCenter.default.addObserver(forName: AVAudioSession.routeChangeNotification, object: nil, queue: nil) { [weak self] (notification: Notification) in
+        NotificationCenter.default.addObserver(forName: AVAudioSession.routeChangeNotification,
+                                               object: AVAudioSession.sharedInstance(),
+                                               queue: nil) { [weak self] (notification: Notification) in
             guard let userInfo = notification.userInfo,
                   let reasonValue = userInfo[AVAudioSessionRouteChangeReasonKey] as? UInt,
                   let reason = AVAudioSession.RouteChangeReason(rawValue: reasonValue) else {
                       return
             }
-            
+
             switch reason {
             case .newDeviceAvailable:
                 if AVAudioSession.sharedInstance().currentRoute.hasHeadphonens {
                     self?.play()
                 }
-                
+
             case .oldDeviceUnavailable:
                 if let previousRoute = userInfo[AVAudioSessionRouteChangePreviousRouteKey] as? AVAudioSessionRouteDescription,
                    !previousRoute.hasHeadphonens {
                     guard let self = self else {
                         return
                     }
-                                        
+
                     self.play()
                 }
-                
+
             default:
                 break
             }
         }
-
     }
     #else
     private func registerForMediaServerNotifications() {
-        //TODO:
+        //TODO: Support media state notifications for non-iOS platforms
     }
     #endif
     
     private func interruptSessionBegin() {
-        guard let nodeTime: AVAudioTime = player.lastRenderTime,
-            let playerTime: AVAudioTime = player.playerTime(forNodeTime: nodeTime) else {
-                return
-        }
-        
         interrupted = true
-        seekPosition = playerTime.sampleTime
         
         pause()
-        
-        engine.stop()
     }
     
-    private func interruptSessionEnd() {
-        if interrupted {
-            play()
+    private func interruptSessionEnd(resume: Bool) {
+        if interrupted && resume {
+            if !engine.isRunning {
+                startEngine()
+            }
+            
+            self.resume()
         }
+    }
+    
+    public var debugDescription: String {
+        var outputDescriptions: [String] = []
+        for bus in 0..<engine.outputNode.numberOfOutputs {
+            let name = engine.outputNode.name(forOutputBus: bus)
+            let format = engine.outputNode.outputFormat(forBus: bus)
+            let desc = format.settings.map { "\($0) = \($1)" }.sorted()
+            let channelMap = engine.outputNode.auAudioUnit.channelMap?.debugDescription
+            
+            outputDescriptions.append("Output \(bus):\nname = \(String(describing: name))\nChannelMap = \(String(describing: channelMap))\n\(desc.joined(separator: "\n"))")
+        }
+        
+        return outputDescriptions.joined(separator: "\n")
     }
 }
 
@@ -690,15 +724,15 @@ public class AudioPlayerEngine {
 fileprivate let kOutputLevelDefault: Float = .zero
 
 //Equalizer constants
-fileprivate let kNumberOfBands: Int = 4
-fileprivate let kLowShelfInitialFrequency: Float = 20.0
-fileprivate let kParametricLowInitialFrequency: Float = 200.0
-fileprivate let kParametricHighInitialFrequency: Float = 2000.0
-fileprivate let kHighShelfInitialFrequency: Float = 20000.0
+fileprivate let kEQNumberOfBands: Int = 4
+fileprivate let kEQLowShelfInitialFrequency: Float = 20.0
+fileprivate let kEQParametricLowInitialFrequency: Float = 200.0
+fileprivate let kEQParametricHighInitialFrequency: Float = 2000.0
+fileprivate let kEQHighShelfInitialFrequency: Float = 20000.0
 fileprivate let kEQGainDetentRange: Float = 0.5
 
 ///AudioPlayerEngine subclass that adds time rate control, four band parametric EQ, and simple output routing
-public class FXAudioPlayerEngine: AudioPlayerEngine, AudioPlayer {
+public class FXAudioPlayerEngine: AudioPlayerEngine {
     //Associate with mediaItem, assumes mediaItem has assetURL
     public var mediaItem: MPMediaItem? = nil {
         didSet {
@@ -719,14 +753,10 @@ public class FXAudioPlayerEngine: AudioPlayerEngine, AudioPlayer {
             setTrack(url: asset.url)
         }
     }
-
-    public var isPrepared: Bool {
-        true
-    }
     
     //Audio Units
     private let timePitch: AVAudioUnitTimePitch = AVAudioUnitTimePitch()
-    private let equalizer: AVAudioUnitEQ = AVAudioUnitEQ(numberOfBands: kNumberOfBands)
+    private let equalizer: AVAudioUnitEQ = AVAudioUnitEQ(numberOfBands: kEQNumberOfBands)
     private let routingMixer: AVAudioMixerNode = AVAudioMixerNode()
     
     //MARK: Member variables - public
@@ -777,11 +807,7 @@ public class FXAudioPlayerEngine: AudioPlayerEngine, AudioPlayer {
             }
         }
     }
-    
-    public var hasOutputLevelAdjust: Bool {
-        true
-    }
-    
+        
     ///Adjust track playback level in range: -1.0 to 1.0
     public var trackOutputLevelAdjust: Float? {
         get {
@@ -800,10 +826,6 @@ public class FXAudioPlayerEngine: AudioPlayerEngine, AudioPlayer {
         }
     }
     
-    public var hasPlaybackRate: Bool {
-        true
-    }
-
     ///Adjust the time pitch rate in the range: 0.03125 to 32.0, default is 1.0
     public var playbackRate: Float {
         get {
@@ -824,20 +846,21 @@ public class FXAudioPlayerEngine: AudioPlayerEngine, AudioPlayer {
             timePitch.bypass = (rate == AVAudioUnitTimePitch.RateRange.center.rawValue)
             
             DispatchQueue.main.async {
-                self.delegate?.playbackRateAdjusted()
+                self.delegate?.playbackLengthAdjusted()
             }
         }
     }
     
-    ///Playback duration adjusted for playbackRate
-    public var playbackDuration: TimeInterval {
-        ceil(trackLength / TimeInterval(playbackRate))
+    ///Playback duration of playable segment adjusted for playbackRate
+    public var adjustedPlaybackDuration: TimeInterval {
+        trimmedPlaybackDuration / TimeInterval(playbackRate)
     }
-        
-    public var hasEQSettings: Bool {
-        true
+    
+    ///Playback time adjusted for playbackRate and head position
+    public var adjustedPlaybackTime: TimeInterval {
+        ((playbackTime  - headTime) / TimeInterval(playbackRate))
     }
-
+    
     ///Array of EQ filter parameters
     public var equalizerBands: [AudioPlayerEQFilterParameters] {
         get {
@@ -869,10 +892,12 @@ public class FXAudioPlayerEngine: AudioPlayerEngine, AudioPlayer {
         }
     }
 
-    override internal func initAudioEngine () {
+    override internal func initAudioEngine() {
         //super first so it will setup player, etc.
         super.initAudioEngine()
         
+        let format = audioFile?.processingFormat
+
         //configure time pitch
         timePitch.bypass = false
         timePitch.overlap = timePitchQuality?.rawValue ?? AVAudioUnitTimePitch.QualityRange.high.rawValue
@@ -888,10 +913,10 @@ public class FXAudioPlayerEngine: AudioPlayerEngine, AudioPlayer {
         engine.attach(routingMixer)
         
         //construct fx node graph... connect to output of the playback mixer
-        engine.connect(mixer, to: timePitch, format: nil)
-        engine.connect(timePitch, to: equalizer, format: nil)
-        engine.connect(equalizer, to: routingMixer, format: nil)
-        engine.connect(routingMixer, to: engine.mainMixerNode, format: nil)
+        engine.connect(mixer, to: timePitch, format: format)
+        engine.connect(timePitch, to: equalizer, format: format)
+        engine.connect(equalizer, to: routingMixer, format: format)
+        engine.connect(routingMixer, to: engine.mainMixerNode, format: format)
         
         //configure gain structure
         self.trackOutputLevelAdjust = kOutputLevelDefault
@@ -912,24 +937,24 @@ public class FXAudioPlayerEngine: AudioPlayerEngine, AudioPlayer {
     ///Reset EQ to nominal (flat) values
     public func resetEQ() {
         equalizer.bands[0].filterType = .lowShelf
-        equalizer.bands[0].frequency = kLowShelfInitialFrequency
+        equalizer.bands[0].frequency = kEQLowShelfInitialFrequency
         equalizer.bands[0].gain = .zero
         equalizer.bands[0].bypass = false
         
         equalizer.bands[1].filterType = .parametric
         equalizer.bands[1].bandwidth = 1.0
-        equalizer.bands[1].frequency = kParametricLowInitialFrequency
+        equalizer.bands[1].frequency = kEQParametricLowInitialFrequency
         equalizer.bands[1].gain = .zero
         equalizer.bands[1].bypass = false
 
         equalizer.bands[2].filterType = .parametric
         equalizer.bands[2].bandwidth = 1.0
-        equalizer.bands[2].frequency = kParametricHighInitialFrequency
+        equalizer.bands[2].frequency = kEQParametricHighInitialFrequency
         equalizer.bands[2].gain = .zero
         equalizer.bands[2].bypass = false
 
         equalizer.bands[3].filterType = .highShelf
-        equalizer.bands[3].frequency = kHighShelfInitialFrequency
+        equalizer.bands[3].frequency = kEQHighShelfInitialFrequency
         equalizer.bands[3].gain = .zero
         equalizer.bands[3].bypass = false
     }
@@ -985,409 +1010,12 @@ public struct AudioPlayerEQFilterParameters: Codable, Equatable {
     }
 }
 
-//MARK: - MediaPlayer extension
-
-import MediaPlayer
-
 ///Defines simplified audio routing options
 public enum AudioPlayerOutputRouting {
     case stereo //stereo or mono source output to stereo device
     case mono //mono output (all channels combined) to both channels of stereo device
     case monoLeft //mono output (all channels combined) to left channel of stereo device
     case monoRight //mono output (all channels combined) to right channel of stereo device
-}
-
-public struct PlaybackPosition {
-    public let position: Float
-    public let current: TimeInterval
-    public let remaining: TimeInterval
-    public let duration: TimeInterval
-}
-
-///Protocol for our concept of an audio player which abstracts MPMediaPlayer and AVAudioEngine/AVAudioPlayerNode
-/// Not all features (EQ, routing, track output level) are supported by both so you need to check with your factory created object
-/// after initialization to see what is available.
-/// - note: The MPMediaPlayer concept of a queue is hidden here as well. The assumption is that you want
-///         full controll over playback and thus assume full responsibility for transitions.
-public protocol AudioPlayer: AnyObject {
-    var delegate: AudioPlayerDelegate? { get set }
-    
-    var mediaItem: MPMediaItem? { get set }
-    
-    var asset: AVURLAsset? { get set }
-    
-    var assetURL: URL? { get }
-
-    var isPrepared: Bool { get }
-    
-    var playbackPosition: TimeInterval { get set }
-    
-    var playbackProgress: Float { get set }
-
-    ///Playback duration adjusted for playbackRate
-    var playbackDuration: TimeInterval { get }
-
-    ///Adjust the time pitch rate in the range: 0.03125 to 32.0, default is 1.0
-    var hasPlaybackRate: Bool { get }
-    var playbackRate: Float { get set }
-
-    var currentPosition: PlaybackPosition { get }
-    
-    var hasOutputRouting: Bool { get }
-    var outputRouting: AudioPlayerOutputRouting? { get set }
-
-    var hasOutputLevelAdjust: Bool { get }
-    ///Adjust track playback level in range: -1.0 to 1.0
-    ///A detent around zero is automatically applied.
-    ///
-    ///- note: You may want to read back the value after setting to get actual value of the control.
-    var trackOutputLevelAdjust: Float? { get set }
-
-    var timePitchQuality: AVAudioUnitTimePitch.QualityRange? { get set }
-
-    var hasEQSettings: Bool { get }
-
-    ///Array of EQ filter parameters
-    var equalizerBands: [AudioPlayerEQFilterParameters] { get set }
-    
-    var outputSampleRate: Double? { get }
-    
-    var meters: [Float] { get }
-    var meteringEnabled: Bool { get set }
-    
-    func play()
-    func isPlaying() -> Bool
-
-    func pause()
-    func isPaused() -> Bool
-
-    ///Toggle play/pause as appropriate
-    func plause()
-
-    func stop()
-    
-    ///Adjust EQ filter at given index to given set of filter parameters
-    func setFilter(atIndex filterIndex: Int, filter: AudioPlayerEQFilterParameters)
-
-    ///Adjust EQ filter at given index to given set of filter parameters
-    func setFilter(atIndex filterIndex: Int, frequency: Float, gain: Float, bandwidth: Float)
-}
-
-extension AudioPlayer {
-    public var assetURL: URL? {
-        get {
-            asset?.url ?? mediaItem?.assetURL
-        }
-    }
-
-    public var playbackDuration: TimeInterval {
-        guard let duration = mediaItem?.playbackDuration else {
-            return 0.0
-        }
-        return ceil(duration / TimeInterval(playbackRate))
-    }
-    
-    public var currentPosition: PlaybackPosition {
-        let progress = playbackProgress.clamped(to: 0.0...1.0)
-        
-        //time adjusted for changes in playback rate
-        let duration = playbackDuration
-        let current: TimeInterval = duration * Double(progress)
-        let remaining: TimeInterval = duration - current
-        
-        return PlaybackPosition(position: progress,
-                                current: current,
-                                remaining: remaining,
-                                duration: duration)
-    }
-    
-    ///Toggle play/pause as appropriate
-    public func plause() {
-        if isPlaying() {
-            pause()
-        } else {
-            play()
-        }
-    }
-
-    ///playback postion as percentage 0.0->1.0
-    public var playbackProgress: Float {
-        get {
-            guard let duration = mediaItem?.playbackDuration, duration > .zero else {
-                return .zero
-            }
-            
-            return Float(playbackPosition/duration)
-        }
-        
-        set(position) {
-            guard let duration = mediaItem?.playbackDuration else {
-                return
-            }
-
-            let clamped = position.clamped(to: 0.0...1.0)
-            let offsetSeconds: TimeInterval = duration * TimeInterval(clamped)
-            playbackPosition = offsetSeconds
-        }
-    }
-
-    public var hasPlaybackRate: Bool {
-        false
-    }
-    
-    public var playbackRate: Float  {
-        get { 1.0 }
-        set {}
-    }
-    
-    public var hasOutputRouting: Bool {
-        false
-    }
-    public var outputRouting: AudioPlayerOutputRouting? {
-        get { nil }
-        set {}
-    }
-    
-    public var hasOutputLevelAdjust: Bool {
-        false
-    }
-    public var trackOutputLevelAdjust: Float? {
-        get { nil }
-        set {}
-    }
-    
-    public var timePitchQuality: AVAudioUnitTimePitch.QualityRange? {
-        get { nil }
-        set {}
-    }
-    
-    public var hasEQSettings: Bool {
-        false
-    }
-    public var equalizerBands: [AudioPlayerEQFilterParameters] {
-        get { [] }
-        set {}
-    }
-    
-    public var outputSampleRate: Double? {
-        nil
-    }
-    
-    public func setFilter(atIndex filterIndex: Int, filter: AudioPlayerEQFilterParameters) {
-    }
-    
-    public func setFilter(atIndex filterIndex: Int, frequency: Float, gain: Float, bandwidth: Float) {
-    }
-}
-
-///This is a thin wrapper on MPMusicPlayerController to give us interface consistency with AudioPlayer for factory construction
-public class MusicPlayer: AudioPlayer {
-    public var meteringEnabled: Bool = false
-    
-    public var meters: [Float] = []
-    
-    private static var player: MPMusicPlayerApplicationController = {
-        let player = MPMusicPlayerController.applicationQueuePlayer
-        player.repeatMode = .none
-        player.shuffleMode = .off
-        player.beginGeneratingPlaybackNotifications()
-        
-        NotificationCenter.default.addObserver(forName: .MPMusicPlayerControllerVolumeDidChange,
-                                               object: player,
-                                               queue: .main)
-        { (notification) in
-            //there is presently no way to determine volume level of the MPMusicPlayerController
-            //so this kind of sucks.
-            NotificationCenter.default.post(name: .SystemVolumeMonitor, userInfo: ["volume":0.0])
-        }
-        
-        return player
-    }()
-    
-    public weak var delegate: AudioPlayerDelegate?
-
-    public var mediaItem: MPMediaItem? = nil
-    
-    public var asset: AVURLAsset? {
-        get {
-            return nil
-        }
-        
-        set {
-            assert(false, "AVURLAsset not supported on MusicPlayer class")
-        }
-    }
-    
-    public var assetURL: URL? {
-        return mediaItem?.assetURL
-    }
-
-    public var isPrepared: Bool {
-        return MusicPlayer.player.isPreparedToPlay
-    }
-    
-    public var playbackState: MPMusicPlaybackState {
-        get {
-            MusicPlayer.player.playbackState
-        }
-    }
-
-    //This is a hack to work around the issue that currentPlaybackTime is bogus
-    // immediately after setting up the queue.
-    // Attempting to reset currentPlaybackTime to .zero immediately after initializing the
-    // queue results in prolonged (10 second) delays.
-    private var queueUninitialized: Bool = true
-    
-    public var playbackPosition: TimeInterval {
-        get {
-            queueUninitialized ? .zero : MusicPlayer.player.currentPlaybackTime
-        }
-        set {
-            MusicPlayer.player.currentPlaybackTime = newValue
-        }
-    }
-
-    public init(mediaItem: MPMediaItem? = nil) {
-        self.mediaItem = mediaItem
-        
-        NotificationCenter.default.addObserver(self,
-                                               selector: #selector(self.handleStateChange),
-                                               name: .MPMusicPlayerControllerPlaybackStateDidChange,
-                                               object: nil)
-    }
-
-    deinit {
-        NotificationCenter.default.removeObserver(self)
-    }
-    
-    public func play() {
-        queueUninitialized = false
-        MusicPlayer.player.play()
-    }
-    
-    public func isPlaying() -> Bool {
-        MusicPlayer.player.playbackState == .playing
-    }
-    
-    public func pause() {
-        MusicPlayer.player.pause()
-        
-        DispatchQueue.main.async {
-            self.delegate?.playbackPaused()
-        }
-    }
-    
-    public func isPaused() -> Bool {
-        MusicPlayer.player.playbackState == .paused
-    }
-    
-    public func stop() {
-        MusicPlayer.player.stop()
-        
-        DispatchQueue.main.async {
-            self.delegate?.playbackStopped(trackCompleted: false)
-        }
-    }
-    
-    func setupPlayer(completion: @escaping ()->Swift.Void) {
-        DispatchQueue.global(qos: .userInitiated).async {
-            guard let mediaItem = self.mediaItem else {
-                completion()
-                return
-            }
-            
-            MusicPlayer.player.setQueue(with: [mediaItem.playbackStoreID])
-            MusicPlayer.player.repeatMode = .none
-            MusicPlayer.player.shuffleMode = .off
-
-            MusicPlayer.player.prepareToPlay() { error in
-                //I continue to see a lot of random failures in prepareToPlay()
-                // hoping this may shed some light on things.
-                if let error = error { print("☢️ MPMusicPlayerController.prepareToPlay", error, "☢️") }
-                
-                DispatchQueue.main.async {
-                    self.queueUninitialized = true
-                    completion()
-                }
-            }
-        }
-    }
-    
-    @objc private func handleStateChange(notification: Notification) {
-        //As of iOS 14.3 MPMusicPlayerControllerPlaybackStateDidChange and .playbackState are completely fucked.
-        //I would prefer to use this for delegate notification but it is unreliable so delegate state notification is now tied to
-        // calls to the play/pause/stop methods. I still must handle .paused here to know when
-        // track/queue is complete, however.
-        // Addendum:
-        // A great deal of the inconsistency of state reporting appears to be related to the state(s) of .repeatMode and .shuffleMode.
-        // I am now setting these explicitly in setupPlayer() and this seems to have increased the consistency of the state reporting.
-        // The state rules are still completely inscrutable, and it appears this method can be called multiple times
-        // for a single operation, so I am still not going to rely upon this for delegate notification.
-        
-        switch playbackState {
-        case .stopped:
-            break
-            
-        case .playing:
-            //As of iOS 15.4 there is now a race condition detecting playback from
-            // the main loop so moving this here.
-            // This is still problematic as it can be called multiple times.
-            self.delegate?.playbackStarted()
-            
-        case .paused:
-            guard let mediaItemDuration = MusicPlayer.player.nowPlayingItem?.playbackDuration else {
-                return
-            }
-            
-            //The only currently reliable notficiation of track/queue completion is
-            // to test for playbackPosition > mediaItemDuration on .paused.
-            if playbackPosition > mediaItemDuration {
-                DispatchQueue.main.async {
-                    //Indicate queue no longer initialized, fixes issues
-                    // with track progress past end as the player likes to do.
-                    self.queueUninitialized = true
-                    self.delegate?.playbackStopped(trackCompleted: true)
-                }
-            }
-            
-        case .interrupted:
-            DispatchQueue.main.async {
-                self.delegate?.playbackStopped(trackCompleted: false)
-            }
-            
-        case .seekingForward:
-            break
-            
-        case .seekingBackward:
-            break
-            
-        @unknown default:
-            break
-        }
-    }
-}
-
-///Factory creator for audio player classes
-///
-/// Not all features (EQ, playbackRate, routing, track output level) are supported by all types of players so you need to check with your factory created object
-/// after initialization to see what is available.
-public struct AudioPlayerFactory {
-    ///Create an appropriate audio player based on the media item
-    public static func createPlayer(for mediaItem: MPMediaItem, _ completion: @escaping (AudioPlayer)->Swift.Void) {
-        if mediaItem.assetURL != nil {
-            completion(FXAudioPlayerEngine(mediaItem: mediaItem))
-        }
-        else {
-            let player = MusicPlayer(mediaItem: mediaItem)
-            player.setupPlayer {
-                completion(player)
-            }
-        }
-    }
-    
-    public static func createPlayer(for asset: AVURLAsset, _ completion: @escaping (AudioPlayer)->Swift.Void) {
-        completion(FXAudioPlayerEngine(asset: asset))
-    }
 }
 
 // MARK: - SystemVolumeMonitor
@@ -1505,5 +1133,15 @@ public extension AVAudioUnitTimePitch {
 extension AVAudioSessionRouteDescription {
     var hasHeadphonens: Bool {
         outputs.filter({$0.portType == .headphones}).isNotEmpty
+    }
+}
+
+// MARK: - AVAudioEngine
+
+extension AVAudioEngine {
+    func detachAll() {
+        attachedNodes.forEach {
+            detach($0)
+        }
     }
 }

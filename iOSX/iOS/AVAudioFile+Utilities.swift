@@ -15,24 +15,34 @@ private let kProcessingFormat: AVAudioCommonFormat = .pcmFormatFloat32
 
 //Utility accessors
 public extension AVAudioFile {
+    ///Length of file in seconds
     var duration: TimeInterval{
         time(forFrame: length)
     }
     
+    ///Number of audio channels
     var channelCount: UInt32 {
         processingFormat.channelCount
     }
     
+    ///Effective sample rate of file
     var sampleRate: Double {
         processingFormat.sampleRate
     }
     
+    ///Utility to convert a frame position to seconds
     func time(forFrame frame: AVAudioFramePosition) -> TimeInterval {
         TimeInterval(Double(frame) / processingFormat.sampleRate)
     }
     
+    ///Utility to convert time in seconds to a frame position
     func frame(forTime time: TimeInterval) -> AVAudioFramePosition {
         AVAudioFramePosition(time * processingFormat.sampleRate)
+    }
+    
+    ///Utility to calculate the progress position of a frame. Returns percentage value between 0...1
+    func progress(forFrame frame: AVAudioFramePosition) -> Float {
+        frame.percentage(of: length).clamped(to: 0.0...1.0)
     }
 }
 

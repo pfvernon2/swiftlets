@@ -8,6 +8,7 @@
 
 import QuartzCore
 import CoreServices
+import UIKit
 
 public extension URL {
     ///returns tuple of (file name, file extension) or nil if URL is a directory
@@ -37,7 +38,7 @@ public extension Bool {
 
 public extension Double {
     static var halfPi: Double {
-        Double.pi.halved
+        Double.pi / 2.0
     }
     
     static var π: Double {
@@ -45,7 +46,7 @@ public extension Double {
     }
     
     static var τ: Double {
-        Double.pi.doubled
+        Double.pi * 2.0
     }
 
     func truncate(to places: Int) -> Double {
@@ -59,6 +60,7 @@ public extension CGFloat {
         let closest = interval * (self / interval).rounded()
         return closest
     }
+    
     var halved: CGFloat {
         self / 2.0
     }
@@ -66,11 +68,7 @@ public extension CGFloat {
     var doubled : CGFloat {
         self * 2.0
     }
-    
-    func percentage(of whole: CGFloat) -> CGFloat {
-        return self / whole
-    }
-    
+        
     static var unity: CGFloat = 1.0
     
     static var alphaMin: CGFloat = 0.0
@@ -90,10 +88,6 @@ public extension Float {
 
     var doubled : Float {
         self * 2.0
-    }
-
-    func percentage(of whole: Float) -> Float {
-        return self / whole
     }
 
     static var unity: Float = 1.0
@@ -120,20 +114,16 @@ public extension Double {
     var doubled : Double {
         self * 2.0
     }
-
-    func percentage(of whole: Double) -> Double {
-        return self / whole
-    }
 }
 
 public extension Int {
     //TODO: should be protocol/generic on Numeric
-    func rounded(toInterval interval:Int) -> Int {
+    func rounded(toInterval interval: Int) -> Int {
         Int(Double(self).rounded(toInterval: Double(interval)))
     }
     
     //TODO: integrate this with other calls using rounding rules
-    func roundedDown(toInterval interval:Int) -> Int {
+    func roundedDown(toInterval interval: Int) -> Int {
         guard self > 0 else {
             return 0
         }
@@ -142,7 +132,7 @@ public extension Int {
     }
     
     //TODO: integrate this with other calls using rounding rules
-    func roundedUp(toInterval interval:Int) -> Int {
+    func roundedUp(toInterval interval: Int) -> Int {
         Int((Double(self)/Double(interval)).rounded(.up) * Double(interval))
     }
     
@@ -154,16 +144,32 @@ public extension Int {
         self * 2
     }
 
-    func percentage(of whole: Int) -> Double {
-        return Double(self) / Double(whole)
-    }
-    
     func rollDice(sides: Int = 6) -> Int {
         Int.random(in: 1...sides)
     }
     
     func rollDice(sides: Int = 6, count: Int = 2) -> [Int] {
         Array<Int>(count: count) { _ in rollDice(sides: sides) }
+    }
+}
+
+public extension BinaryInteger {
+    func percentage<T: BinaryInteger>(of whole: T) -> Float {
+        guard whole != .zero else {
+            return .zero
+        }
+        
+        return Float(Double(self) / Double(whole))
+    }
+}
+
+public extension FloatingPoint {
+    func percentage<T: FloatingPoint>(of whole: T) -> T {
+        guard whole != .zero else {
+            return .zero
+        }
+
+        return self as! T / whole
     }
 }
 

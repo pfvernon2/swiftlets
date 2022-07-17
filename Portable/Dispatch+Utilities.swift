@@ -66,7 +66,7 @@ public extension DispatchQueue {
  that reads return the most recent data based on their execution time as apposed to their queue order.
  */
 open class DispatchReaderWriter {
-    private var concurrentQueue:DispatchQueue = DispatchQueue(label: "com.cyberdev.Dispatch.readerWriter", attributes: .concurrent)
+    private var concurrentQueue: DispatchQueue = DispatchQueue(label: "com.cyberdev.Dispatch.readerWriter", attributes: .concurrent)
     
     public func read<T>(execute work: () throws -> T) rethrows -> T {
         try self.concurrentQueue.sync(execute: work)
@@ -87,8 +87,8 @@ open class DispatchReaderWriter {
  This pattern is useful in situations where race conditions at execution time must be minimized. While this may be useful, or even
  critical, for some operations please be aware that it can result in long delays, or even starvation, on read.
  
- - note: This object incurs significantly more overhead than the DispatchReaderWriter class. Its usefulness is likely limited to
-         cases where it is crucial to minimize race conditions when accessing the data.
+ - note: This incurs significantly more overhead than the DispatchReaderWriter class. Its usefulness is likely limited to
+         cases where it is crucial to minimize race conditions when accessing updated data.
  */
 open class DispatchWriterReader {
     private var writeQueue:DispatchQueue = DispatchQueue(label: "com.cyberdev.Dispatch.writerReader.write")
@@ -194,7 +194,7 @@ open class writerReaderType<T> {
  ```
  */
 open class DispatchGuard {
-    private var semaphore:DispatchSemaphore
+    private var semaphore: DispatchSemaphore
 
     //Create a DispatchGuard with the number of threads you want to allow simultaneous access.
     public init(value:Int = 1) {
@@ -246,5 +246,40 @@ open class DispatchGuardCustodian {
     
     deinit {
         self.dispatchGuard.exit()
+    }
+}
+
+///Simple property wrapper to allow atomic access to values.
+///
+/// Queue is assumed to be serial to preserve order of operations.
+@propertyWrapper
+struct AtomicAccessor<T> {
+    private class Storage {
+        var value: T
+        init(initialValue: T) {
+            value = initialValue
+        }
+    }
+    private var storage: Storage
+
+    public var queue: DispatchQueue
+    
+    init (wrappedValue: T, queue: DispatchQueue) {
+        self.queue = queue
+        self.storage = Storage(initialValue: wrappedValue);
+    }
+    
+    var wrappedValue :T {
+        get {
+            queue.sync {
+                self.storage.value
+            }
+        }
+        
+        nonmutating set {
+            queue.async() {
+                self.storage.value = newValue
+            }
+        }
     }
 }
