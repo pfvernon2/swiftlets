@@ -156,30 +156,43 @@ public class AudioPlayerEngine {
         AVAudioFrameCount(endPosition - startPosition)
     }
         
-    ///Time for head position in terms of absolute length of file in seconds
+    ///Time for head position relative to absolute length of file in seconds
     public var headTime: TimeInterval {
         time(forFrame: headPosition)
     }
 
-    ///Head position as percentage in terms of absolute length of file
+    ///Head position as percentage relative to absolute length of file
     public var headProgress: Float {
         progress(forFrame: headPosition)
     }
 
-    ///Time for tail position in terms of absolute length of file in seconds
+    ///Time for tail position relative to absolute length of file in seconds
     public var tailTime: TimeInterval {
         time(forFrame: tailPosition)
     }
 
-    ///Tail position as percentage in terms of absolute length of file
+    ///Tail position as percentage relative to absolute length of file
     public var tailProgress: Float {
         progress(forFrame: tailPosition)
     }
     
-    ///Playback length in seconds with trimming taken into account
+    ///Length of trimmed section to be played in frames
+    public var trimmedLength: AVAudioFrameCount {
+        let tail = tailPosition > .zero ? tailPosition : fileLength
+        let head = headPosition
+
+        return AVAudioFrameCount(tail - head)
+    }
+    
+    ///Playback length in seconds adjusted for trim at head/tail
     public var trimmedPlaybackDuration: TimeInterval {
-        let end = tailPosition > .zero ? tailTime : fileDuration
-        return end - headTime
+        time(forFrame: AVAudioFramePosition(trimmedLength))
+    }
+    
+    ///Playback postion as percentage 0.0->1.0 relative to trim at head/tail
+    public var trimmedPlaybackProgress: Float {
+        let current = playbackPosition - headPosition
+        return current.percentage(of: trimmedLength)
     }
     
     ///Last rendered frame including offset from startPosition
@@ -191,7 +204,7 @@ public class AudioPlayerEngine {
         return current + startPosition
     }
     
-    ///Current frame position of playback in terms of absolute length of file
+    ///Current frame position of playback relative to absolute length of file
     ///
     ///Setting this value will reposition the playback position to the
     /// specified frame.
@@ -238,7 +251,7 @@ public class AudioPlayerEngine {
         }
     }
 
-    ///TimeInterval of current position in terms of absolute length of file
+    ///TimeInterval of current position relative to absolute length of file
     public var playbackTime: TimeInterval {
         get {
             time(forFrame: playbackPosition)
@@ -249,7 +262,7 @@ public class AudioPlayerEngine {
         }
     }
 
-    ///Playback postion as percentage 0.0->1.0 in terms of absolute length of file
+    ///Playback postion as percentage 0.0->1.0 relative to absolute length of file
     public var playbackProgress: Float {
         get {
             progress(forFrame: playbackPosition)
