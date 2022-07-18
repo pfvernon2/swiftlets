@@ -50,7 +50,7 @@ public class AudioPlayerEngine {
     private var headPosition: AVAudioFramePosition = kTrackHeadFramePosition
     private var tailPosition: AVAudioFramePosition = kTrackHeadFramePosition
 
-    //seek position for start
+    //seek position
     private var seekPosition: AVAudioFramePosition = kTrackHeadFramePosition
 
     //indication of external interruption of playback
@@ -70,7 +70,7 @@ public class AudioPlayerEngine {
     @AtomicAccessor private var pausePosition: AVAudioFramePosition
 
     //Tracks whether scheduled segment played up/through its expected ending frame
-    @AtomicAccessor private var reachedEnd: Bool
+    @AtomicAccessor private var segmentCompleted: Bool
 
     //Tracks if we are in a seek operation, allows us to ignore early
     // completion callback of previously scheduled segment
@@ -93,7 +93,8 @@ public class AudioPlayerEngine {
     }
     
     ///AVAudioTime representing number of frames played since last start()
-    /// - note: Not adjusted for start position in file. This is the underlying player time.
+    ///
+    /// - note: This is not adjusted for start position in file. This is the underlying player time.
     private var currentPlayerTime: AVAudioTime? {
         guard let nodeTime: AVAudioTime = player.lastRenderTime else {
             return nil
@@ -311,7 +312,7 @@ public class AudioPlayerEngine {
         //shared queue not available until init time
         _playerScheduled = AtomicAccessor(wrappedValue: false, queue: stateQueue)
         _pausePosition = AtomicAccessor(wrappedValue: kTrackHeadFramePosition, queue: stateQueue)
-        _reachedEnd = AtomicAccessor(wrappedValue: false, queue: stateQueue)
+        _segmentCompleted = AtomicAccessor(wrappedValue: false, queue: stateQueue)
         _inSeek = AtomicAccessor(wrappedValue: false, queue: stateQueue)
     }
     
@@ -428,7 +429,7 @@ public class AudioPlayerEngine {
         assert(Thread.isMainThread)
         
         let wasPlaying = isPlaying()
-        let atEnd = reachedEnd
+        let atEnd = segmentCompleted
         
         //player.stop() is particular about being called from main
         player.stop()
@@ -539,7 +540,7 @@ public class AudioPlayerEngine {
             }
             
             DispatchQueue.main.async {
-                self.reachedEnd = self.currentPlayerPosition ?? .zero >= endFrame
+                self.segmentCompleted = self.currentPlayerPosition ?? .zero >= endFrame
                 self.stop()
             }
         }
@@ -567,7 +568,7 @@ public class AudioPlayerEngine {
         seekPosition = kTrackHeadFramePosition
         pausePosition = kTrackHeadFramePosition
         interrupted = false
-        reachedEnd = false
+        segmentCompleted = false
     }
     
     private func _meter() {
@@ -701,19 +702,25 @@ public class AudioPlayerEngine {
     #endif
     
     private func interruptSessionBegin() {
+        guard player.isPlaying else {
+            return
+        }
+        
         interrupted = true
         
         pause()
     }
     
     private func interruptSessionEnd(resume: Bool) {
-        if interrupted && resume {
-            if !engine.isRunning {
-                startEngine()
-            }
-            
-            self.resume()
+        guard interrupted && resume else {
+            return
         }
+        
+        if !engine.isRunning {
+            startEngine()
+        }
+        
+        self.resume()
     }
     
     public var debugDescription: String {
