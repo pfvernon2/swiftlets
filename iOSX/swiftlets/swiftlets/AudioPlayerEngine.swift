@@ -196,6 +196,12 @@ public class AudioPlayerEngine {
         return current.percentage(of: trimmedLength)
     }
     
+    ///TimeInterval of current position relative to trim at head/tail
+    public var trimmedPlaybackTime: TimeInterval {
+        let current = playbackPosition - headPosition
+        return time(forFrame: current)
+    }
+
     ///Last rendered frame including offset from startPosition
     public var currentPlayerPosition: AVAudioFramePosition? {
         guard let current = currentPlayerTime?.sampleTime else {
