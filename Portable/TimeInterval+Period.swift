@@ -10,6 +10,7 @@ import Foundation
 
 ///Enum of TimeInterval (i.e. seconds) to various calendar units.
 /// This useful for getting rough order of magnitude for a TimeInterval value.
+///
 /// - note: Calendaring is complicated. Use DateComponents if you need
 /// to reliably break things down. This is useful for primarily for determining order of magnitude
 /// and should not be used for date calculations.
@@ -65,6 +66,7 @@ public enum TimePeriod: Double {
 public extension TimeInterval {
     ///Convenience initializer for creating TimeInterval from
     /// commonly used time periods.
+    ///
     /// - note: The values passed are cumulative.
     init(days: Double = 0.0,
          hours: Double = 0.0,
