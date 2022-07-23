@@ -220,13 +220,18 @@ public extension TimeInterval {
         let minutes = floor((absInterval - (hours * TimePeriod.hour.rawValue))/TimePeriod.minute.rawValue)
         
         let subMinute = absInterval - ((minutes * TimePeriod.minute.rawValue) + (hours * TimePeriod.hour.rawValue))
-        let seconds = floor(subMinute)
+        var seconds = floor(subMinute)
         let millis = subMinute.truncatingRemainder(dividingBy: 1.0) * 1000
+        
+        //round appropriately when not displaying millis
+        if !includeMillis, millis >= 500 {
+            seconds += 1
+        }
         
         var timeDescription: String
         if hours > 0.0 {
             timeDescription = String(format: "%d:%0.2d:%0.2d", Int(hours), Int(minutes), Int(seconds))
-        } else if includeMillis && millis != .zero {
+        } else if includeMillis {
             timeDescription = String(format: "%0.1d:%0.2d.%0.3d", Int(minutes), Int(seconds), Int(millis))
         } else {
             timeDescription = String(format: "%0.1d:%0.2d", Int(minutes), Int(seconds))
