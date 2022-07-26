@@ -353,14 +353,22 @@ public class AudioPlayerEngine {
         tailPosition = file.length
                 
         initAudioEngine()
-
-        registerForMediaServerNotifications()
         
         if wasPlaying {
             _play()
         }
     }
     
+    ///This is a temporary? hack to release the avaudioengine which appears
+    ///to have a retain cycle issue. This must be called after play has been called on the object or
+    ///avaudioengine will retain this object indefinitetly.
+    public func shutdown() {
+        DispatchQueue.main.async {
+            self.stop()
+            self.deinitAudioEngine()
+        }
+    }
+        
     ///Set outputs for the engine
     public func mapOutputs(to channels: [AVAudioOutputNode.OutputChannelMapping]) {
         engine.outputNode.mapRouteOutputs(to: channels)
@@ -511,7 +519,8 @@ public class AudioPlayerEngine {
     
     internal func deinitAudioEngine() {
         engine.stop()
-        engine.detachAll()
+
+        engine = AVAudioEngine()
     }
         
     @discardableResult private func _play() -> Bool {
@@ -566,7 +575,6 @@ public class AudioPlayerEngine {
     
     private func _stop() {
         stopEngine()
-        
         _reset()
     }
     
@@ -606,6 +614,7 @@ public class AudioPlayerEngine {
         
         do {
             try engine.start()
+            registerForMediaServerNotifications()
         } catch let error as NSError {
             print("Exception in audio engine start: \(error.localizedDescription)")
         }
@@ -618,6 +627,7 @@ public class AudioPlayerEngine {
             return false
         }
         
+        deregisterForMediaServerNotifications()
         engine.stop()
         
         return !engine.isRunning
@@ -627,10 +637,8 @@ public class AudioPlayerEngine {
     
     #if os(iOS) || os(watchOS)
     private func registerForMediaServerNotifications() {
-        NotificationCenter.default.removeObserver(self,
-                                                  name: AVAudioSession.interruptionNotification,
-                                                  object: AVAudioSession.sharedInstance())
-        
+        deregisterForMediaServerNotifications()
+                
         NotificationCenter.default.addObserver(forName: AVAudioSession.interruptionNotification,
                                                object: AVAudioSession.sharedInstance(),
                                                queue: nil) { [weak self] (notification: Notification) in
@@ -656,24 +664,16 @@ public class AudioPlayerEngine {
                 break;
             }
         }
-
-        NotificationCenter.default.removeObserver(self,
-                                                  name: AVAudioSession.mediaServicesWereResetNotification,
-                                                  object: AVAudioSession.sharedInstance())
         
         NotificationCenter.default.addObserver(forName: AVAudioSession.mediaServicesWereResetNotification,
                                                object: AVAudioSession.sharedInstance(),
                                                queue: nil) { [weak self] (notification: Notification) in
             self?.stop()
         }
-
-        NotificationCenter.default.removeObserver(self,
-                                                  name: AVAudioSession.routeChangeNotification,
-                                                  object: AVAudioSession.sharedInstance())
         
         NotificationCenter.default.addObserver(forName: AVAudioSession.routeChangeNotification,
                                                object: AVAudioSession.sharedInstance(),
-                                               queue: nil) { [weak self] (notification: Notification) in
+                                               queue: nil) { /*[weak self]*/ (notification: Notification) in
             guard let userInfo = notification.userInfo,
                   let reasonValue = userInfo[AVAudioSessionRouteChangeReasonKey] as? UInt,
                   let reason = AVAudioSession.RouteChangeReason(rawValue: reasonValue) else {
@@ -683,17 +683,11 @@ public class AudioPlayerEngine {
             switch reason {
             case .newDeviceAvailable:
                 if AVAudioSession.sharedInstance().currentRoute.hasHeadphonens {
-                    self?.play()
                 }
 
             case .oldDeviceUnavailable:
                 if let previousRoute = userInfo[AVAudioSessionRouteChangePreviousRouteKey] as? AVAudioSessionRouteDescription,
                    !previousRoute.hasHeadphonens {
-                    guard let self = self else {
-                        return
-                    }
-
-                    self.play()
                 }
 
             default:
@@ -701,6 +695,19 @@ public class AudioPlayerEngine {
             }
         }
     }
+    
+    func deregisterForMediaServerNotifications() {
+        NotificationCenter.default.removeObserver(self,
+                                                  name: AVAudioSession.interruptionNotification,
+                                                  object: AVAudioSession.sharedInstance())
+        NotificationCenter.default.removeObserver(self,
+                                                  name: AVAudioSession.mediaServicesWereResetNotification,
+                                                  object: AVAudioSession.sharedInstance())
+        NotificationCenter.default.removeObserver(self,
+                                                  name: AVAudioSession.routeChangeNotification,
+                                                  object: AVAudioSession.sharedInstance())
+    }
+    
     #else
     private func registerForMediaServerNotifications() {
         //TODO: Support media state notifications for non-iOS platforms
@@ -1159,15 +1166,5 @@ public extension AVAudioUnitTimePitch {
 extension AVAudioSessionRouteDescription {
     var hasHeadphonens: Bool {
         outputs.filter({$0.portType == .headphones}).isNotEmpty
-    }
-}
-
-// MARK: - AVAudioEngine
-
-extension AVAudioEngine {
-    func detachAll() {
-        attachedNodes.forEach {
-            detach($0)
-        }
     }
 }
