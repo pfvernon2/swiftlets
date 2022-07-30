@@ -331,3 +331,26 @@ public extension UIView {
         return window.bounds.height - (safeAreaFrame.top + safeAreaFrame.height)
     }
 }
+
+public class RuleView: UIView {
+    var lineWidth: CGFloat = 1.0
+    var strokeColor: UIColor = .black
+    
+    public override func draw(_ rect: CGRect) {
+        let path = UIBezierPath()
+        
+        if bounds.height > bounds.width {
+            path.move(to: bounds.midTop)
+            path.addLine(to: bounds.midBottom)
+        } else {
+            path.move(to: bounds.midLeft)
+            path.addLine(to: bounds.midRight)
+        }
+        
+        path.lineWidth = lineWidth
+        path.close()
+        
+        strokeColor.setStroke()
+        path.stroke()
+    }
+}
