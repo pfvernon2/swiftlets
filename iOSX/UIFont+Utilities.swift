@@ -27,18 +27,15 @@ public extension UIFont {
 
     
     ///Down and dirty way to get variations on fonts
-    func variantWithTrait(_ trait: UIFontDescriptor.SymbolicTraits) -> UIFont? {
-        let fontDescriptor = self.fontDescriptor
-        let fontDescriptorSymbolicTraits: UIFontDescriptor.SymbolicTraits = [fontDescriptor.symbolicTraits, trait]
-
-        guard let boldFontDesc = fontDescriptor.withSymbolicTraits(fontDescriptorSymbolicTraits) else {
-            return nil
+    func variantWithTrait(_ trait: UIFontDescriptor.SymbolicTraits) -> UIFont {
+        guard let descriptor = fontDescriptor.withSymbolicTraits([fontDescriptor.symbolicTraits, trait]) else {
+            return self
         }
 
-        return UIFont(descriptor: boldFontDesc, size: pointSize)
+        return UIFont(descriptor: descriptor, size: pointSize)
     }
     
-    func boldVariant() -> UIFont? {
+    var boldVariant: UIFont {
         return variantWithTrait(.traitBold)
     }
 
@@ -48,5 +45,17 @@ public extension UIFont {
     ///  at the extremes of point sizes.
     func fittingHeight(_ height: CGFloat) -> UIFont {
         withSize(floor(height * (pointSize / lineHeight)))
+    }
+    
+    func variantWithDesign(_ design: UIFontDescriptor.SystemDesign) -> UIFont {
+        guard let descriptor = fontDescriptor.withDesign(design) else {
+            return self
+        }
+
+        return UIFont(descriptor: descriptor, size: pointSize)
+    }
+    
+    var roundedVariant: UIFont {
+        return variantWithDesign(.rounded)
     }
 }
